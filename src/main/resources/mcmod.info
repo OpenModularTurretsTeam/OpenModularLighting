@@ -1,0 +1,25 @@
+[
+  {
+	"modid": "omtcontrol",
+	"name": "OMTControl",
+	"description": "Control all the turrets!",
+	"version": "${version}",
+	"mcversion": "${mcversion}",
+	"credits": "Keridos, Peonjabiesous",
+	"logoFile": "",
+	"url": "",
+	"updateUrl": "",
+	"authors": [
+	  "Poenjabiesous",
+	  "Keridos"
+	],
+	"parent": "",
+	"screenshots": [],
+	"requiredMods": [
+	  "MinecraftForge,omlib,openmodularturrets"
+	],
+	"dependencies": [
+	  "MinecraftForge,omlib,openmodularturrets"
+	]
+  }
+]
