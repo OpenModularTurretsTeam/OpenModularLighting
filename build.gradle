@@ -129,8 +129,14 @@ def omlib_local = false
 configure(projects.findAll( {it.name == 'OMLib'})) {
    omlib_local = true
 }
+
+def omt_local = false
+configure(allprojects.findAll {it.name == 'OpenModularTurrets'}) {
+    omt_local = true
+}
 if (rootProject.name == "OMTControl"){
     omlib_local = true
+    omt_local = true
 }
 
 dependencies {
@@ -145,6 +151,11 @@ dependencies {
         compile "omtteam:omlib:${config.minecraft_version}-${config.omlib_version}:dev"
     } else {
         compile project(':OMLib')
+    }
+    if (!omt_local) {
+        compile "omtteam:openmodularturrets:${config.minecraft_version}-${config.omt_version}:dev"
+    } else {
+        compile project(':OpenModularTurrets')
     }
     runtime "com.enderio:EnderIO:${config.minecraft_version}-${config.enderio_version}"
     runtime "com.enderio.core:EnderCore:${config.minecraft_version}-${config.endercore_version}"

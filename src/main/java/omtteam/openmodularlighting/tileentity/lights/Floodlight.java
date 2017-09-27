@@ -147,6 +147,8 @@ public class Floodlight extends AbstractLightSource implements ITickable {
         if (!this.getWorld().isRemote && this.getWorld().getTotalWorldTime() % 5 == 1) {
             if (active && energySufficient(5)) {
                 drainEnergy(5);
+            } else if (active) {
+                active = false;
             } else {
                 return;
             }
@@ -170,6 +172,4 @@ public class Floodlight extends AbstractLightSource implements ITickable {
         }
 
     }
-
-
 }

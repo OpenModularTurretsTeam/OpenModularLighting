@@ -21,8 +21,12 @@ import omtteam.openmodularlighting.items.AddonMetaItem;
 import omtteam.openmodularlighting.items.UpgradeMetaItem;
 import omtteam.openmodularlighting.reference.OMLNames;
 import omtteam.openmodularlighting.reference.Reference;
+import omtteam.openmodularturrets.api.network.INetworkTile;
+import omtteam.openmodularturrets.api.network.IPowerExchangeTile;
+import omtteam.openmodularturrets.api.network.OMTNetwork;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.ArrayList;
 import java.util.List;
@@ -33,15 +37,18 @@ import static omtteam.omlib.util.GeneralUtil.getMachineModeLocalization;
 
 @SuppressWarnings("unused")
 @Optional.InterfaceList({
-        @Optional.Interface(iface = "dan200.computercraft.api.peripheral.IPeripheral", modid = "ComputerCraft")}
+        @Optional.Interface(iface = "dan200.computercraft.api.peripheral.IPeripheral", modid = "ComputerCraft"),
+        @Optional.Interface(iface = "omtteam.openmodularturrets.api.network.INetworkTile", modid = "openmodularturrets"),
+        @Optional.Interface(iface = "omtteam.openmodularturrets.api.network.IPowerExchangeTile", modid = "openmodularturrets")}
 )
-public class LightingBase extends TileEntityMachine implements IPeripheral, ICamoSupport, IDebugTile {
+public class LightingBase extends TileEntityMachine implements IPeripheral, ICamoSupport, IDebugTile, INetworkTile, IPowerExchangeTile {
     protected IBlockState camoBlockState;
 
     private int upperBoundMaxRange;
 
     private ArrayList<IComputerAccess> comp;
     protected int tier;
+    private Object omtNetwork;
 
     public LightingBase() {
         super();
@@ -153,6 +160,11 @@ public class LightingBase extends TileEntityMachine implements IPeripheral, ICam
         NBTTagCompound nbtTagCompound = new NBTTagCompound();
         nbtTagCompound.setInteger("mode", mode.ordinal());
         return nbtTagCompound;
+    }
+
+    @Override
+    public void setNetwork(OMTNetwork network) {
+        this.omtNetwork = network;
     }
 
     public void readMemoryCardNBT(NBTTagCompound nbtTagCompound) {
@@ -282,5 +294,36 @@ public class LightingBase extends TileEntityMachine implements IPeripheral, ICam
 
     public enum commands {
         getOwner, getActive, getMode, getRedstone, setMode, getType
+    }
+
+    @Optional.Method(modid = "openmodularturrets")
+    @Override
+    public boolean requiresEnergy() {
+        return true;
+    }
+
+    @Optional.Method(modid = "openmodularturrets")
+    @Override
+    public boolean deliversEnergy() {
+        return false;
+    }
+
+    @Optional.Method(modid = "openmodularturrets")
+    @Override
+    public OMEnergyStorage getEnergyStorage() {
+        return storage;
+    }
+
+    @Optional.Method(modid = "openmodularturrets")
+    @Override
+    public String getDeviceName() {
+        return "Lighting Base";
+    }
+
+    @Optional.Method(modid = "openmodularturrets")
+    @Nullable
+    @Override
+    public OMTNetwork getNetwork() {
+        return (OMTNetwork) omtNetwork;
     }
 }

@@ -20,7 +20,6 @@ public class PhantomLight extends TileEntity {
 
     }
 
-
     @Override
     public void readFromNBT(NBTTagCompound compound) {
         super.readFromNBT(compound);
@@ -65,6 +64,4 @@ public class PhantomLight extends TileEntity {
             this.getWorld().setBlockToAir(this.pos);
         }
     }
-
-
 }
