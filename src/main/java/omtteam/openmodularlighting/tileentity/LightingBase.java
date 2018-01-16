@@ -9,6 +9,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.fml.common.Optional;
 import net.minecraftforge.fml.common.registry.ForgeRegistries;
 import omtteam.omlib.api.IDebugTile;
@@ -130,6 +131,12 @@ public class LightingBase extends TileEntityMachine implements IPeripheral, ICam
 
 
         }
+    }
+
+    @Nonnull
+    @Override
+    public BlockPos getPosition() {
+        return this.getPos();
     }
 
     private void setBaseUpperBoundRange() {
