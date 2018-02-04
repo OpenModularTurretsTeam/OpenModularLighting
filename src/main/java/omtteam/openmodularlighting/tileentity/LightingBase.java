@@ -133,12 +133,6 @@ public class LightingBase extends TileEntityMachine implements IPeripheral, ICam
         }
     }
 
-    @Nonnull
-    @Override
-    public BlockPos getPosition() {
-        return this.getPos();
-    }
-
     private void setBaseUpperBoundRange() {
         // tier1: 16, tier2: 24, tier3: 32, tier4: 48 and tier5: 64
         upperBoundMaxRange = tier < 3 ? 8 + tier * 8 : tier < 5 ? 16 + tier * 8 : 24 + tier * 8;
@@ -332,5 +326,12 @@ public class LightingBase extends TileEntityMachine implements IPeripheral, ICam
     @Override
     public OMTNetwork getNetwork() {
         return (OMTNetwork) omtNetwork;
+    }
+
+    @Optional.Method(modid = "openmodularturrets")
+    @Nonnull
+    @Override
+    public BlockPos getPosition() {
+        return this.getPos();
     }
 }
