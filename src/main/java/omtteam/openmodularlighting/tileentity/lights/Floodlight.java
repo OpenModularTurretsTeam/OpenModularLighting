@@ -5,15 +5,11 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.ITickable;
 import omtteam.openmodularlighting.handler.ConfigHandler;
-import omtteam.openmodularlighting.tileentity.LightingBase;
 import omtteam.openmodularlighting.util.EnumLightMode;
 import omtteam.openmodularlighting.util.LightPlacingUtil;
 
 public class Floodlight extends AbstractLightSource implements ITickable {
-    protected LightingBase base;
     protected int range;
-    protected boolean turnedOn;
-    protected boolean active;
     protected EnumLightMode mode;
     protected int tier;
 
@@ -109,7 +105,7 @@ public class Floodlight extends AbstractLightSource implements ITickable {
         if (!this.getWorld().isRemote) {
             switch (mode) {
                 case STRAIGHT:
-                    LightPlacingUtil.straightSource(this.getWorld(), this, true);
+                    LightPlacingUtil.straightSource(this.getWorld(), this, true, placedLights);
             }
         }
     }
@@ -118,7 +114,7 @@ public class Floodlight extends AbstractLightSource implements ITickable {
         if (!this.getWorld().isRemote) {
             switch (mode) {
                 case STRAIGHT:
-                    LightPlacingUtil.straightSource(this.getWorld(), this, false);
+                    LightPlacingUtil.straightSource(this.getWorld(), this, false, placedLights);
             }
         }
     }
@@ -127,13 +123,13 @@ public class Floodlight extends AbstractLightSource implements ITickable {
         if (active && !turnedOn) { // turning on
             switch (mode) {
                 case STRAIGHT:
-                    LightPlacingUtil.straightSource(this.getWorld(), this, false);
+                    LightPlacingUtil.straightSource(this.getWorld(), this, false, placedLights);
             }
             turnedOn = true;
         } else if (!active && turnedOn) { // turning off
             switch (mode) {
                 case STRAIGHT:
-                    LightPlacingUtil.straightSource(this.getWorld(), this, true);
+                    LightPlacingUtil.straightSource(this.getWorld(), this, true, placedLights);
             }
             turnedOn = false;
         }

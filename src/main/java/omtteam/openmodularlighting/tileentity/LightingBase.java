@@ -61,7 +61,7 @@ public class LightingBase extends TileEntityMachine implements IPeripheral, ICam
         this.upperBoundMaxRange = 0;
 
         this.storage = new OMEnergyStorage(MaxEnergyStorage, MaxIO);
-        this.inventory = ItemStackList.create(tier == 5 ? 4 : tier == 4 ? 3 : tier == 3 ? 2 : tier == 2 ? 1 : 0);
+        this.inventory = ItemStackList.create(tier == 5 ? 4 : tier == 4 ? 3 : tier == 3 ? 3 : tier == 2 ? 2 : 0);
         this.tier = tier;
         this.camoBlockState = camoState;
         this.mode = EnumMachineMode.INVERTED;

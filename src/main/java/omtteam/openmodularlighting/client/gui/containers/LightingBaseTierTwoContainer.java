@@ -3,7 +3,6 @@ package omtteam.openmodularlighting.client.gui.containers;
 import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.inventory.Slot;
 import omtteam.openmodularlighting.client.gui.customSlot.AddonSlot;
-import omtteam.openmodularlighting.client.gui.customSlot.UpgradeSlot;
 import omtteam.openmodularlighting.tileentity.LightingBase;
 
 public class LightingBaseTierTwoContainer extends LightingBaseContainer {
@@ -19,9 +18,7 @@ public class LightingBaseTierTwoContainer extends LightingBaseContainer {
                 this.addSlotToContainer(new Slot(inventoryPlayer, 9 + x + y * 9, 8 + x * 18, 84 + y * 18));
             }
         }
-
-        addSlotToContainer(new AddonSlot(tileEntity, 9, 72, 18));
-        addSlotToContainer(new AddonSlot(tileEntity, 10, 92, 18));
-        addSlotToContainer(new UpgradeSlot(tileEntity, 11, 72, 52));
+        addSlotToContainer(new AddonSlot(tileEntity, 0, 72, 18));
+        addSlotToContainer(new AddonSlot(tileEntity, 1, 92, 18));
     }
 }

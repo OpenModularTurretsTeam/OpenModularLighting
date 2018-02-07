@@ -19,8 +19,8 @@ import java.util.List;
 import static omtteam.omlib.util.GeneralUtil.safeLocalize;
 
 @SuppressWarnings("deprecation")
-public class ItemBlockTurretBase extends CompatItemBlock {
-    public ItemBlockTurretBase(Block block) {
+public class ItemBlockLightingBase extends CompatItemBlock {
+    public ItemBlockLightingBase(Block block) {
         super(block);
         setHasSubtypes(true);
         this.setRegistryName(Reference.MOD_ID, OMLNames.Blocks.lightingBase);

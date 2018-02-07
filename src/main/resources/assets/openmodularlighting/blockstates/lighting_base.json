@@ -2,14 +2,14 @@
   "forge_marker": 1,
   "defaults": {
 	"textures": {
-	  "all": "openmodularturrets:blocks/turret_base_tier_one"
+	  "all": "openmodularlighting:blocks/lighting_base_tier_one"
 	},
 	"transform": "forge:default-block"
   },
   "variants": {
 	"normal": [
 	  {
-		"model": "openmodularturrets:custom/turret_base"
+		"model": "openmodularlighting:custom/lighting_base"
 	  }
 	]
   }

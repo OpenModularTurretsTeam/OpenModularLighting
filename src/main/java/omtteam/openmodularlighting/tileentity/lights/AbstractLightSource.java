@@ -2,9 +2,13 @@ package omtteam.openmodularlighting.tileentity.lights;
 
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.EnumFacing;
+import net.minecraft.util.math.BlockPos;
 import omtteam.omlib.tileentity.TileEntityOwnedBlock;
 import omtteam.openmodularlighting.tileentity.LightingBase;
 import omtteam.openmodularlighting.util.LightAddonUtil;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static omtteam.openmodularlighting.util.LightAddonUtil.getBaseFacing;
 
@@ -15,6 +19,9 @@ import static omtteam.openmodularlighting.util.LightAddonUtil.getBaseFacing;
 public abstract class AbstractLightSource extends TileEntityOwnedBlock {
     protected LightingBase base;
     protected EnumFacing orientation;
+    protected List<BlockPos> placedLights = new ArrayList<>();
+    protected boolean turnedOn;
+    protected boolean active;
 
 
     public AbstractLightSource() {

@@ -8,6 +8,7 @@ import omtteam.openmodularlighting.tileentity.lights.Floodlight;
 import omtteam.openmodularlighting.tileentity.lights.PhantomLight;
 
 import javax.annotation.ParametersAreNonnullByDefault;
+import java.util.List;
 
 /**
  * Created by Keridos on 03/08/17.
@@ -16,7 +17,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 public class LightPlacingUtil {
 
     @ParametersAreNonnullByDefault
-    public static void straightSource(World world, Floodlight source, boolean remove) {
+    public static void straightSource(World world, Floodlight source, boolean remove, List<BlockPos> placedLights) {
         BlockPos currentpos = source.getPos();
         for (int i = 1; i <= source.getMaxRange(); i++) {
             currentpos = currentpos.offset(source.getOrientation());
@@ -27,12 +28,14 @@ public class LightPlacingUtil {
             }
             if (i % 2 == 0 && !remove) {  //only place light block every 2 blocks.
                 world.setBlockState(currentpos, new BlockPhantomLight().getDefaultState());
+                placedLights.add(currentpos);
                 TileEntity phantomLight = world.getTileEntity(currentpos);
                 if (phantomLight instanceof PhantomLight) {
                     ((PhantomLight) phantomLight).addSource(source.getPos());
                 }
             } else if (i % 2 == 0 && remove) {
                 TileEntity phantomLight = world.getTileEntity(currentpos);
+                placedLights.remove(currentpos);
                 if (phantomLight instanceof PhantomLight) {
                     ((PhantomLight) phantomLight).removeSource(source.getPos());
                 }

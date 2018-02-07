@@ -7,8 +7,8 @@ import omtteam.openmodularlighting.items.AddonMetaItem;
 
 public class AddonSlot extends Slot {
     @SuppressWarnings("SameParameterValue")
-    public AddonSlot(IInventory par1iInventory, int par2, int par3, int par4) {
-        super(par1iInventory, par2, par3, par4);
+    public AddonSlot(IInventory par1iInventory, int index, int xPos, int yPos) {
+        super(par1iInventory, index, xPos, yPos);
     }
 
     @Override

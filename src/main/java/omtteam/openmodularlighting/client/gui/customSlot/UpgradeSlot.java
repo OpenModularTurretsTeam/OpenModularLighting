@@ -8,8 +8,8 @@ import omtteam.openmodularlighting.items.UpgradeMetaItem;
 
 public class UpgradeSlot extends Slot {
     @SuppressWarnings("SameParameterValue")
-    public UpgradeSlot(IInventory par1iInventory, int par2, int par3, int par4) {
-        super(par1iInventory, par2, par3, par4);
+    public UpgradeSlot(IInventory par1iInventory, int index, int xPos, int yPos) {
+        super(par1iInventory, index, xPos, yPos);
     }
 
     @Override

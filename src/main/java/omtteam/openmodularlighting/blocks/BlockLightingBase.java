@@ -43,7 +43,7 @@ import omtteam.openmodularlighting.OpenModularLighting;
 import omtteam.openmodularlighting.handler.ConfigHandler;
 import omtteam.openmodularlighting.init.ModBlocks;
 import omtteam.openmodularlighting.items.UsableMetaItem;
-import omtteam.openmodularlighting.items.blocks.ItemBlockTurretBase;
+import omtteam.openmodularlighting.items.blocks.ItemBlockLightingBase;
 import omtteam.openmodularlighting.reference.OMLNames;
 import omtteam.openmodularlighting.reference.Reference;
 import omtteam.openmodularlighting.tileentity.LightingBase;
@@ -71,7 +71,7 @@ public class BlockLightingBase extends BlockAbstractCamoTileEntity implements IH
 
     @Override
     public ItemBlock getItemBlock(Block block) {
-        return new ItemBlockTurretBase(block);
+        return new ItemBlockLightingBase(block);
     }
 
     @Override

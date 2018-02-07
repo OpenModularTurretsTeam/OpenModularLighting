@@ -54,8 +54,8 @@ class LightingBaseAbstractGUI extends BlockingAbstractGuiContainer implements IH
         int y = (height - ySize) / 2;
 
         if (PlayerUtil.isPlayerOwner(player, base)) {
-            this.buttonList.add(new GuiButton(1, x + 20, y + 15, 60, 20, safeLocalize(OMLibNames.Localizations.GUI.NEXT)));
-            this.buttonList.add(new GuiButton(2, x + 20, y + 50, 60, 20, safeLocalize(OMLibNames.Localizations.GUI.PREVIOUS)));
+            this.buttonList.add(new GuiButton(1, x + 5, y + 15, 60, 20, safeLocalize(OMLibNames.Localizations.GUI.NEXT)));
+            this.buttonList.add(new GuiButton(2, x + 5, y + 50, 60, 20, safeLocalize(OMLibNames.Localizations.GUI.PREVIOUS)));
             this.buttonList.add(new GuiButton(1, x + 120, y + 15, 20, 20, "+"));
             this.buttonList.add(new GuiButton(2, x + 120, y + 50, 20, 20, "-"));
             this.buttonList.add(new GuiButton(3, x + 180, y, 80, 20, safeLocalize(OMLNames.Localizations.GUI.DROP_LIGHTS)));
