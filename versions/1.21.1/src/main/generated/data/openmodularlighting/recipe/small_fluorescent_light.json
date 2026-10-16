@@ -1,0 +1,32 @@
+{
+  "fabric:load_conditions": [
+    {
+      "blocks": [
+        "small_fluorescent_light"
+      ],
+      "condition": "openmodularlighting:block_enabled"
+    }
+  ],
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "key": {
+    "B": {
+      "item": "openmodularlighting:light_bulb"
+    },
+    "G": {
+      "item": "minecraft:glass"
+    },
+    "I": {
+      "tag": "c:ingots/iron"
+    }
+  },
+  "pattern": [
+    " G ",
+    "GBG",
+    "III"
+  ],
+  "result": {
+    "count": 2,
+    "id": "openmodularlighting:small_fluorescent_light"
+  }
+}

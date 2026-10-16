@@ -1,0 +1,50 @@
+{
+  "variants": {
+    "facing=up,lit=false": {
+      "model": "openmodularlighting:block/uv_floodlight",
+      "x": 270
+    },
+    "facing=up,lit=true": {
+      "model": "openmodularlighting:block/uv_floodlight_on",
+      "x": 270
+    },
+    "facing=down,lit=false": {
+      "model": "openmodularlighting:block/uv_floodlight",
+      "x": 90
+    },
+    "facing=down,lit=true": {
+      "model": "openmodularlighting:block/uv_floodlight_on",
+      "x": 90
+    },
+    "facing=north,lit=false": {
+      "model": "openmodularlighting:block/uv_floodlight"
+    },
+    "facing=north,lit=true": {
+      "model": "openmodularlighting:block/uv_floodlight_on"
+    },
+    "facing=south,lit=false": {
+      "model": "openmodularlighting:block/uv_floodlight",
+      "y": 180
+    },
+    "facing=south,lit=true": {
+      "model": "openmodularlighting:block/uv_floodlight_on",
+      "y": 180
+    },
+    "facing=west,lit=false": {
+      "model": "openmodularlighting:block/uv_floodlight",
+      "y": 270
+    },
+    "facing=west,lit=true": {
+      "model": "openmodularlighting:block/uv_floodlight_on",
+      "y": 270
+    },
+    "facing=east,lit=false": {
+      "model": "openmodularlighting:block/uv_floodlight",
+      "y": 90
+    },
+    "facing=east,lit=true": {
+      "model": "openmodularlighting:block/uv_floodlight_on",
+      "y": 90
+    }
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "parent": "openmodularlighting:block/floodlight",
+  "textures": {
+    "front": "openmodularlighting:block/uv_floodlight_front_on",
+    "back": "openmodularlighting:block/uv_floodlight_back",
+    "side": "openmodularlighting:block/uv_floodlight_side"
+  }
+}

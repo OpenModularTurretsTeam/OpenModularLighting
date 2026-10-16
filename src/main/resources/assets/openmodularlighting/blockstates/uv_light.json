@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "openmodularlighting:block/uv_light"
+    }
+  }
+}

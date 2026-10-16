@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "id": "openmodularlighting-gametest",
+  "version": "1.0.0",
+  "name": "Open Modular Lighting Game Tests",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "omtteam.openmodularlighting.gametest.OMLGameTestMod"
+    ],
+    "fabric-gametest": [
+      "omtteam.openmodularlighting.gametest.PhantomLightGameTest",
+      "omtteam.openmodularlighting.gametest.FloodlightGameTest",
+      "omtteam.openmodularlighting.gametest.RecipeGameTest",
+      "omtteam.openmodularlighting.gametest.FluorescentLightGameTest",
+      "omtteam.openmodularlighting.gametest.UvFloodlightGameTest",
+      "omtteam.openmodularlighting.gametest.GrowLightGameTest",
+      "omtteam.openmodularlighting.gametest.JadeTooltipGameTest"
+    ]
+  },
+  "depends": {
+    "openmodularlighting": "*",
+    "fabric-gametest-api-v1": "*"
+  }
+}

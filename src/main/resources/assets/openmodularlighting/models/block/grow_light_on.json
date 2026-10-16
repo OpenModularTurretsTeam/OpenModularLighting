@@ -1,0 +1,6 @@
+{
+  "parent": "openmodularlighting:block/square_panel",
+  "textures": {
+    "texture": "openmodularlighting:block/grow_light_on"
+  }
+}

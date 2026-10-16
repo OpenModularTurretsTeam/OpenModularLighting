@@ -1,0 +1,6 @@
+{
+  "parent": "openmodularlighting:block/small_panel",
+  "textures": {
+    "texture": "openmodularlighting:block/small_fluorescent_light_on"
+  }
+}
