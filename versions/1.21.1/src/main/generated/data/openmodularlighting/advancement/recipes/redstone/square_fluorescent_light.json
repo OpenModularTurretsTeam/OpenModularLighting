@@ -1,0 +1,40 @@
+{
+  "fabric:load_conditions": [
+    {
+      "blocks": [
+        "small_fluorescent_light"
+      ],
+      "condition": "openmodularlighting:block_enabled"
+    }
+  ],
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_small_fluorescent_light": {
+      "conditions": {
+        "items": [
+          {
+            "items": "openmodularlighting:small_fluorescent_light"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "openmodularlighting:square_fluorescent_light"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_small_fluorescent_light"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "openmodularlighting:square_fluorescent_light"
+    ]
+  }
+}

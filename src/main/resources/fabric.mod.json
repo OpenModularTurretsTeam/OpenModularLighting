@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "id": "openmodularlighting",
+  "version": "${version}",
+  "name": "Open Modular Lighting",
+  "description": "Floodlights that light up large areas, grow lights for crops and UV lights against mobs.",
+  "authors": [
+    "Keridos"
+  ],
+  "contact": {
+    "homepage": "https://www.curseforge.com/minecraft/mc-mods/floodlights"
+  },
+  "license": [
+    "MIT",
+    "CC-BY-NC-SA-4.0"
+  ],
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "omtteam.openmodularlighting.OpenModularLighting"
+    ],
+    "client": [
+      "omtteam.openmodularlighting.client.OpenModularLightingClient"
+    ],
+    "fabric-datagen": [
+      "omtteam.openmodularlighting.datagen.OMLDataGenerator"
+    ],
+    "jade": [
+      "omtteam.openmodularlighting.compat.jade.OMLJadePlugin"
+    ]
+  },
+  "depends": {
+    "fabricloader": ">=${loader_version}",
+    "minecraft": "${minecraft_dependency}",
+    "java": ">=${java_version}",
+    "fabric-api": "*"
+  },
+  "suggests": {
+    "jade": "*"
+  }
+}

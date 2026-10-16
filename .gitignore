@@ -1,0 +1,22 @@
+# Gradle
+.gradle/
+build/
+versions/*/build/
+versions/*/logs/
+!versions/*/src/main/generated/
+versions/*/src/main/generated/.cache/
+
+# Runs
+run/
+versions/*/run/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+out/
+bin/
+.kotlin/
+
+# 1.7.10 reference source (read-only, not part of this repo)
+oldmod/

@@ -1,0 +1,42 @@
+name: Missing or different from 1.7.10
+description: A feature, block, item or mechanic that is missing or works differently than in the old 1.7.10 version.
+labels: ["port"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This version is a port of FloodLights from Minecraft 1.7.10.
+        The goal is to match the old behaviour, so differences are worth reporting. Note that some things were changed or dropped on purpose
+        (e.g. light blocks now stay in place and are only switched on and off; IC2 EU, BuildCraft/CoFH/EnderIO wrench, IGW, NEI, AgriCraft
+        and Colored Light Core integration; WAILA is replaced by Jade) — check `CHANGELOG.md` and existing issues first.
+  - type: dropdown
+    id: mc-version
+    attributes:
+      label: Minecraft version
+      options:
+        - "1.21.1"
+        - "1.20.1"
+        - Both
+    validations:
+      required: true
+  - type: input
+    id: mod-version
+    attributes:
+      label: Mod version
+      placeholder: 2.0.0-alpha.1
+    validations:
+      required: true
+  - type: textarea
+    id: old-behaviour
+    attributes:
+      label: How it worked in 1.7.10
+      description: Values, ranges, recipes, energy use… The more precise, the better. Links to the old wiki or source are welcome.
+    validations:
+      required: true
+  - type: textarea
+    id: new-behaviour
+    attributes:
+      label: How it works now
+      description: Or "missing" if it does not exist in the port.
+    validations:
+      required: true

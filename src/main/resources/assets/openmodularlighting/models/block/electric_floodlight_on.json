@@ -1,0 +1,8 @@
+{
+  "parent": "openmodularlighting:block/floodlight",
+  "textures": {
+    "front": "openmodularlighting:block/electric_floodlight_front_on",
+    "back": "openmodularlighting:block/electric_floodlight_back",
+    "side": "openmodularlighting:block/electric_floodlight_side"
+  }
+}

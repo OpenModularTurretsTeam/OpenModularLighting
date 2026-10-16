@@ -1,0 +1,31 @@
+{
+  "fabric:load_conditions": [
+    {
+      "blocks": [
+        "carbon_floodlight"
+      ],
+      "condition": "openmodularlighting:block_enabled"
+    }
+  ],
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "G": {
+      "tag": "c:glass_panes"
+    },
+    "I": {
+      "tag": "c:iron_ingots"
+    },
+    "R": {
+      "tag": "c:redstone_dusts"
+    }
+  },
+  "pattern": [
+    "GRG",
+    "IGI"
+  ],
+  "result": {
+    "item": "openmodularlighting:carbon_dissolver"
+  },
+  "show_notification": true
+}

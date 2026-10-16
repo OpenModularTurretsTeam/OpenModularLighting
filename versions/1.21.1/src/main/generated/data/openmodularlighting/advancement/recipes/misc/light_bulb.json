@@ -1,0 +1,43 @@
+{
+  "fabric:load_conditions": [
+    {
+      "blocks": [
+        "electric_floodlight",
+        "small_fluorescent_light",
+        "uv_floodlight",
+        "grow_light"
+      ],
+      "condition": "openmodularlighting:block_enabled"
+    }
+  ],
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_glowing_filament": {
+      "conditions": {
+        "items": [
+          {
+            "items": "openmodularlighting:glowing_filament"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "openmodularlighting:light_bulb"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_glowing_filament"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "openmodularlighting:light_bulb"
+    ]
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "parent": "openmodularlighting:block/square_panel",
+  "textures": {
+    "texture": "openmodularlighting:block/square_fluorescent_light_on"
+  }
+}
