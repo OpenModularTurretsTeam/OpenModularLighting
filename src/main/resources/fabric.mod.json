@@ -17,7 +17,7 @@
   "environment": "*",
   "entrypoints": {
     "main": [
-      "omtteam.openmodularlighting.OpenModularLighting"
+      "omtteam.openmodularlighting.OML"
     ],
     "client": [
       "omtteam.openmodularlighting.client.OpenModularLightingClient"
