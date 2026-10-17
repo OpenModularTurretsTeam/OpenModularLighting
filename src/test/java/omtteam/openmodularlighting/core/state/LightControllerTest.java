@@ -113,7 +113,7 @@ class LightControllerTest {
 
     @Test
     void fuelTimerRunsDownAndRejectsUselessFuel() {
-        FuelTimer timer = new FuelTimer();
+        FuelTimer timer = new FuelTimer(() -> 1);
         assertTrue(timer.needsFuel());
         assertFalse(timer.refuel(0));
         assertTrue(timer.refuel(2));
@@ -122,5 +122,20 @@ class LightControllerTest {
         light.tick(true, timer, TIMEOUT);
         assertTrue(timer.needsFuel());
         assertEquals(Switch.OFF, light.tick(true, timer, TIMEOUT).change());
+    }
+
+    @Test
+    void fuelTimerUsesMoreTimePerTickWhenTheDrainIsHigher() {
+        int[] drain = {1};
+        FuelTimer timer = new FuelTimer(() -> drain[0]);
+        assertTrue(timer.refuel(10));
+        timer.run();
+        assertEquals(9, timer.ticksRemaining());
+        drain[0] = 2;
+        timer.run();
+        assertEquals(7, timer.ticksRemaining());
+        timer.setTicksRemaining(1);
+        timer.run();
+        assertEquals(0, timer.ticksRemaining()); // never negative
     }
 }

@@ -2,8 +2,7 @@ package omtteam.openmodularlighting.blockentity;
 
 import net.fabricmc.fabric.api.transfer.v1.item.InventoryStorage;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
-import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
-import net.fabricmc.fabric.api.transfer.v1.storage.base.FilteringStorage;
+import net.fabricmc.fabric.api.transfer.v1.storage.SlottedStorage;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -70,7 +69,7 @@ public abstract class FloodlightBlockEntity extends CompatBlockEntity implements
     };
     private final InventoryStorage inventoryStorage = InventoryStorage.of(inventory, null);
     /** Hoppers and pipes may insert valid items only and cannot extract (1.7.10). */
-    private final Storage<ItemVariant> itemStorage = FilteringStorage.insertOnlyOf(inventoryStorage);
+    private final SlottedStorage<ItemVariant> itemStorage = new InsertOnlySlottedStorage(inventoryStorage);
 
     /** Light block positions of the current beam, in casting order. */
     private List<BlockPos> shape = List.of();
@@ -231,7 +230,7 @@ public abstract class FloodlightBlockEntity extends CompatBlockEntity implements
         return inventory;
     }
 
-    public Storage<ItemVariant> getItemStorage() {
+    public SlottedStorage<ItemVariant> getItemStorage() {
         return itemStorage;
     }
 

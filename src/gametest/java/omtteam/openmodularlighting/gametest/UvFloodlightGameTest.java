@@ -76,8 +76,11 @@ public class UvFloodlightGameTest implements FabricGameTest {
         BlockPos crossing = helper.absolutePos(new BlockPos(3, 3, 3));
         helper.runAfterDelay(4, () -> {
             helper.assertTrue(level.getBlockState(crossing).is(ModBlocks.UV_LIGHT), "UV light at the crossing");
-            helper.assertTrue(isLitPhantom(level, crossing.above()), "floodlight beam continues behind the UV light");
+            helper.assertTrue(isLitPhantom(level, crossing.above(2)), "floodlight beam continues behind the UV light");
             remove(helper, helper.absolutePos(uvRel));
+            // nothing next to the crossing is a phantom light (distances 2 and 4 are skipped), so no neighbour
+            // update reaches the floodlight; something next to the phantom light at 5 makes it look again
+            level.setBlock(crossing.above(), Blocks.GLASS.defaultBlockState(), Block.UPDATE_ALL);
         });
         helper.runAfterDelay(7, () -> {
             helper.assertTrue(isLitPhantom(level, crossing), "phantom light back at the crossing");

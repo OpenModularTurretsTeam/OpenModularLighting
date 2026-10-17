@@ -47,16 +47,16 @@ public class ConfigData {
     public static class General {
         @Comment("Energy use in E/t of the electric floodlight (x2 for the cone modes).")
         @Range(min = 0, max = 1000)
-        public int energyUsage = 20;
+        public int energyUsage = 10;
         @Comment("Energy use in E/t of the fluorescent lights.")
         @Range(min = 0, max = 100)
-        public int energyUsageSmallFloodlight = 2;
+        public int energyUsageSmallFloodlight = 1;
         @Comment("Energy use in E/t of the UV floodlight.")
         @Range(min = 0, max = 800)
-        public int energyUsageUVFloodlight = 80;
+        public int energyUsageUVFloodlight = 60;
         @Comment("Energy use in E/t of the grow light.")
         @Range(min = 0, max = 800)
-        public int energyUsageGrowLight = 40;
+        public int energyUsageGrowLight = 25;
         @Comment("Seconds one coal lasts in the carbon floodlight (straight mode; half of that in the cone modes).")
         @Range(min = 0, max = 1000)
         public int carbonTime = 300;
@@ -71,7 +71,7 @@ public class ConfigData {
         public int rangeUVFloodlight = 8;
         @Comment("Chance per second that the grow light gives the crop in front a growth tick.")
         @Range(min = 0, max = 1)
-        public double chanceGrowLight = 0.05D;
+        public double chanceGrowLight = 0.1D;
         @Comment("Ticks before a floodlight that turned off can turn on again.")
         @Range(min = 1, max = 240)
         public int timeoutFloodlights = 40;
