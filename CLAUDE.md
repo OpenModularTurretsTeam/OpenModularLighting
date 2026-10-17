@@ -223,6 +223,7 @@ Wrap each of these behind a helper where possible.
 - **`assets/`** (textures, models, blockstates, lang, sounds): identical across versions. Keep them handwritten in shared `src/main/resources/assets/openmodularlighting/`.
   - Textures can be reused from `oldmod/src/main/resources/assets/floodlights/textures/`. Rename them to snake_case.
   - Lang: convert `oldmod/.../lang/*.lang` (en_US, de_DE, ru_RU) to `en_us.json`, `de_de.json` and `ru_ru.json` with the new keys.
+  - Connected textures of `lightproof_glass`: `assets/openmodularlighting/optifine/ctm/lightproof_glass/` holds a `ctm_compact` properties file (Continuity / OptiFine format, no dependency) and the 5 tiles `0.png`–`4.png`, cut from `textures/block/lightproof_glass.png` (32 × 32, 2 px frame): 0 unconnected, 1 fully connected, 2 up/down, 3 left/right, 4 only the frame corners. Cut them again if the base texture changes.
   - The old IGW wiki text (`wiki/`) is not ported.
 - **`data/`** (recipes, loot tables, tags, advancements): folder names and JSON formats differ. **Generate them with Fabric Datagen.**
   - Run datagen per version.
@@ -315,6 +316,7 @@ Recipes (`datagen.OMLRecipeProvider`, ported from `oldmod/.../handler/RecipeHand
 - Iron, gold, redstone and glass panes use the common `c:` tags (`compat.CommonTags`); the other ingredients are the vanilla items of the 1.7.10 recipes.
 - **Config switches:** every recipe carries the resource condition `openmodularlighting:block_enabled` (`compat.BlockEnabledCondition`, a different API on each version) with the registry paths of the blocks that need it. It loads if any of them is enabled (`ConfigData.Blocks.isEnabled`). Datagen adds the condition to the recipe-unlock advancements too.
 - Filament, glowing filament and light bulb are needed by electric floodlight, fluorescent lights, UV floodlight **and grow light**. 1.7.10 forgot the grow light, so with only the grow light enabled, bulbs could not be crafted.
+- Lightproof glass: shapeless, 1 black stained glass + 1 coal (`minecraft:coals`, so charcoal works too) → 1. It has no config switch, so its recipe carries no `block_enabled` condition (`Saver.saveAlways`).
 - Also: fluorescent lights (`" G "`, `"GBG"`, `"III"` → 2, plus the shapeless conversion between small and square), UV floodlight (floodlight frame with black stained glass), grow light (`"III"`, `"CBC"`, `"GGG"` with pink stained glass).
 
 **Panel lights (fluorescent, grow).** 1.7.10 drew them with block entity renderers. Here they are plain JSON block models: a 3 px panel on the back face, with the 1.7.10 64 × 32 box texture mapped onto it, and the dye tint as on the floodlights. The models are built facing up and turned per facing like vanilla's `end_rod` (`block.PanelShapes` uses the same table for the outlines). The panels have no collision, only an outline, as in 1.7.10.
