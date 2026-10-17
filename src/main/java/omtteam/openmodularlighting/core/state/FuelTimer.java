@@ -1,13 +1,22 @@
 package omtteam.openmodularlighting.core.state;
 
+import java.util.function.IntSupplier;
+
 /**
- * Burn time of the carbon floodlight: one tick is used per tick the light is on.
+ * Burn time of the carbon floodlight: each tick the light is on uses {@code drain} of it (1 straight, 2 in cone
+ * modes, see {@link omtteam.openmodularlighting.core.formula.CarbonFuel#drain}).
  * <p>
  * As in 1.7.10, {@code main} burns the next fuel item as soon as the timer is empty, even while the light is off;
  * the time is kept until the light uses it (see {@link omtteam.openmodularlighting.core.formula.CarbonFuel}).
  */
 public final class FuelTimer implements PowerSource {
+    private final IntSupplier drain;
     private int ticksRemaining;
+
+    /** @param drain burn time used per tick the light runs (read every tick, so a mode change applies at once) */
+    public FuelTimer(IntSupplier drain) {
+        this.drain = drain;
+    }
 
     public int ticksRemaining() {
         return ticksRemaining;
@@ -41,6 +50,6 @@ public final class FuelTimer implements PowerSource {
 
     @Override
     public void run() {
-        ticksRemaining--;
+        ticksRemaining = Math.max(0, ticksRemaining - drain.getAsInt());
     }
 }

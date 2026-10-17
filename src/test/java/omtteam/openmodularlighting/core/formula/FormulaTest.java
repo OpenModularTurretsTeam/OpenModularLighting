@@ -11,18 +11,24 @@ import java.util.random.RandomGenerator;
 
 class FormulaTest {
     @Test
-    void coalLastsCarbonTimeSecondsInStraightModeAndHalfInCones() {
-        assertEquals(300 * 20, CarbonFuel.ticks(1600, 300, BeamMode.STRAIGHT));
-        assertEquals(300 * 10, CarbonFuel.ticks(1600, 300, BeamMode.NARROW_CONE));
-        assertEquals(300 * 10, CarbonFuel.ticks(1600, 300, BeamMode.WIDE_CONE));
+    void coalAddsCarbonTimeSecondsAndConesUseItUpTwiceAsFast() {
+        int stored = CarbonFuel.ticks(1600, 300);
+        assertEquals(300 * 20, stored);
+        assertEquals(300 * 20, CarbonFuel.runTicks(stored, BeamMode.STRAIGHT));
+        assertEquals(300 * 10, CarbonFuel.runTicks(stored, BeamMode.NARROW_CONE));
+        assertEquals(300 * 10, CarbonFuel.runTicks(stored, BeamMode.WIDE_CONE));
+        assertEquals(1, CarbonFuel.drain(BeamMode.STRAIGHT));
+        assertEquals(2, CarbonFuel.drain(BeamMode.WIDE_CONE));
+        assertEquals(1, CarbonFuel.runTicks(1, BeamMode.NARROW_CONE)); // rounded up
+        assertEquals(0, CarbonFuel.runTicks(0, BeamMode.NARROW_CONE));
     }
 
     @Test
     void carbonFuelUsesIntegerDivisionLikeTheOldMod() {
         // 300 * 100 / 1600 = 18 (not 18.75), then * 20
-        assertEquals(360, CarbonFuel.ticks(100, 300, BeamMode.STRAIGHT));
-        assertEquals(0, CarbonFuel.ticks(100, 1, BeamMode.STRAIGHT));
-        assertEquals(0, CarbonFuel.ticks(1600, 0, BeamMode.STRAIGHT));
+        assertEquals(360, CarbonFuel.ticks(100, 300));
+        assertEquals(0, CarbonFuel.ticks(100, 1));
+        assertEquals(0, CarbonFuel.ticks(1600, 0));
     }
 
     @Test

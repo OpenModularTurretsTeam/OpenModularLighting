@@ -13,14 +13,25 @@ public final class CarbonFuel {
     }
 
     /**
-     * Ticks of light from one fuel item: {@code carbonTime × burnTime / 1600 × (straight ? 20 : 10)}, evaluated left
-     * to right in integer arithmetic as in 1.7.10. Coal lasts {@code carbonTime} seconds in straight mode and half of
-     * that in both cone modes. The mode at the time of refuelling counts.
+     * Burn time one fuel item adds, in ticks of straight light: {@code carbonTime × burnTime / 1600 × 20}, evaluated
+     * left to right in integer arithmetic as in 1.7.10. Does not depend on the mode; the cone modes use the time up
+     * faster ({@link #drain}).
      *
      * @param burnTime   furnace burn time of the item in ticks
      * @param carbonTime config {@code carbonTime} (seconds per coal)
      */
-    public static int ticks(int burnTime, int carbonTime, BeamMode mode) {
-        return carbonTime * burnTime / COAL_BURN_TIME * (mode == BeamMode.STRAIGHT ? 20 : 10);
+    public static int ticks(int burnTime, int carbonTime) {
+        return carbonTime * burnTime / COAL_BURN_TIME * 20;
+    }
+
+    /** Burn time used per tick: 1 for straight light, 2 for both cones (twice the "power"). */
+    public static int drain(BeamMode mode) {
+        return mode == BeamMode.STRAIGHT ? 1 : 2;
+    }
+
+    /** Ticks the light runs on {@code stored} burn time in this mode (rounded up, 0 only when empty). */
+    public static int runTicks(int stored, BeamMode mode) {
+        int drain = drain(mode);
+        return (stored + drain - 1) / drain;
     }
 }
