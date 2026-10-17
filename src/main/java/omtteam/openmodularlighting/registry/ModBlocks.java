@@ -3,6 +3,9 @@ package omtteam.openmodularlighting.registry;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.SoundType;
+import net.minecraft.world.level.block.TintedGlassBlock;
+import net.minecraft.world.level.material.MapColor;
 import omtteam.openmodularlighting.OML;
 import omtteam.openmodularlighting.block.CarbonFloodlightBlock;
 import omtteam.openmodularlighting.block.ElectricFloodlightBlock;
@@ -38,6 +41,18 @@ public final class ModBlocks {
             new FluorescentLightBlock(PanelLightBlock.createPanelProperties(), false));
     public static final GrowLightBlock GROW_LIGHT =
             register("grow_light", new GrowLightBlock(PanelLightBlock.createPanelProperties()));
+
+    /** Glass that can be seen through but lets no light through (like tinted glass), and stops floodlight beams. */
+    public static final TintedGlassBlock LIGHTPROOF_GLASS = register("lightproof_glass", new TintedGlassBlock(
+            Block.Properties.of()
+                    .mapColor(MapColor.COLOR_BLACK)
+                    .strength(0.3F)
+                    .sound(SoundType.GLASS)
+                    .noOcclusion()
+                    .isValidSpawn((state, level, pos, type) -> false)
+                    .isRedstoneConductor((state, level, pos) -> false)
+                    .isSuffocating((state, level, pos) -> false)
+                    .isViewBlocking((state, level, pos) -> false)));
 
     /** All light source blocks (shared interaction, drops and tint), in creative tab order. */
     public static final List<FloodlightBlock> LIGHT_SOURCES = List.of(ELECTRIC_FLOODLIGHT, CARBON_FLOODLIGHT,

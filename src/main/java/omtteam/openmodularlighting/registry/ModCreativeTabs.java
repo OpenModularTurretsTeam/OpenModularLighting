@@ -18,6 +18,7 @@ public final class ModCreativeTabs {
                     .icon(() -> new ItemStack(ModItems.ELECTRIC_FLOODLIGHT))
                     .displayItems((parameters, output) -> {
                         ModBlocks.LIGHT_SOURCES.forEach(output::accept);
+                        output.accept(ModItems.LIGHTPROOF_GLASS);
                         ModItems.CRAFTING_ITEMS.forEach(output::accept);
                     })
                     .build());

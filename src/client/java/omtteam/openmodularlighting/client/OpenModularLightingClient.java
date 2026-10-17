@@ -29,6 +29,7 @@ public class OpenModularLightingClient implements ClientModInitializer {
         FloodlightTint.register();
         // the UV light texture has transparent pixels
         BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.UV_LIGHT, RenderType.cutout());
+        BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.LIGHTPROOF_GLASS, RenderType.translucent());
         // light debug tool: wireframes around light blocks while it is held
         LightBlockDebugRenderer.register();
         // 1.7.10 ItemBlockFL: a dropped floodlight that kept its settings

@@ -18,6 +18,7 @@ pack makers and anyone porting configs or recipes.
 | `floodlights:growLight` | – | `openmodularlighting:grow_light` | |
 | `floodlights:tilePhantomLight` | – | `openmodularlighting:phantom_light` | no item |
 | `floodlights:tileUVLight` | – | `openmodularlighting:uv_light` | no item |
+| – | – | `openmodularlighting:lightproof_glass` | new; see-through glass that blocks light and floodlight beams |
 
 Block entities use the block id, except that both fluorescent lights share `openmodularlighting:fluorescent_light`.
 

@@ -7,6 +7,7 @@ import net.minecraft.data.recipes.RecipeCategory;
 import net.minecraft.data.recipes.ShapedRecipeBuilder;
 import net.minecraft.data.recipes.ShapelessRecipeBuilder;
 import net.minecraft.data.recipes.SimpleCookingRecipeBuilder;
+import net.minecraft.tags.ItemTags;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.ItemLike;
@@ -45,10 +46,11 @@ public class OMLRecipeProvider extends FabricRecipeProvider {
     @Override
     public void buildRecipes(RecipeOutput output) {
         generate((builder, id, blocks) -> {
+            RecipeOutput target = blocks == null ? output : withConditions(output, BlockEnabledCondition.of(blocks));
             if (id == null) {
-                builder.save(withConditions(output, BlockEnabledCondition.of(blocks)));
+                builder.save(target);
             } else {
-                builder.save(withConditions(output, BlockEnabledCondition.of(blocks)), OML.id(id));
+                builder.save(target, OML.id(id));
             }
         });
     }
@@ -60,16 +62,18 @@ public class OMLRecipeProvider extends FabricRecipeProvider {
     @Override
     public void buildRecipes(Consumer<FinishedRecipe> output) {
         generate((builder, id, blocks) -> {
+            Consumer<FinishedRecipe> target = blocks == null ? output
+                    : withConditions(output, BlockEnabledCondition.of(blocks));
             if (id == null) {
-                builder.save(withConditions(output, BlockEnabledCondition.of(blocks)));
+                builder.save(target);
             } else {
-                builder.save(withConditions(output, BlockEnabledCondition.of(blocks)), OML.id(id));
+                builder.save(target, OML.id(id));
             }
         });
     }
     *///?}
 
-    /** Saves a recipe that loads if any of {@code blocks} is enabled. */
+    /** Saves a recipe that loads if any of {@code blocks} is enabled (always, if {@code blocks} is null). */
     @FunctionalInterface
     private interface Saver {
         /** @param id recipe id, or null for the result's id */
@@ -77,6 +81,11 @@ public class OMLRecipeProvider extends FabricRecipeProvider {
 
         default void save(RecipeBuilder builder, String... blocks) {
             saveAs(builder, null, blocks);
+        }
+
+        /** For recipes of things that have no config switch. */
+        default void saveAlways(RecipeBuilder builder) {
+            saveAs(builder, null, null);
         }
     }
 
@@ -87,6 +96,7 @@ public class OMLRecipeProvider extends FabricRecipeProvider {
         uvFloodlight(save);
         fluorescentLights(save);
         growLight(save);
+        lightproofGlass(save);
     }
 
     /** Raw filament → (smelting) glowing filament → light bulb. */
@@ -182,6 +192,14 @@ public class OMLRecipeProvider extends FabricRecipeProvider {
                 .define('B', ModItems.LIGHT_BULB)
                 .define('G', Items.PINK_STAINED_GLASS)
                 .unlockedBy("has_light_bulb", has(ModItems.LIGHT_BULB)), "grow_light");
+    }
+
+    /** Black stained glass (the UV floodlight's glass) + coal. The glass has no config switch, so no condition. */
+    private void lightproofGlass(Saver save) {
+        save.saveAlways(ShapelessRecipeBuilder.shapeless(RecipeCategory.BUILDING_BLOCKS, ModItems.LIGHTPROOF_GLASS)
+                .requires(Items.BLACK_STAINED_GLASS)
+                .requires(ItemTags.COALS)
+                .unlockedBy("has_black_stained_glass", has(Items.BLACK_STAINED_GLASS)));
     }
 
     /** The common floodlight frame (electric, carbon, UV). */

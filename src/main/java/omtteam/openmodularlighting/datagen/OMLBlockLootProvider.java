@@ -24,5 +24,6 @@ public class OMLBlockLootProvider extends FabricBlockLootTableProvider {
     public void generate() {
         // FloodlightBlock#getDrops adds the settings to the dropped item
         ModBlocks.LIGHT_SOURCES.forEach(this::dropSelf);
+        dropSelf(ModBlocks.LIGHTPROOF_GLASS);
     }
 }
