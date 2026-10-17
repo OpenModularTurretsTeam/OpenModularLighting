@@ -135,6 +135,30 @@ public class FloodlightGameTest implements FabricGameTest {
     }
 
     @GameTest(template = EMPTY_STRUCTURE)
+    public void lightproofGlassStopsTheBeamLikeAWall(GameTestHelper helper) {
+        ElectricFloodlightBlockEntity light = placeElectric(helper);
+        light.getEnergyStorage().amount = ElectricFloodlightBlockEntity.CAPACITY;
+        BlockPos pos = helper.absolutePos(LIGHT);
+        ServerLevel level = helper.getLevel();
+        helper.setBlock(REDSTONE, Blocks.REDSTONE_BLOCK);
+        helper.runAfterDelay(3, () -> level.setBlock(pos.above(4), ModBlocks.LIGHTPROOF_GLASS.defaultBlockState(), Block.UPDATE_ALL));
+        helper.runAfterDelay(5, () -> {
+            BlockPos glass = pos.above(4);
+            helper.assertTrue(level.getBlockState(glass).getLightBlock(level, glass) >= level.getMaxLightLevel(),
+                    "lets no light through");
+            helper.assertTrue(!level.getBlockState(glass).isSolidRender(level, glass), "but is see-through");
+            helper.assertTrue(isPhantom(level, pos.above(3), true), "lit up to the glass");
+            helper.assertTrue(level.getBlockState(pos.above(5)).isAir(), "beam ends at the glass");
+            level.setBlock(glass, Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL);
+        });
+        helper.runAfterDelay(7, () -> {
+            assertBeam(helper, pos, true);
+            remove(helper, pos);
+            helper.succeed();
+        });
+    }
+
+    @GameTest(template = EMPTY_STRUCTURE)
     public void modeChangeRecastsAtOnce(GameTestHelper helper) {
         ElectricFloodlightBlockEntity light = placeElectric(helper);
         light.getEnergyStorage().amount = ElectricFloodlightBlockEntity.CAPACITY;

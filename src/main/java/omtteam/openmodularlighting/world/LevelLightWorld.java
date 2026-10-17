@@ -20,7 +20,10 @@ public record LevelLightWorld(Level level) implements LightWorld {
         if (state.isAir()) return Cell.AIR;
         if (state.is(ModBlocks.PHANTOM_LIGHT)) return Cell.PHANTOM_LIGHT;
         if (state.is(ModBlocks.UV_LIGHT)) return Cell.UV_LIGHT;
-        if (state.isSolidRender(level, blockPos)) return Cell.OPAQUE;
+        // solid blocks, and blocks that let no light through even though they are see-through (tinted glass)
+        if (state.isSolidRender(level, blockPos) || state.getLightBlock(level, blockPos) >= level.getMaxLightLevel()) {
+            return Cell.OPAQUE;
+        }
         return Cell.TRANSPARENT;
     }
 }

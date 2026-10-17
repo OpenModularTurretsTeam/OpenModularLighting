@@ -22,6 +22,8 @@ public final class ModItems {
             registerBlockItem("square_fluorescent_light", ModBlocks.SQUARE_FLUORESCENT_LIGHT);
     public static final BlockItem GROW_LIGHT = registerBlockItem("grow_light", ModBlocks.GROW_LIGHT);
 
+    public static final BlockItem LIGHTPROOF_GLASS = registerBlockItem("lightproof_glass", ModBlocks.LIGHTPROOF_GLASS);
+
     // Crafting items (1.7.10 ModItems)
     public static final Item RAW_FILAMENT = register("raw_filament");
     public static final Item GLOWING_FILAMENT = register("glowing_filament");
