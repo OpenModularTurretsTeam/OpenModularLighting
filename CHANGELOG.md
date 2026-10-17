@@ -9,6 +9,8 @@ turns *Unreleased* into the release section; `chiseledPublish` uploads exactly t
 
 ## [Unreleased]
 
+## [1.0.0-beta.1] - 2026-10-17
+
 ### Added
 
 - Fluorescent and grow lights that sit directly next to each other and face the same way share their energy: cables fill the whole group, and a light that runs low takes energy from its neighbours
