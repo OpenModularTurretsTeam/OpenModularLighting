@@ -9,6 +9,20 @@ turns *Unreleased* into the release section; `chiseledPublish` uploads exactly t
 
 ## [Unreleased]
 
+## [1.0.0-beta.2] - 2026-10-17
+
+### Added
+
+- Lightproof glass: see-through glass that lets no light through and stops floodlight beams (placeholder texture), crafted from black stained glass and coal; connected textures with Continuity or another OptiFine-compatible CTM mod
+
+### Changed
+
+- Floodlight beams use fewer phantom lights: the straight beam skips every second block (starting with the second); cones thin out too: the centre line like the straight beam, the rest of the cone offset by one from it
+
+### Fixed
+
+- Non-electric floodlight: cone modes use up fuel twice as fast as straight light, and the GUI shows the time left in the current mode
+
 ## [1.0.0-beta.1] - 2026-10-17
 
 ### Added
