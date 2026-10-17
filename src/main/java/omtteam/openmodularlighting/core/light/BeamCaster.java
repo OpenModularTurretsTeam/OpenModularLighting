@@ -19,7 +19,8 @@ public final class BeamCaster {
     }
 
     /**
-     * Casts every ray of {@code shape} from {@code origin} towards {@code facing}.
+     * Casts every ray of {@code shape} from {@code origin} towards {@code facing}. Rays are followed over every
+     * block; only the distances allowed by {@link BeamShape#spacing()} get a light.
      *
      * @return the lit positions in world space, without duplicates, in casting order
      */
@@ -47,7 +48,7 @@ public final class BeamCaster {
                     blockedAt[r] = s + 1;
                     break;
                 }
-                if (step == LightType.Step.LIGHT) {
+                if (step == LightType.Step.LIGHT && shape.spacing().emitsAt(steps.get(s).x(), steps.get(s).y() == 0 && steps.get(s).z() == 0)) {
                     lit.add(pos);
                 }
             }

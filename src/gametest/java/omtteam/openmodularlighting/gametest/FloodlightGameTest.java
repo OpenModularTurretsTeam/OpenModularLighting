@@ -147,9 +147,9 @@ public class FloodlightGameTest implements FabricGameTest {
             BlockPos coneEnd = pos.offset(-3, RANGE, 0);
             helper.assertTrue(isPhantom(level, coneEnd, true), "narrow cone lit at once");
             light.setMode(BeamMode.WIDE_CONE);
-            // the wide cone reaches range / 4 = 1: only the first block of the centre line, no spread before 5
-            helper.assertTrue(isPhantom(level, pos.above(), true), "cones start with the centre line");
-            helper.assertTrue(level.getBlockState(pos.offset(-1, 1, 0)).isAir(), "cones start to spread at distance 5");
+            // the wide cone reaches range / 4 = 1: the centre line has a light there, the rest of the cone skips it
+            helper.assertTrue(isPhantom(level, pos.above(), true), "centre line is lit at distance 1");
+            helper.assertTrue(level.getBlockState(pos.offset(-1, 1, 0)).isAir(), "the rest of the cone skips the odd distances");
             helper.assertTrue(level.getBlockState(coneEnd).isAir(), "narrow cone removed at once");
             helper.assertTrue(level.getBlockState(pos.above(RANGE)).isAir(), "nothing beyond the wide cone");
             light.setMode(BeamMode.STRAIGHT);

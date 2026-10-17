@@ -12,8 +12,9 @@ import java.util.List;
  *
  * @param rays      the rays; a ray's parent always comes before it
  * @param frontRule whether a blocked block directly in front cancels the whole beam
+ * @param spacing   which distances get a light block (the rays are followed over all of them)
  */
-public record BeamShape(List<Ray> rays, FrontRule frontRule) {
+public record BeamShape(List<Ray> rays, FrontRule frontRule, Spacing spacing) {
     /** No light at all (e.g. the grow light in black-light mode). */
     public static final BeamShape NONE = new BeamShape(List.of(), FrontRule.NONE);
 
@@ -35,6 +36,10 @@ public record BeamShape(List<Ray> rays, FrontRule frontRule) {
         ABORT_IF_BLOCKED
     }
 
+    public BeamShape(List<Ray> rays, FrontRule frontRule) {
+        this(rays, frontRule, Spacing.ALL);
+    }
+
     public BeamShape {
         rays = List.copyOf(rays);
         for (int i = 0; i < rays.size(); i++) {
@@ -43,6 +48,11 @@ public record BeamShape(List<Ray> rays, FrontRule frontRule) {
                 throw new IllegalArgumentException("Ray " + i + " must have an earlier parent, got " + ray.parent());
             }
         }
+    }
+
+    /** The same rays with light blocks only at some distances. */
+    public BeamShape withSpacing(Spacing spacing) {
+        return new BeamShape(rays, frontRule, spacing);
     }
 
     /** A single ray straight forward. */

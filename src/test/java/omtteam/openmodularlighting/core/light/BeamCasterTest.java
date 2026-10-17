@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import omtteam.openmodularlighting.core.beam.BeamMode;
 import omtteam.openmodularlighting.core.beam.BeamShape;
 import omtteam.openmodularlighting.core.beam.Ray;
+import omtteam.openmodularlighting.core.beam.Spacing;
 import omtteam.openmodularlighting.core.math.Facing;
 import omtteam.openmodularlighting.core.math.Pos;
 import org.junit.jupiter.api.Test;
@@ -30,7 +31,23 @@ class BeamCasterTest {
         return set;
     }
 
-    // ---- Same positions as the 1.7.10 loops ----
+    /**
+     * The 1.7.10 positions, thinned like the mode shapes: a light only at the distances (in the facing direction) that
+     * {@link Spacing} allows. The rays are the same, so the walls they stop at are the same.
+     */
+    private static Set<Pos> thinned(Set<Pos> legacy, Pos origin, Facing facing, Spacing spacing) {
+        Set<Pos> result = new HashSet<>();
+        for (Pos pos : legacy) {
+            int distance = (pos.x() - origin.x()) * facing.dx() + (pos.y() - origin.y()) * facing.dy()
+                    + (pos.z() - origin.z()) * facing.dz();
+            boolean onAxis = pos.x() - origin.x() == distance * facing.dx()
+                    && pos.y() - origin.y() == distance * facing.dy() && pos.z() - origin.z() == distance * facing.dz();
+            if (spacing.emitsAt(distance, onAxis)) result.add(pos);
+        }
+        return result;
+    }
+
+    // ---- Same positions as the 1.7.10 loops (thinned for the floodlight modes) ----
 
     @Test
     void matchesLegacyLoopsInRandomWorlds() {
@@ -40,13 +57,16 @@ class BeamCasterTest {
             for (Facing facing : Facing.values()) {
                 String where = "seed " + seed + ", " + facing;
                 for (int range : RANGES) {
-                    assertEquals(Legacy1710Beams.straightSource(origin, facing, range, world),
+                    assertEquals(thinned(Legacy1710Beams.straightSource(origin, facing, range, world), origin, facing,
+                                    Spacing.STRAIGHT),
                             castSet(BeamMode.STRAIGHT.shape(range, 1), origin, facing, world),
                             "straight " + range + ", " + where);
-                    assertEquals(Legacy1710Beams.narrowConeSource(origin, facing, range, world),
+                    assertEquals(thinned(Legacy1710Beams.narrowConeSource(origin, facing, range, world), origin, facing,
+                                    Spacing.CONE),
                             castSet(BeamMode.NARROW_CONE.shape(1, range), origin, facing, world),
                             "narrow cone " + range + ", " + where);
-                    assertEquals(Legacy1710Beams.wideConeSource(origin, facing, range, world),
+                    assertEquals(thinned(Legacy1710Beams.wideConeSource(origin, facing, range, world), origin, facing,
+                                    Spacing.CONE),
                             castSet(BeamMode.WIDE_CONE.shape(1, range), origin, facing, world),
                             "wide cone " + range + ", " + where);
                 }
@@ -69,6 +89,53 @@ class BeamCasterTest {
                         castSet(BeamShape.wideCone(range / 4), Pos.ORIGIN, facing, world));
             }
         }
+    }
+
+    // ---- Spacing ----
+
+    @Test
+    void straightModeSkipsEverySecondBlockStartingWithTheSecond() {
+        List<Pos> lit = cast(BeamMode.STRAIGHT.shape(8, 32), Facing.EAST, TestWorld.open());
+        assertEquals(List.of(new Pos(1, 0, 0), new Pos(3, 0, 0), new Pos(5, 0, 0), new Pos(7, 0, 0)), lit);
+    }
+
+    @Test
+    void conesKeepTheCentreLineOnOddDistancesAndTheRestOnEvenDistances() {
+        for (BeamMode mode : new BeamMode[]{BeamMode.NARROW_CONE, BeamMode.WIDE_CONE}) {
+            Set<Pos> lit = castSet(mode.shape(64, 64), Pos.ORIGIN, Facing.EAST, TestWorld.open());
+            for (Pos pos : lit) {
+                boolean onAxis = pos.y() == 0 && pos.z() == 0;
+                assertTrue(pos.x() % 2 == (onAxis ? 1 : 0), mode + " lit at " + pos);
+            }
+            for (int x : new int[]{1, 3, 5, 7}) {
+                assertTrue(lit.contains(new Pos(x, 0, 0)), mode + " centre line at " + x);
+            }
+            assertFalse(lit.contains(new Pos(2, 0, 0)) || lit.contains(new Pos(4, 0, 0)));
+            // the cone is there from the start, not only from distance 5
+            assertTrue(lit.contains(mode == BeamMode.NARROW_CONE ? new Pos(2, 1, 0) : new Pos(2, 2, 0)),
+                    mode + " spreads in the first 5 blocks");
+        }
+    }
+
+    @Test
+    void skippedBlocksStillBlockTheRay() {
+        TestWorld world = TestWorld.open().set(new Pos(4, 0, 0), Cell.OPAQUE);
+        assertEquals(List.of(new Pos(1, 0, 0), new Pos(3, 0, 0)),
+                cast(BeamMode.STRAIGHT.shape(10, 32), Facing.EAST, world));
+        // a wall at a skipped distance still ends the cone ray
+        TestWorld wall = TestWorld.open().set(new Pos(6, 0, 0), Cell.OPAQUE);
+        Set<Pos> lit = castSet(BeamMode.NARROW_CONE.shape(64, 12), Pos.ORIGIN, Facing.EAST, wall);
+        assertTrue(lit.contains(new Pos(5, 0, 0)));
+        assertFalse(lit.contains(new Pos(7, 0, 0)));
+    }
+
+    @Test
+    void spacingRules() {
+        assertTrue(Spacing.ALL.emitsAt(1, false) && Spacing.ALL.emitsAt(2, true));
+        assertTrue(Spacing.STRAIGHT.emitsAt(1, true) && !Spacing.STRAIGHT.emitsAt(2, true) && Spacing.STRAIGHT.emitsAt(3, true));
+        assertTrue(Spacing.CONE.emitsAt(1, true) && !Spacing.CONE.emitsAt(2, true) && Spacing.CONE.emitsAt(3, true));
+        assertTrue(!Spacing.CONE.emitsAt(1, false) && Spacing.CONE.emitsAt(2, false) && !Spacing.CONE.emitsAt(3, false));
+        assertThrows(IllegalArgumentException.class, () -> new Spacing(0, 0, 0));
     }
 
     // ---- Shapes ----
