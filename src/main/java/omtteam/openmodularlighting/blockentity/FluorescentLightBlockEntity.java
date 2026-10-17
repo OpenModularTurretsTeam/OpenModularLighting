@@ -1,20 +1,18 @@
 package omtteam.openmodularlighting.blockentity;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.state.BlockState;
 import omtteam.openmodularlighting.config.OMLConfig;
 import omtteam.openmodularlighting.core.beam.BeamShape;
 import omtteam.openmodularlighting.energy.ElectricPower;
 import omtteam.openmodularlighting.energy.LightPower;
 import omtteam.openmodularlighting.registry.ModBlockEntities;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * Small and square fluorescent lights (1.7.10 {@code TileEntitySmallFloodlight}): light the block in front and the 4
  * blocks beside them; {@code energyUsageSmallFloodlight} per tick, energy only from the back.
  */
-public class FluorescentLightBlockEntity extends FloodlightBlockEntity {
+public class FluorescentLightBlockEntity extends PanelLightBlockEntity {
     private static final int[] SHAPE_KEY = {0};
 
     private final ElectricPower power = new ElectricPower(
@@ -37,11 +35,5 @@ public class FluorescentLightBlockEntity extends FloodlightBlockEntity {
     @Override
     protected int[] shapeKey() {
         return SHAPE_KEY;
-    }
-
-    /** 1.7.10 {@code canConnectEnergy}: only the face the light is mounted on. */
-    @Override
-    protected boolean acceptsEnergyFrom(@Nullable Direction side) {
-        return side == null || side == facing().getOpposite();
     }
 }

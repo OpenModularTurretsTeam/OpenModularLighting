@@ -18,6 +18,7 @@ public final class ElectricPower implements LightPower {
 
     private final SimpleEnergyStorage storage;
     private final IntSupplier cost;
+    private final Runnable onChange;
 
     /**
      * @param cost     energy per tick (read every tick, so config changes apply at once)
@@ -25,6 +26,7 @@ public final class ElectricPower implements LightPower {
      */
     public ElectricPower(IntSupplier cost, Runnable onChange) {
         this.cost = cost;
+        this.onChange = onChange;
         this.storage = new SimpleEnergyStorage(CAPACITY, CAPACITY, 0) {
             @Override
             protected void onFinalCommit() {
@@ -35,6 +37,31 @@ public final class ElectricPower implements LightPower {
 
     public SimpleEnergyStorage storage() {
         return storage;
+    }
+
+    /** Energy per tick at the moment. */
+    public int cost() {
+        return cost.getAsInt();
+    }
+
+    /** Takes up to {@code max} out of the buffer for another light of the same cluster (not for cables). */
+    public long take(long max) {
+        long taken = Math.max(0, Math.min(max, storage.amount));
+        if (taken > 0) {
+            storage.amount -= taken;
+            onChange.run();
+        }
+        return taken;
+    }
+
+    /** Adds energy received from another light of the same cluster; returns what did not fit. */
+    public long give(long amount) {
+        long accepted = Math.max(0, Math.min(amount, storage.capacity - storage.amount));
+        if (accepted > 0) {
+            storage.amount += accepted;
+            onChange.run();
+        }
+        return amount - accepted;
     }
 
     @Override

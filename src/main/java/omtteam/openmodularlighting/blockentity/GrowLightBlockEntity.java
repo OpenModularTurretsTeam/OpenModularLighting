@@ -17,14 +17,13 @@ import omtteam.openmodularlighting.energy.ElectricPower;
 import omtteam.openmodularlighting.energy.LightPower;
 import omtteam.openmodularlighting.registry.ModBlockEntities;
 import omtteam.openmodularlighting.registry.ModBlocks;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * Grow light (1.7.10 {@code TileEntityGrowLight}): lights the block in front (normal lighting mode) and gives the crop
  * two blocks in front random growth ticks while it runs; {@code energyUsageGrowLight} per tick, energy only from the
  * back.
  */
-public class GrowLightBlockEntity extends FloodlightBlockEntity {
+public class GrowLightBlockEntity extends PanelLightBlockEntity {
     private static final String MODE = "mode";
 
     private final ElectricPower power = new ElectricPower(
@@ -70,11 +69,6 @@ public class GrowLightBlockEntity extends FloodlightBlockEntity {
     @Override
     protected int[] shapeKey() {
         return new int[]{mode.ordinal()};
-    }
-
-    @Override
-    protected boolean acceptsEnergyFrom(@Nullable Direction side) {
-        return side == null || side == facing().getOpposite();
     }
 
     /**

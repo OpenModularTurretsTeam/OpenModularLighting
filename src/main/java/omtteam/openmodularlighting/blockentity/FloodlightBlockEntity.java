@@ -115,7 +115,12 @@ public abstract class FloodlightBlockEntity extends CompatBlockEntity implements
 
     // ---- Ticking ----
 
+    /** Called every server tick before the power is prepared (panel lights: cluster upkeep and energy sharing). */
+    protected void beforePower(Level level) {
+    }
+
     public static void serverTick(Level level, BlockPos pos, BlockState state, FloodlightBlockEntity light) {
+        light.beforePower(level);
         light.power().prepare(light.inventory, light.inventoryStorage);
         if (!Arrays.equals(light.cachedShapeKey, light.shapeKey())) {
             light.controller.requestRecast(); // placed, loaded without cache, mode or config changed

@@ -7,10 +7,11 @@ Questions are welcome on our [Discord](https://discord.gg/SEG695u).
 
 ## Reporting issues
 
-Open an issue on the project's issue tracker:
+Open an issue on the project's issue tracker and pick one of the templates:
 
 - **Bug report** for crashes and broken behaviour. Include the Minecraft, mod, Fabric Loader and Fabric API versions,
   and your log or crash report.
+- **Missing or different from 1.7.10** for anything that is missing or works differently than in the old mod.
 - **Feature request** for new ideas. The port comes first, so new features may take a while.
 
 ## Development setup
