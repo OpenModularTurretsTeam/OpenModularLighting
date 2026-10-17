@@ -145,7 +145,7 @@ The Stonecutter DSL changes between releases. If this does not match the install
 - Settings in `gradle.properties`: `release_type` (release/beta/alpha), `curseforge_project_id` and `modrinth_project_id`. An empty ID skips that site. Both are empty for now; ask the user before setting them. The old 1.7.10 CurseForge page is `224728-floodlights`.
 - Tokens are never committed: environment variables `CURSEFORGE_TOKEN` / `MODRINTH_TOKEN`, or `curseforge_token` / `modrinth_token` in `~/.gradle/gradle.properties`. Without a token the upload is a dry run (output in `versions/<v>/build/publishMods/`).
 - **Changelog** (`CHANGELOG.md`, Keep a Changelog format): every user-visible change gets a one-line entry under `## [Unreleased]` (Added / Changed / Fixed / Removed), by hand or via `./gradlew changelogEntry --type=fixed --entry="…"`. Add the entry together with the change.
-- **Release steps:** set `mod_version` (e.g. `4.0.0-alpha.2`) and `release_type` → `./gradlew releaseChangelog` (moves Unreleased into `## [<mod_version>] - <date>`) → `./gradlew chiseledPublish`. Publishing uploads only that version's section and fails if it is missing.
+- **Release steps:** set `mod_version` (e.g. `1.0.0-alpha.2`) and `release_type` → `./gradlew releaseChangelog` (moves Unreleased into `## [<mod_version>] - <date>`) → `./gradlew chiseledPublish`. Publishing uploads only that version's section and fails if it is missing.
 (Task names may differ slightly depending on Stonecutter's version. Use `./gradlew tasks` if unsure.)
 
 **Definition of done for any change:** `./gradlew chiseledBuild` succeeds for **both** versions (this includes the JUnit tests and the GameTests), and the source is left in the 1.21.1 state.
@@ -213,7 +213,7 @@ Wrap each of these behind a helper where possible.
 | BlockEntity NBT + update tag | extend `compat.CompatBlockEntity`: override `readData` / `writeData` (+ optional `writeClientData`), call `syncToClient()` |
 | ItemStack NBT, slot lists | `VersionCompat.saveStack` / `loadStack`, `saveItems` / `loadItems` |
 | ItemStack extra data | `VersionCompat.hasCustomData` / `getCustomData` / `setCustomData` / `updateCustomData` |
-| Block interaction | implement `compat.InteractiveBlock#onUse` (Fabric `UseBlockCallback`, same in both versions; registered in `OpenModularLighting`) |
+| Block interaction | implement `compat.InteractiveBlock#onUse` (Fabric `UseBlockCallback`, same in both versions; registered in `OML`) |
 | Networking | `compat.network.NetworkCompat.registerC2S` / `registerS2C` / `sendToPlayer`; client: `client.compat.ClientNetworkCompat.registerHandler` / `sendToServer`. Packets are plain records with `write` / `read`, listed in `network.OMLPackets` |
 | Extended menus | `compat.MenuCompat.register` / `open` (passes the `BlockPos`) |
 | Container screen background, vertices, tooltips | `client.compat.ClientCompat` |
@@ -241,8 +241,8 @@ Wrap each of these behind a helper where possible.
 ```text
 omtteam.openmodularlighting
 │
-├── OpenModularLighting            ModInitializer: loads config, calls the registries, registers networking
-├── OML                            constants (MOD_ID) + id(path) helper
+├── OML                            ModInitializer (loads config, calls the registries, registers networking),
+│                                  constants (MOD_ID, LOGGER) + id(path) helper
 │
 ├── core/                          ── pure Java, NO Minecraft imports (enforced by verifyCoreIsolation) ──
 │   ├── math/                      Pos (int x,y,z record), Facing (6 directions), Rotation (port of MathUtil.rotate)
@@ -364,6 +364,8 @@ Beam shapes (defined along +X, then rotated to the facing):
 | Grow light | 1 | front block only (only in "normal lighting" mode) |
 | UV | `rangeUV` (8) | straight ray of `uv_light`. Replaces phantom lights it meets (their sources are flagged for a re-cast). |
 
+**Thinning (deliberate change from 1.7.10, `core.beam.Spacing`).** To save phantom lights, `BeamMode.shape` leaves out light blocks at some distances along the facing direction (beam-space x). The rays are still followed over every block, so walls stop them exactly as before. Straight: lights at 1, 3, 5, … (the second block is the first one skipped). Both cones keep the 1.7.10 geometry from the first block. Their centre line is thinned like the straight beam (1, 3, 5, …); the rest of the cone is offset by one from it and skips the odd distances (2, 4, 6, …). Fluorescent, grow and UV beams are not thinned. `BeamCasterTest` compares against the 1.7.10 reference loops filtered by the same spacing. Consequence: a block change next to a skipped position may have no phantom light beside it, so the light then notices only at its periodic re-check (§6.3).
+
 Port the old loops exactly, including the integer division and the "skip inner ray" rule. Cover them with unit tests that compare against the 1.7.10 offsets.
 
 ### 6.4 Light state machine (all floodlights)
@@ -388,7 +390,7 @@ The timeout still applies: toggling `LIT` is much cheaper than placing blocks, b
 - The battery slot accepts any item with an extractable Team Reborn Energy storage (`energy.Batteries`), and is discharged into the buffer each tick while the buffer has room.
 - Cost per tick: `energyUsage` (20) for straight, ×2 for cones; fluorescent 2; UV 80; grow light 40. 1.7.10 used RF; treat 1 RF = 1 E.
 - The carbon floodlight burns one furnace fuel item when `timeRemaining` reaches 0:
-  `timeRemaining = carbonTime × burnTime / 1600 × (straight ? 20 : 10)` ticks (coal = `carbonTime` seconds for straight, half of that for cones). As in 1.7.10 this happens even while the light is off, and the mode at refuelling time counts.
+  `timeRemaining += carbonTime × burnTime / 1600 × 20` (coal = `carbonTime` seconds of straight light). The mode does not matter when refuelling; instead every tick the light runs uses up 1 (straight) or 2 (both cones, `CarbonFuel.drain`) of it, so cones burn fuel twice as fast. The GUI shows the time left in the current mode (`CarbonFuel.runTicks`). As in 1.7.10 refuelling happens even while the light is off.
   If the formula gives 0 ticks (tiny burn time, or `carbonTime = 0`), the item is **not** consumed (`FuelTimer.refuel` returns false). 1.7.10 burned one item per tick in that case.
   Fuel is any item in Fabric's `FuelRegistry` (vanilla and modded furnace fuels). The remainder stays in the slot like in a furnace (lava bucket → bucket); 1.7.10 deleted it.
 - Inventories (1 slot) are exposed through `ItemStorage.SIDED`. Insertion only accepts valid fuel or energy items. Extraction is disabled.
