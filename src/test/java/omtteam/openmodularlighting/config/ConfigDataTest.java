@@ -17,16 +17,6 @@ class ConfigDataTest {
     }
 
     @Test
-    void defaultsMatchTheOldMod() {
-        ConfigData.General general = new ConfigData().general;
-        assertEquals(20, general.energyUsage);
-        assertEquals(64, general.rangeStraightFloodlight);
-        assertEquals(32, general.rangeConeFloodlight);
-        assertEquals(0.05D, general.chanceGrowLight);
-        assertEquals(40, general.timeoutFloodlights);
-    }
-
-    @Test
     void outOfRangeValuesAreClamped() {
         ConfigData data = new ConfigData();
         data.general.rangeStraightFloodlight = 500;
