@@ -37,6 +37,7 @@ import omtteam.openmodularlighting.compat.MenuCompat;
 import omtteam.openmodularlighting.compat.VersionCompat;
 import omtteam.openmodularlighting.energy.ElectricPower;
 import omtteam.openmodularlighting.menu.ElectricFloodlightMenu;
+import omtteam.openmodularlighting.registry.ModItems;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -119,6 +120,11 @@ public abstract class FloodlightBlock extends BaseEntityBlock implements Interac
         boolean wrench = held.is(CommonTags.WRENCHES);
         boolean server = !level.isClientSide();
         InteractionResult handled = InteractionResult.sidedSuccess(level.isClientSide());
+        if (held.is(ModItems.LIGHT_DEBUG_TOOL) && !player.isShiftKeyDown()) {
+            ElectricPower power = light.electricPower();
+            if (server && power != null) power.give(power.storage().capacity);
+            return power != null ? handled : InteractionResult.PASS;
+        }
         if (player.isShiftKeyDown()) {
             if (held.isEmpty()) {
                 if (server) {
