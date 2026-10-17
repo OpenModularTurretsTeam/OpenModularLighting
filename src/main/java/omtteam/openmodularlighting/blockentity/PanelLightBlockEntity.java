@@ -17,8 +17,9 @@ import java.util.Collection;
 import java.util.List;
 
 /**
- * Base of the panel lights (fluorescent and grow lights): electric, energy only from the back face, and energy shared
- * with panel lights directly next to it that face the same way (a {@link Cluster}, see {@link ClusterEnergy}).
+ * Base of the lights that share energy (fluorescent, grow and cube lights): electric, and energy shared with the lights
+ * directly next to it that {@link #connectsTo connect} (a {@link Cluster}, see {@link ClusterEnergy}). Panel lights
+ * take energy only from the back face and connect to panel lights beside them that face the same way.
  */
 public abstract class PanelLightBlockEntity extends FloodlightBlockEntity implements ClusterNode<PanelLightBlockEntity> {
     /** Ticks to wait before looking for energy in the cluster again after finding none. */
@@ -79,21 +80,27 @@ public abstract class PanelLightBlockEntity extends FloodlightBlockEntity implem
         this.cluster = cluster;
     }
 
-    /** Panel lights (fluorescent and grow lights alike) on the 4 sides that face the same way. */
     @Override
     public Collection<PanelLightBlockEntity> neighbours() {
-        List<PanelLightBlockEntity> result = new ArrayList<>(4);
+        List<PanelLightBlockEntity> result = new ArrayList<>(6);
         if (level == null) return result;
-        Direction facing = facing();
         for (Direction side : Direction.values()) {
-            if (side.getAxis() == facing.getAxis()) continue;
             BlockPos pos = worldPosition.relative(side);
             if (level.hasChunkAt(pos) && level.getBlockEntity(pos) instanceof PanelLightBlockEntity other
-                    && !other.isRemoved() && other.facing() == facing) {
+                    && !other.isRemoved() && connectsTo(side, other)) {
                 result.add(other);
             }
         }
         return result;
+    }
+
+    /**
+     * Whether the light on {@code side} is part of the same cluster. Must be symmetric. Panel lights (fluorescent and
+     * grow lights alike) connect on the 4 sides to panel lights that face the same way.
+     */
+    protected boolean connectsTo(Direction side, PanelLightBlockEntity other) {
+        return side.getAxis() != facing().getAxis() && !(other instanceof CubeLightBlockEntity)
+                && other.facing() == facing();
     }
 
     /** This light's own buffer (panel lights are always electric). */

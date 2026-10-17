@@ -19,7 +19,7 @@ public class ConfigData {
     public static class Blocks {
         @Comment("Enables the electric floodlight.")
         public boolean electricFloodlightEnabled = true;
-        @Comment("Enables the small and square fluorescent lights.")
+        @Comment("Enables the small and square fluorescent lights and the cube light.")
         public boolean smallElectricFloodlightEnabled = true;
         @Comment("Enables the carbon (non-electric) floodlight.")
         public boolean carbonFloodlightEnabled = true;
@@ -35,7 +35,7 @@ public class ConfigData {
         public boolean isEnabled(String block) {
             return switch (block) {
                 case "electric_floodlight" -> electricFloodlightEnabled;
-                case "small_fluorescent_light", "square_fluorescent_light" -> smallElectricFloodlightEnabled;
+                case "small_fluorescent_light", "square_fluorescent_light", "cube_light" -> smallElectricFloodlightEnabled;
                 case "carbon_floodlight" -> carbonFloodlightEnabled;
                 case "uv_floodlight" -> uvFloodlightEnabled;
                 case "grow_light" -> growLightEnabled;
@@ -51,6 +51,9 @@ public class ConfigData {
         @Comment("Energy use in E/t of the fluorescent lights.")
         @Range(min = 0, max = 100)
         public int energyUsageSmallFloodlight = 1;
+        @Comment("Energy use in E/t of the cube light.")
+        @Range(min = 0, max = 100)
+        public int energyUsageCubeLight = 2;
         @Comment("Energy use in E/t of the UV floodlight.")
         @Range(min = 0, max = 800)
         public int energyUsageUVFloodlight = 60;

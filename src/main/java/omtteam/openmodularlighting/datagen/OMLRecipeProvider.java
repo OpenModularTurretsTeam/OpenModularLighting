@@ -35,7 +35,7 @@ import java.util.function.Consumer;
  */
 public class OMLRecipeProvider extends FabricRecipeProvider {
     /** Blocks that need the filament and the light bulb (1.7.10: electric, small and UV; the grow light needs a bulb too). */
-    private static final String[] BULB_USERS = {"electric_floodlight", "small_fluorescent_light", "uv_floodlight", "grow_light"};
+    private static final String[] BULB_USERS = {"electric_floodlight", "small_fluorescent_light", "uv_floodlight", "grow_light", "cube_light"};
     private static final String CARBON = "carbon_floodlight";
 
     //? if >=1.21 {
@@ -95,6 +95,7 @@ public class OMLRecipeProvider extends FabricRecipeProvider {
         carbonFloodlight(save);
         uvFloodlight(save);
         fluorescentLights(save);
+        cubeLight(save);
         growLight(save);
         lightproofGlass(save);
     }
@@ -179,6 +180,18 @@ public class OMLRecipeProvider extends FabricRecipeProvider {
                         .requires(ModItems.SQUARE_FLUORESCENT_LIGHT)
                         .unlockedBy("has_square_fluorescent_light", has(ModItems.SQUARE_FLUORESCENT_LIGHT)),
                 "small_fluorescent_light_from_square", new String[]{fluorescent});
+    }
+
+    /** Cube light: a bulb in a glass cage on iron. */
+    private void cubeLight(Saver save) {
+        save.save(ShapedRecipeBuilder.shaped(RecipeCategory.REDSTONE, ModItems.CUBE_LIGHT)
+                .pattern("GGG")
+                .pattern("GBG")
+                .pattern("III")
+                .define('G', Items.GLASS)
+                .define('B', ModItems.LIGHT_BULB)
+                .define('I', CommonTags.IRON_INGOTS)
+                .unlockedBy("has_light_bulb", has(ModItems.LIGHT_BULB)), "cube_light");
     }
 
     /** Grow light: iron on top, the bulb between cobblestone, pink stained glass below. */

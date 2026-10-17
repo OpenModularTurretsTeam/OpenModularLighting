@@ -21,6 +21,7 @@ public final class ModItems {
     public static final BlockItem SQUARE_FLUORESCENT_LIGHT =
             registerBlockItem("square_fluorescent_light", ModBlocks.SQUARE_FLUORESCENT_LIGHT);
     public static final BlockItem GROW_LIGHT = registerBlockItem("grow_light", ModBlocks.GROW_LIGHT);
+    public static final BlockItem CUBE_LIGHT = registerBlockItem("cube_light", ModBlocks.CUBE_LIGHT);
 
     public static final BlockItem LIGHTPROOF_GLASS = registerBlockItem("lightproof_glass", ModBlocks.LIGHTPROOF_GLASS);
 

@@ -16,6 +16,7 @@ pack makers and anyone porting configs or recipes.
 | `floodlights:smallElectricFloodlightMetaBlock` | 0 | `openmodularlighting:small_fluorescent_light` | `rotationState` → blockstate `rotated` |
 | `floodlights:smallElectricFloodlightMetaBlock` | 1 | `openmodularlighting:square_fluorescent_light` | |
 | `floodlights:growLight` | – | `openmodularlighting:grow_light` | |
+| – | – | `openmodularlighting:cube_light` | new in this port |
 | `floodlights:tilePhantomLight` | – | `openmodularlighting:phantom_light` | no item |
 | `floodlights:tileUVLight` | – | `openmodularlighting:uv_light` | no item |
 | – | – | `openmodularlighting:lightproof_glass` | new; see-through glass that blocks light and floodlight beams |

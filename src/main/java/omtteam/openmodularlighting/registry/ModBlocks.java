@@ -8,6 +8,7 @@ import net.minecraft.world.level.block.TintedGlassBlock;
 import net.minecraft.world.level.material.MapColor;
 import omtteam.openmodularlighting.OML;
 import omtteam.openmodularlighting.block.CarbonFloodlightBlock;
+import omtteam.openmodularlighting.block.CubeLightBlock;
 import omtteam.openmodularlighting.block.ElectricFloodlightBlock;
 import omtteam.openmodularlighting.block.FloodlightBlock;
 import omtteam.openmodularlighting.block.FluorescentLightBlock;
@@ -41,6 +42,8 @@ public final class ModBlocks {
             new FluorescentLightBlock(PanelLightBlock.createPanelProperties(), false));
     public static final GrowLightBlock GROW_LIGHT =
             register("grow_light", new GrowLightBlock(PanelLightBlock.createPanelProperties()));
+    public static final CubeLightBlock CUBE_LIGHT =
+            register("cube_light", new CubeLightBlock(FloodlightBlock.createProperties()));
 
     /** Glass that can be seen through but lets no light through (like tinted glass), and stops floodlight beams. */
     public static final TintedGlassBlock LIGHTPROOF_GLASS = register("lightproof_glass", new TintedGlassBlock(
@@ -56,7 +59,7 @@ public final class ModBlocks {
 
     /** All light source blocks (shared interaction, drops and tint), in creative tab order. */
     public static final List<FloodlightBlock> LIGHT_SOURCES = List.of(ELECTRIC_FLOODLIGHT, CARBON_FLOODLIGHT,
-            UV_FLOODLIGHT, SMALL_FLUORESCENT_LIGHT, SQUARE_FLUORESCENT_LIGHT, GROW_LIGHT);
+            UV_FLOODLIGHT, SMALL_FLUORESCENT_LIGHT, SQUARE_FLUORESCENT_LIGHT, GROW_LIGHT, CUBE_LIGHT);
 
     private ModBlocks() {
     }

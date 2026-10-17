@@ -10,6 +10,7 @@ import omtteam.openmodularlighting.OML;
 import omtteam.openmodularlighting.blockentity.CarbonFloodlightBlockEntity;
 import omtteam.openmodularlighting.blockentity.ElectricFloodlightBlockEntity;
 import omtteam.openmodularlighting.blockentity.FloodlightBlockEntity;
+import omtteam.openmodularlighting.blockentity.CubeLightBlockEntity;
 import omtteam.openmodularlighting.blockentity.FluorescentLightBlockEntity;
 import omtteam.openmodularlighting.blockentity.GrowLightBlockEntity;
 import omtteam.openmodularlighting.blockentity.PhantomLightBlockEntity;
@@ -40,6 +41,9 @@ public final class ModBlockEntities {
     public static final BlockEntityType<GrowLightBlockEntity> GROW_LIGHT =
             register("grow_light", GrowLightBlockEntity::new, ModBlocks.GROW_LIGHT);
 
+    public static final BlockEntityType<CubeLightBlockEntity> CUBE_LIGHT =
+            register("cube_light", CubeLightBlockEntity::new, ModBlocks.CUBE_LIGHT);
+
     private ModBlockEntities() {
     }
 
@@ -53,7 +57,7 @@ public final class ModBlockEntities {
     public static void init() {
         // Items on all sides (1.7.10); energy on all sides or only from the back (FloodlightBlockEntity#acceptsEnergyFrom)
         for (BlockEntityType<? extends FloodlightBlockEntity> type : List.of(ELECTRIC_FLOODLIGHT, CARBON_FLOODLIGHT,
-                UV_FLOODLIGHT, FLUORESCENT_LIGHT, GROW_LIGHT)) {
+                UV_FLOODLIGHT, FLUORESCENT_LIGHT, GROW_LIGHT, CUBE_LIGHT)) {
             ItemStorage.SIDED.registerForBlockEntity((light, side) -> light.getItemStorage(), type);
             EnergyStorage.SIDED.registerForBlockEntity(FloodlightBlockEntity::getEnergyStorage, type);
         }

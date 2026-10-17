@@ -307,6 +307,7 @@ Every former metadata variant is its own block. Record old → new IDs in `docs/
 | `growLight` | `grow_light` | modes: normal lighting / black light (no light, growth only); always placed facing down; energy only from the back |
 | `smallElectricFloodlightMetaBlock` meta 0 | `small_fluorescent_light` | lights 5 neighbours; 6 px strip, `rotated` blockstate (1.7.10 `rotationState`); energy only from the back |
 | `smallElectricFloodlightMetaBlock` meta 1 | `square_fluorescent_light` | same, full square, not rotatable; shapeless recipes convert between the two |
+| – (new) | `cube_light` | full block, lights its 6 neighbours (`BeamShape.cube`); energy from every side, shared with touching cube lights; `energyUsageCubeLight` (2), enabled with the fluorescent switch |
 | `tilePhantomLight` | `phantom_light` | invisible, no collision, replaceable; `LIT` → light level 15, else 0 (§6.3) |
 | `tileUVLight` | `uv_light` | `LIT` → light level 4 and damages living entities, else 0 and harmless; visibility configurable |
 | items: `rawFilament`, `glowingFilament`, `electricIncandescentLightBulb`, `carbonDissolver`, `carbonLantern`, `mantle`, `lightDebugTool` | `raw_filament`, `glowing_filament`, `light_bulb`, `carbon_dissolver`, `carbon_lantern`, `mantle`, `light_debug_tool` | crafting items; while the debug tool is held, light blocks get wireframes (phantom yellow, UV magenta, dimmer while unlit), as with the 1.7.10 `TileEntityPhantomLightRenderer` |
@@ -363,6 +364,7 @@ Beam shapes (defined along +X, then rotated to the facing):
 | Narrow cone | `rangeCone` (32) | 8 outer rays spreading `i/2` sideways (orthogonal + diagonal), plus 8 inner rays from distance 8 spreading `i/4`. An inner ray is skipped if its outer ray was blocked before distance 8. Aborts if the block in front is blocked. |
 | Wide cone | `rangeCone / 4` | 8 outer rays spreading `i` sideways, plus 8 inner rays from distance 4 spreading `i/2`. Aborts if the block in front is opaque. |
 | Fluorescent | 1 | front + the 4 sideways neighbours |
+| Cube light | 1 | all 6 neighbours |
 | Grow light | 1 | front block only (only in "normal lighting" mode) |
 | UV | `rangeUV` (8) | straight ray of `uv_light`. Replaces phantom lights it meets (their sources are flagged for a re-cast). |
 
@@ -388,7 +390,7 @@ The timeout still applies: toggling `LIT` is much cheaper than placing blocks, b
 ### 6.5 Power and fuel
 
 - Electric lights have an internal buffer of **50 000 E** (Team Reborn Energy, accepting on all sides; fluorescent and grow lights only on the back face, opposite the facing). Up to the whole buffer can be inserted per tick (as the 1.7.10 RF storage). **Nothing can be extracted** (1.7.10 allowed it, which let cables drain lights).
-- **Panel lights share energy** (`blockentity.PanelLightBlockEntity`, `energy.ClusterEnergy`): fluorescent and grow lights (any mix) that touch on their sides and face the same way form a `core.cluster.Cluster` (in memory, not saved; joins on the first tick, leaves in `setRemoved`, splits in `refresh()` once per tick). Each light keeps its own buffer. The back-face storage shows the whole cluster: inserting fills the emptiest light first, nothing can be extracted. A light that cannot pay its next tick takes energy from the fullest others (each gives at most half).
+- **Panel lights share energy** (`blockentity.PanelLightBlockEntity`, `energy.ClusterEnergy`; cube lights use the same base but accept energy on every side and cluster only with cube lights on any of their 6 faces): fluorescent and grow lights (any mix) that touch on their sides and face the same way form a `core.cluster.Cluster` (in memory, not saved; joins on the first tick, leaves in `setRemoved`, splits in `refresh()` once per tick). Each light keeps its own buffer. The back-face storage shows the whole cluster: inserting fills the emptiest light first, nothing can be extracted. A light that cannot pay its next tick takes energy from the fullest others (each gives at most half).
 - The battery slot accepts any item with an extractable Team Reborn Energy storage (`energy.Batteries`), and is discharged into the buffer each tick while the buffer has room.
 - Cost per tick: `energyUsage` (20) for straight, ×2 for cones; fluorescent 2; UV 80; grow light 40. 1.7.10 used RF; treat 1 RF = 1 E.
 - The carbon floodlight burns one furnace fuel item when `timeRemaining` reaches 0:
@@ -405,6 +407,7 @@ The timeout still applies: toggling `LIT` is much cheaper than placing blocks, b
 | Right-click with a stick or wrench | floodlights and grow light: cycle the mode (chat message "Mode: …"); small fluorescent light: turn it by 90°; square fluorescent and UV floodlight: nothing to set, the GUI opens |
 | Sneak + right-click with a wrench | break the block and drop it |
 | Right-click with dye | set render colour (dye index); right-click with white wool resets it (colour 16 = no tint) |
+| Right-click with the light debug tool | fills the energy buffer of an electric light (debug aid) |
 | Right-click (anything else) | open the GUI: carbon GUI for the carbon floodlight, the shared electric GUI (energy + battery slot) for all electric lights |
 
 Use the convention tag `compat.CommonTags.WRENCHES` (`c:wrenches` on 1.20.1, `c:tools/wrench` on 1.21) instead of the old mod-specific wrench checks. A stick always works for the mode (1.7.10: only without a wrench mod), but only a wrench dismantles. Sneaking with any other item passes, so the item can be used (e.g. placing a block). Dye is not consumed; any wool resets the colour. Messages go to chat (`displayClientMessage(…, false)`), as in 1.7.10.

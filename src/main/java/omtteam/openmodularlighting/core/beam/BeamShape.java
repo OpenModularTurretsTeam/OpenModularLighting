@@ -118,6 +118,17 @@ public record BeamShape(List<Ray> rays, FrontRule frontRule, Spacing spacing) {
                 Ray.of(List.of(new Pos(0, 0, -1)))), FrontRule.NONE);
     }
 
+    /** Cube light: the 6 blocks touching it, each on its own (the same set for every facing). */
+    public static BeamShape cube() {
+        return new BeamShape(List.of(
+                Ray.of(List.of(new Pos(1, 0, 0))),
+                Ray.of(List.of(new Pos(-1, 0, 0))),
+                Ray.of(List.of(new Pos(0, 1, 0))),
+                Ray.of(List.of(new Pos(0, -1, 0))),
+                Ray.of(List.of(new Pos(0, 0, 1))),
+                Ray.of(List.of(new Pos(0, 0, -1)))), FrontRule.NONE);
+    }
+
     /** Grow light in lighting mode ({@code growSource}): the block in front. */
     public static BeamShape grow() {
         return straight(1);
