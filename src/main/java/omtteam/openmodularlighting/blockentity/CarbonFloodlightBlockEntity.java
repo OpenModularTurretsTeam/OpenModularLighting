@@ -21,7 +21,8 @@ public class CarbonFloodlightBlockEntity extends BeamFloodlightBlockEntity {
         return power;
     }
 
+    /** Ticks the light can still run in its current mode (the stored burn time is used up twice as fast in cones). */
     public int getTicksRemaining() {
-        return power.ticksRemaining();
+        return power.runTicks();
     }
 }

@@ -118,12 +118,14 @@ public class FloodlightGameTest implements FabricGameTest {
         BlockPos pos = helper.absolutePos(LIGHT);
         ServerLevel level = helper.getLevel();
         helper.setBlock(REDSTONE, Blocks.REDSTONE_BLOCK);
-        helper.runAfterDelay(3, () -> level.setBlock(pos.above(3), Blocks.STONE.defaultBlockState(), Block.UPDATE_ALL));
+        // the stone sits on a skipped distance (4), next to the phantom lights at 3 and 5, which notice the change
+        helper.runAfterDelay(3, () -> level.setBlock(pos.above(4), Blocks.STONE.defaultBlockState(), Block.UPDATE_ALL));
         helper.runAfterDelay(5, () -> {
-            helper.assertTrue(isPhantom(level, pos.above(2), true), "lit up to the stone");
-            helper.assertTrue(level.getBlockState(pos.above(4)).isAir(), "beam ends at the stone");
+            helper.assertTrue(isPhantom(level, pos.above(3), true), "lit up to the stone");
+            helper.assertTrue(level.getBlockState(pos.above(2)).isAir(), "second block skipped");
+            helper.assertTrue(level.getBlockState(pos.above(5)).isAir(), "beam ends at the stone");
             helper.assertTrue(level.getBlockState(pos.above(RANGE)).isAir(), "rest of the beam removed");
-            level.setBlock(pos.above(3), Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL);
+            level.setBlock(pos.above(4), Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL);
         });
         helper.runAfterDelay(7, () -> {
             assertBeam(helper, pos, true);
@@ -145,8 +147,8 @@ public class FloodlightGameTest implements FabricGameTest {
             BlockPos coneEnd = pos.offset(-3, RANGE, 0);
             helper.assertTrue(isPhantom(level, coneEnd, true), "narrow cone lit at once");
             light.setMode(BeamMode.WIDE_CONE);
-            // the wide cone reaches range / 4 = 1: only the first ring around the front
-            helper.assertTrue(isPhantom(level, pos.offset(-1, 1, 0), true), "wide cone lit at once");
+            // the wide cone reaches range / 4 = 1 and cones only light from distance 5 on: nothing at all
+            helper.assertTrue(level.getBlockState(pos.offset(-1, 1, 0)).isAir(), "cones start at distance 5");
             helper.assertTrue(level.getBlockState(coneEnd).isAir(), "narrow cone removed at once");
             helper.assertTrue(level.getBlockState(pos.above(RANGE)).isAir(), "nothing beyond the wide cone");
             light.setMode(BeamMode.STRAIGHT);
@@ -213,6 +215,24 @@ public class FloodlightGameTest implements FabricGameTest {
         });
     }
 
+    @GameTest(template = EMPTY_STRUCTURE)
+    public void carbonFloodlightUsesFuelTwiceAsFastInConeMode(GameTestHelper helper) {
+        helper.setBlock(LIGHT, ModBlocks.CARBON_FLOODLIGHT.defaultBlockState().setValue(FloodlightBlock.FACING, Direction.UP));
+        CarbonFloodlightBlockEntity light = (CarbonFloodlightBlockEntity) helper.getLevel().getBlockEntity(helper.absolutePos(LIGHT));
+        light.cycleMode(); // straight -> narrow cone
+        light.getInventory().setItem(0, new ItemStack(Items.COAL));
+        BlockPos pos = helper.absolutePos(LIGHT);
+        helper.setBlock(REDSTONE, Blocks.REDSTONE_BLOCK);
+        helper.runAfterDelay(4, () -> {
+            // the coal still stores 300 s of straight light, but lasts only half of that in a cone
+            int full = 300 * 10;
+            helper.assertTrue(light.getTicksRemaining() < full && light.getTicksRemaining() > full - 10,
+                    "cone run time shown: " + light.getTicksRemaining());
+            remove(helper, pos);
+            helper.succeed();
+        });
+    }
+
     // ---- Helpers ----
 
     private static ElectricFloodlightBlockEntity placeElectric(GameTestHelper helper) {
@@ -220,12 +240,19 @@ public class FloodlightGameTest implements FabricGameTest {
         return (ElectricFloodlightBlockEntity) helper.getLevel().getBlockEntity(helper.absolutePos(LIGHT));
     }
 
-    /** The whole straight beam above {@code pos} consists of phantom lights with this {@code LIT}. */
+    /**
+     * The straight beam above {@code pos} consists of phantom lights with this {@code LIT} at the odd distances; the
+     * even ones are skipped ({@code Spacing.STRAIGHT}).
+     */
     private static void assertBeam(GameTestHelper helper, BlockPos pos, boolean lit) {
         for (int i = 1; i <= RANGE; i++) {
-            helper.assertTrue(isPhantom(helper.getLevel(), pos.above(i), lit),
-                    "phantom light " + i + " should be " + (lit ? "lit" : "unlit") + ", is "
-                            + helper.getLevel().getBlockState(pos.above(i)));
+            if (i % 2 == 1) {
+                helper.assertTrue(isPhantom(helper.getLevel(), pos.above(i), lit),
+                        "phantom light " + i + " should be " + (lit ? "lit" : "unlit") + ", is "
+                                + helper.getLevel().getBlockState(pos.above(i)));
+            } else {
+                helper.assertTrue(helper.getLevel().getBlockState(pos.above(i)).isAir(), "block " + i + " is skipped");
+            }
         }
     }
 

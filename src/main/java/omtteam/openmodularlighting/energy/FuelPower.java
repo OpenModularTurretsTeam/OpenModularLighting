@@ -19,12 +19,13 @@ import java.util.function.Supplier;
 public final class FuelPower implements LightPower {
     private static final String TIME_REMAINING = "time_remaining";
 
-    private final FuelTimer timer = new FuelTimer();
+    private final FuelTimer timer;
     private final Supplier<BeamMode> mode;
 
-    /** @param mode the light's current mode, which decides how long a fuel item lasts */
+    /** @param mode the light's current mode, which decides how fast the burn time is used up */
     public FuelPower(Supplier<BeamMode> mode) {
         this.mode = mode;
+        this.timer = new FuelTimer(() -> CarbonFuel.drain(mode.get()));
     }
 
     /** Furnace burn time of an item in ticks, 0 if it is no fuel. */
@@ -34,8 +35,14 @@ public final class FuelPower implements LightPower {
         return ticks == null ? 0 : Math.max(0, ticks);
     }
 
+    /** Stored burn time, in ticks of straight light. */
     public int ticksRemaining() {
         return timer.ticksRemaining();
+    }
+
+    /** How long the light can run on the stored burn time in its current mode (shown in the GUI). */
+    public int runTicks() {
+        return CarbonFuel.runTicks(timer.ticksRemaining(), mode.get());
     }
 
     @Override
@@ -54,15 +61,14 @@ public final class FuelPower implements LightPower {
     }
 
     /**
-     * Burns the next item as soon as the timer is empty, even while the light is off (1.7.10). The mode at that time
-     * decides how long it lasts. Leaves the remainder (lava bucket → bucket) like a furnace.
+     * Burns the next item as soon as the timer is empty, even while the light is off (1.7.10). Leaves the remainder (lava bucket → bucket) like a furnace.
      */
     @Override
     public void prepare(SimpleContainer inventory, InventoryStorage inventoryStorage) {
         if (!timer.needsFuel()) return;
         ItemStack stack = inventory.getItem(0);
         int burnTime = burnTime(stack);
-        if (burnTime <= 0 || !timer.refuel(CarbonFuel.ticks(burnTime, OMLConfig.get().general.carbonTime, mode.get()))) {
+        if (burnTime <= 0 || !timer.refuel(CarbonFuel.ticks(burnTime, OMLConfig.get().general.carbonTime))) {
             return;
         }
         Item remainder = stack.getItem().getCraftingRemainingItem();
