@@ -252,6 +252,8 @@ omtteam.openmodularlighting
 │   │                              LightSources (all + active sources of a phantom/UV block), ShapeDiff
 │   ├── state/                     LightController (active/inverted/timeout/re-cast state machine),
 │   │                              PowerSource (interface: energy buffer or fuel timer), FuelTimer
+│   ├── cluster/                   Cluster + ClusterNode (generic connected groups: join / leave / refresh-split, max 256;
+│   │                              Minecraft-free, meant to be reused for multiblocks)
 │   └── formula/                   CarbonFuel (burn time), GrowChance (tick interval), EnergyCost
 │
 ├── block/                         FloodlightBlock (base of every light: FACING + LIT, interaction, drops; configure()
@@ -382,6 +384,7 @@ The timeout still applies: toggling `LIT` is much cheaper than placing blocks, b
 ### 6.5 Power and fuel
 
 - Electric lights have an internal buffer of **50 000 E** (Team Reborn Energy, accepting on all sides; fluorescent and grow lights only on the back face, opposite the facing). Up to the whole buffer can be inserted per tick (as the 1.7.10 RF storage). **Nothing can be extracted** (1.7.10 allowed it, which let cables drain lights).
+- **Panel lights share energy** (`blockentity.PanelLightBlockEntity`, `energy.ClusterEnergy`): fluorescent and grow lights (any mix) that touch on their sides and face the same way form a `core.cluster.Cluster` (in memory, not saved; joins on the first tick, leaves in `setRemoved`, splits in `refresh()` once per tick). Each light keeps its own buffer. The back-face storage shows the whole cluster: inserting fills the emptiest light first, nothing can be extracted. A light that cannot pay its next tick takes energy from the fullest others (each gives at most half).
 - The battery slot accepts any item with an extractable Team Reborn Energy storage (`energy.Batteries`), and is discharged into the buffer each tick while the buffer has room.
 - Cost per tick: `energyUsage` (20) for straight, ×2 for cones; fluorescent 2; UV 80; grow light 40. 1.7.10 used RF; treat 1 RF = 1 E.
 - The carbon floodlight burns one furnace fuel item when `timeRemaining` reaches 0:
