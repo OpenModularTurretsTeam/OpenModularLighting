@@ -1,6 +1,10 @@
 package omtteam.openmodularlighting.gametest;
 
-import net.fabricmc.fabric.api.gametest.v1.FabricGameTest;
+//? if neoforge {
+/*import net.neoforged.neoforge.gametest.GameTestHolder;
+import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import omtteam.openmodularlighting.OML;
+*///?}
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.item.crafting.RecipeManager;
@@ -15,7 +19,11 @@ import java.util.List;
  * The generated recipes load (their {@code block_enabled} condition is registered and passes with the default
  * config), and the condition follows the config.
  */
-public class RecipeGameTest implements FabricGameTest {
+//? if neoforge {
+/*@GameTestHolder(OML.MOD_ID)
+@PrefixGameTestTemplate(false)
+*///?}
+public class RecipeGameTest implements OMLGameTests {
     private static final List<String> RECIPES = List.of("raw_filament", "glowing_filament", "light_bulb",
             "electric_floodlight", "carbon_dissolver", "mantle", "carbon_lantern", "carbon_floodlight", "uv_floodlight",
             "small_fluorescent_light", "square_fluorescent_light", "small_fluorescent_light_from_square", "grow_light");

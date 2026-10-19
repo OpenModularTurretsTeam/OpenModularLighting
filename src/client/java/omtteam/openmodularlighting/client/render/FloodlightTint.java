@@ -1,10 +1,13 @@
 package omtteam.openmodularlighting.client.render;
 
-import net.fabricmc.fabric.api.client.rendering.v1.ColorProviderRegistry;
+import net.minecraft.core.BlockPos;
 import net.minecraft.world.item.DyeColor;
+import net.minecraft.world.level.BlockAndTintGetter;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
 import omtteam.openmodularlighting.blockentity.FloodlightBlockEntity;
 import omtteam.openmodularlighting.registry.ModBlocks;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Tints dyed floodlights (1.7.10 {@code RotatableBlockRenderer}): the dye's map colour, brightened per block so that
@@ -16,14 +19,19 @@ public final class FloodlightTint {
     private FloodlightTint() {
     }
 
-    public static void register() {
-        ColorProviderRegistry.BLOCK.register((state, level, pos, tintIndex) -> {
-            if (level == null || pos == null
-                    || !(level.getBlockEntity(pos) instanceof FloodlightBlockEntity light)) {
-                return NO_TINT;
-            }
-            return tint(light.getColor(), brightness(state.getBlock()));
-        }, ModBlocks.LIGHT_SOURCES.toArray(Block[]::new));
+    /**
+     * The block colour of a light ({@code BlockColor}; the loaders register it for {@link #tintedBlocks()}).
+     */
+    public static int color(BlockState state, @Nullable BlockAndTintGetter level, @Nullable BlockPos pos, int tintIndex) {
+        if (level == null || pos == null || !(level.getBlockEntity(pos) instanceof FloodlightBlockEntity light)) {
+            return NO_TINT;
+        }
+        return tint(light.getColor(), brightness(state.getBlock()));
+    }
+
+    /** The blocks {@link #color} applies to. */
+    public static Block[] tintedBlocks() {
+        return ModBlocks.LIGHT_SOURCES.toArray(Block[]::new);
     }
 
     /** 1.7.10 multipliers: {@code 1 + log10(255 / average texture brightness)}. */

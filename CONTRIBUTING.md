@@ -30,18 +30,18 @@ Clone the repository, then run in its directory:
 ./gradlew chiseledBuild
 ```
 
-The jars end up in `versions/<minecraft version>/build/libs/`.
+The jars end up in `versions/<minecraft version>-<loader>/build/libs/`.
 
 ### Useful commands
 
 ```bash
-./gradlew chiseledBuild                    # build both versions (unit tests and GameTests included)
-./gradlew :1.21.1:runClient                # start a client (also :1.20.1:runClient, :runServer)
-./gradlew check                            # unit tests, GameTests and the core isolation check
-./gradlew :1.21.1:runGameTest              # in-world GameTests for one version
-./gradlew :1.21.1:runDatagen               # regenerate recipes, loot tables, tags (run for both versions)
-./gradlew "Set active project to 1.20.1"   # switch the source to 1.20.1
-./gradlew "Set active project to 1.21.1"   # switch back
+./gradlew chiseledBuild                         # build both versions (unit tests and GameTests included)
+./gradlew :1.21.1-fabric:runClient              # start a client (also :1.20.1-fabric:runClient, :runServer)
+./gradlew check                                 # unit tests, GameTests and the core isolation check
+./gradlew :1.21.1-fabric:runGameTest            # in-world GameTests for one version
+./gradlew :1.21.1-fabric:runDatagen             # regenerate recipes, loot tables, tags (run for both versions)
+./gradlew "Set active project to 1.20.1-fabric" # switch the source to 1.20.1
+./gradlew "Set active project to 1.21.1-fabric" # switch back
 ```
 
 ## Working with two Minecraft versions

@@ -1,6 +1,10 @@
 package omtteam.openmodularlighting.gametest;
 
-import net.fabricmc.fabric.api.gametest.v1.FabricGameTest;
+//? if neoforge {
+/*import net.neoforged.neoforge.gametest.GameTestHolder;
+import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import omtteam.openmodularlighting.OML;
+*///?}
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
@@ -17,10 +21,14 @@ import omtteam.openmodularlighting.registry.ModBlocks;
 import java.util.List;
 
 /**
- * The block info overlay content (1.7.10 WAILA: invert and mode). Fabric API loads the mod's en_us translations on
+ * The block info overlay content (1.7.10 WAILA: invert and mode). Both loaders load the mod's en_us translations on
  * the server too, so this also checks the lang file.
  */
-public class JadeTooltipGameTest implements FabricGameTest {
+//? if neoforge {
+/*@GameTestHolder(OML.MOD_ID)
+@PrefixGameTestTemplate(false)
+*///?}
+public class JadeTooltipGameTest implements OMLGameTests {
     private static final BlockPos LIGHT = new BlockPos(3, 1, 3);
 
     @GameTest(template = EMPTY_STRUCTURE)

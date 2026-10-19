@@ -1,6 +1,5 @@
 package omtteam.openmodularlighting.energy;
 
-import net.fabricmc.fabric.api.transfer.v1.item.InventoryStorage;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.item.ItemStack;
@@ -15,7 +14,7 @@ public interface LightPower extends PowerSource {
     boolean isValidItem(ItemStack stack);
 
     /** Charges from the battery or burns the next fuel item; runs every tick before the light logic. */
-    void prepare(SimpleContainer inventory, InventoryStorage inventoryStorage);
+    void prepare(SimpleContainer inventory);
 
     /** Whether there is energy or burn time worth keeping on the dropped item. */
     boolean hasStored();

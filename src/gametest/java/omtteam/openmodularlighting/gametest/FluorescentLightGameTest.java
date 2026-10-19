@@ -1,7 +1,10 @@
 package omtteam.openmodularlighting.gametest;
 
-import net.fabricmc.fabric.api.gametest.v1.FabricGameTest;
-import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
+//? if neoforge {
+/*import net.neoforged.neoforge.gametest.GameTestHolder;
+import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import omtteam.openmodularlighting.OML;
+*///?}
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTest;
@@ -16,21 +19,25 @@ import omtteam.openmodularlighting.block.FluorescentLightBlock;
 import omtteam.openmodularlighting.block.LightBlock;
 import omtteam.openmodularlighting.blockentity.FloodlightBlockEntity;
 import omtteam.openmodularlighting.blockentity.PanelLightBlockEntity;
+import omtteam.openmodularlighting.core.energy.EnergyAccess;
 import omtteam.openmodularlighting.energy.ElectricPower;
 import omtteam.openmodularlighting.registry.ModBlocks;
-import team.reborn.energy.api.EnergyStorage;
 
 /**
  * Small and square fluorescent lights (CLAUDE.md §6.2, §6.3): 5 lit neighbours, energy only from the back, the panel
  * on the back face and the small light's rotation.
  */
-public class FluorescentLightGameTest implements FabricGameTest {
+//? if neoforge {
+/*@GameTestHolder(OML.MOD_ID)
+@PrefixGameTestTemplate(false)
+*///?}
+public class FluorescentLightGameTest implements OMLGameTests {
     private static final BlockPos LIGHT = new BlockPos(3, 1, 3);
 
     @GameTest(template = EMPTY_STRUCTURE)
     public void lightsTheBlockInFrontAndTheFourBesideIt(GameTestHelper helper) {
         FloodlightBlockEntity light = place(helper, ModBlocks.SMALL_FLUORESCENT_LIGHT, Direction.UP);
-        light.electricPower().storage().amount = ElectricPower.CAPACITY;
+        light.electricPower().store().setAmountUnchecked(ElectricPower.CAPACITY);
         helper.setBlock(LIGHT.below(), Blocks.REDSTONE_BLOCK); // behind the light
         BlockPos pos = helper.absolutePos(LIGHT);
         helper.succeedWhen(() -> {
@@ -48,9 +55,10 @@ public class FluorescentLightGameTest implements FabricGameTest {
         place(helper, ModBlocks.SQUARE_FLUORESCENT_LIGHT, Direction.UP);
         ServerLevel level = helper.getLevel();
         BlockPos pos = helper.absolutePos(LIGHT);
-        helper.assertTrue(EnergyStorage.SIDED.find(level, pos, Direction.DOWN) != null, "back face (below) accepts energy");
+        TestTransfer transfer = OMLGameTestMod.transfer();
+        helper.assertTrue(transfer.hasEnergy(level, pos, Direction.DOWN), "back face (below) accepts energy");
         for (Direction side : new Direction[]{Direction.UP, Direction.NORTH, Direction.EAST}) {
-            helper.assertTrue(EnergyStorage.SIDED.find(level, pos, side) == null, "no energy from " + side);
+            helper.assertTrue(!transfer.hasEnergy(level, pos, side), "no energy from " + side);
         }
         remove(helper, pos);
         helper.succeed();
@@ -106,19 +114,14 @@ public class FluorescentLightGameTest implements FabricGameTest {
         PanelLightBlockEntity b = place(helper, ModBlocks.SMALL_FLUORESCENT_LIGHT, Direction.UP, LIGHT.east());
         ServerLevel level = helper.getLevel();
         helper.runAfterDelay(3, () -> {
-            EnergyStorage storage = EnergyStorage.SIDED.find(level, helper.absolutePos(LIGHT), Direction.DOWN);
-            helper.assertTrue(storage != null, "back face accepts energy");
-            try (Transaction transaction = Transaction.openOuter()) {
-                helper.assertTrue(storage.insert(1000, transaction) == 1000, "inserted");
-                transaction.commit();
-            }
-            long total = a.buffer().storage().amount + b.buffer().storage().amount;
+            long inserted = OMLGameTestMod.transfer().insertEnergy(level, helper.absolutePos(LIGHT), Direction.DOWN, 1000);
+            helper.assertTrue(inserted == 1000, "inserted through the back face: " + inserted);
+            long total = a.buffer().store().getAmount() + b.buffer().store().getAmount();
             helper.assertTrue(total == 1000, "all energy is in the cluster: " + total);
-            helper.assertTrue(storage.getAmount() == 1000, "cluster amount " + storage.getAmount());
-            helper.assertTrue(storage.getCapacity() == 2 * ElectricPower.CAPACITY, "cluster capacity " + storage.getCapacity());
-            try (Transaction transaction = Transaction.openOuter()) {
-                helper.assertTrue(storage.extract(100, transaction) == 0, "nothing can be extracted");
-            }
+            EnergyAccess cluster = a.getEnergyAccess(Direction.DOWN);
+            helper.assertTrue(cluster.getAmount() == 1000, "cluster amount " + cluster.getAmount());
+            helper.assertTrue(cluster.getCapacity() == 2 * ElectricPower.CAPACITY, "cluster capacity " + cluster.getCapacity());
+            helper.assertTrue(cluster.extract(100, false) == 0, "nothing can be extracted");
             remove(helper, helper.absolutePos(LIGHT));
             remove(helper, helper.absolutePos(LIGHT.east()));
             helper.succeed();
@@ -129,11 +132,11 @@ public class FluorescentLightGameTest implements FabricGameTest {
     public void aLightRunsOnTheEnergyOfItsNeighbour(GameTestHelper helper) {
         PanelLightBlockEntity charged = place(helper, ModBlocks.SMALL_FLUORESCENT_LIGHT, Direction.UP, LIGHT.east());
         PanelLightBlockEntity empty = place(helper, ModBlocks.SMALL_FLUORESCENT_LIGHT, Direction.UP, LIGHT);
-        charged.buffer().storage().amount = ElectricPower.CAPACITY;
+        charged.buffer().store().setAmountUnchecked(ElectricPower.CAPACITY);
         helper.setBlock(LIGHT.below(), Blocks.REDSTONE_BLOCK); // powers only the empty light
         helper.succeedWhen(() -> {
             helper.assertTrue(empty.isLightOn(), "the empty light is on");
-            helper.assertTrue(charged.buffer().storage().amount < ElectricPower.CAPACITY, "neighbour paid");
+            helper.assertTrue(charged.buffer().store().getAmount() < ElectricPower.CAPACITY, "neighbour paid");
             helper.assertFalse(charged.isLightOn(), "the charged light has no redstone and stays off");
             remove(helper, helper.absolutePos(LIGHT));
             remove(helper, helper.absolutePos(LIGHT.east()));

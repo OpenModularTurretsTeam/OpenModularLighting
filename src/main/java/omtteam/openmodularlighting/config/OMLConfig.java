@@ -6,13 +6,12 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
-import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
-import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.server.level.ServerPlayer;
 import omtteam.openmodularlighting.OML;
 import omtteam.openmodularlighting.compat.network.NetworkCompat;
 import omtteam.openmodularlighting.network.ConfigSyncPacket;
 import omtteam.openmodularlighting.network.OMLPackets;
+import omtteam.openmodularlighting.platform.Platform;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -49,21 +48,24 @@ public final class OMLConfig {
     }
 
     /**
-     * Loads the config file (writing defaults if it is missing) and registers the join-time sync.
+     * Loads the config file (writing defaults if it is missing).
      */
     public static void init() {
         load();
-        ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
-            ServerPlayer player = handler.getPlayer();
-            // The singleplayer host already uses this config
-            if (!server.isSingleplayerOwner(player.getGameProfile()) && NetworkCompat.canSend(player, OMLPackets.CONFIG_SYNC)) {
-                NetworkCompat.sendToPlayer(player, OMLPackets.CONFIG_SYNC, new ConfigSyncPacket(GSON.toJson(local)));
-            }
-        });
+    }
+
+    /**
+     * Sends the server's config to a joining player; called by the loader's player-join event on the server.
+     */
+    public static void onPlayerJoin(ServerPlayer player) {
+        // The singleplayer host already uses this config
+        if (!player.server.isSingleplayerOwner(player.getGameProfile()) && NetworkCompat.canSend(player, OMLPackets.CONFIG_SYNC)) {
+            NetworkCompat.sendToPlayer(player, OMLPackets.CONFIG_SYNC, new ConfigSyncPacket(GSON.toJson(local)));
+        }
     }
 
     public static void load() {
-        Path path = FabricLoader.getInstance().getConfigDir().resolve(FILE_NAME);
+        Path path = Platform.loaderInfo().configDir().resolve(FILE_NAME);
         ConfigData data;
         boolean changed;
         if (Files.exists(path)) {

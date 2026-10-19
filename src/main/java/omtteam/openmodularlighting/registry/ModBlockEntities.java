@@ -1,6 +1,5 @@
 package omtteam.openmodularlighting.registry;
 
-import net.fabricmc.fabric.api.transfer.v1.item.ItemStorage;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.level.block.Block;
@@ -16,12 +15,11 @@ import omtteam.openmodularlighting.blockentity.GrowLightBlockEntity;
 import omtteam.openmodularlighting.blockentity.PhantomLightBlockEntity;
 import omtteam.openmodularlighting.blockentity.UvFloodlightBlockEntity;
 import omtteam.openmodularlighting.blockentity.UvLightBlockEntity;
-import team.reborn.energy.api.EnergyStorage;
 
 import java.util.List;
 
 /**
- * All block entity types of the mod and their API lookups (items via Transfer API, energy via Team Reborn Energy).
+ * All block entity types of the mod. Their item and energy access is registered per loader ({@code platform/<loader>}).
  */
 public final class ModBlockEntities {
     public static final BlockEntityType<PhantomLightBlockEntity> PHANTOM_LIGHT =
@@ -54,12 +52,12 @@ public final class ModBlockEntities {
                 BlockEntityType.Builder.of(factory, blocks).build(null));
     }
 
+    /** Loads the class, registering all block entity types. */
     public static void init() {
-        // Items on all sides (1.7.10); energy on all sides or only from the back (FloodlightBlockEntity#acceptsEnergyFrom)
-        for (BlockEntityType<? extends FloodlightBlockEntity> type : List.of(ELECTRIC_FLOODLIGHT, CARBON_FLOODLIGHT,
-                UV_FLOODLIGHT, FLUORESCENT_LIGHT, GROW_LIGHT, CUBE_LIGHT)) {
-            ItemStorage.SIDED.registerForBlockEntity((light, side) -> light.getItemStorage(), type);
-            EnergyStorage.SIDED.registerForBlockEntity(FloodlightBlockEntity::getEnergyStorage, type);
-        }
+    }
+
+    /** The lights: block entities with an item slot and (if electric) energy. */
+    public static List<BlockEntityType<? extends FloodlightBlockEntity>> lights() {
+        return List.of(ELECTRIC_FLOODLIGHT, CARBON_FLOODLIGHT, UV_FLOODLIGHT, FLUORESCENT_LIGHT, GROW_LIGHT, CUBE_LIGHT);
     }
 }

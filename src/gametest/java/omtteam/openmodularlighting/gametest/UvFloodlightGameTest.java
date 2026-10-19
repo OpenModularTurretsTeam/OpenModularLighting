@@ -1,6 +1,10 @@
 package omtteam.openmodularlighting.gametest;
 
-import net.fabricmc.fabric.api.gametest.v1.FabricGameTest;
+//? if neoforge {
+/*import net.neoforged.neoforge.gametest.GameTestHolder;
+import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import omtteam.openmodularlighting.OML;
+*///?}
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTest;
@@ -21,7 +25,11 @@ import omtteam.openmodularlighting.registry.ModBlocks;
  * UV floodlight and UV light block (CLAUDE.md §6.3, §6.9): a beam of UV light blocks that damage living entities only
  * while lit, take over phantom lights and give them back when removed.
  */
-public class UvFloodlightGameTest implements FabricGameTest {
+//? if neoforge {
+/*@GameTestHolder(OML.MOD_ID)
+@PrefixGameTestTemplate(false)
+*///?}
+public class UvFloodlightGameTest implements OMLGameTests {
     /** On the ground, shining east along x = 1 .. range. */
     private static final BlockPos UV = new BlockPos(0, 0, 3);
     private static final int RANGE = OMLGameTestMod.TEST_RANGE;
@@ -68,7 +76,7 @@ public class UvFloodlightGameTest implements FabricGameTest {
         BlockPos floodlightRel = new BlockPos(3, 0, 3);
         helper.setBlock(floodlightRel, ModBlocks.ELECTRIC_FLOODLIGHT.defaultBlockState().setValue(FloodlightBlock.FACING, Direction.UP));
         FloodlightBlockEntity floodlight = (FloodlightBlockEntity) level.getBlockEntity(helper.absolutePos(floodlightRel));
-        floodlight.electricPower().storage().amount = ElectricPower.CAPACITY;
+        floodlight.electricPower().store().setAmountUnchecked(ElectricPower.CAPACITY);
         helper.setBlock(floodlightRel.south(), Blocks.REDSTONE_BLOCK);
         BlockPos uvRel = new BlockPos(0, 3, 3);
         placeUv(helper, uvRel, true);
@@ -92,7 +100,7 @@ public class UvFloodlightGameTest implements FabricGameTest {
     private static void placeUv(GameTestHelper helper, BlockPos relative, boolean energy) {
         helper.setBlock(relative, ModBlocks.UV_FLOODLIGHT.defaultBlockState().setValue(FloodlightBlock.FACING, Direction.EAST));
         FloodlightBlockEntity light = (FloodlightBlockEntity) helper.getLevel().getBlockEntity(helper.absolutePos(relative));
-        if (energy) light.electricPower().storage().amount = ElectricPower.CAPACITY;
+        if (energy) light.electricPower().store().setAmountUnchecked(ElectricPower.CAPACITY);
     }
 
     private static Pig pig(GameTestHelper helper, BlockPos relative) {

@@ -122,7 +122,7 @@ public abstract class FloodlightBlock extends BaseEntityBlock implements Interac
         InteractionResult handled = InteractionResult.sidedSuccess(level.isClientSide());
         if (held.is(ModItems.LIGHT_DEBUG_TOOL) && !player.isShiftKeyDown()) {
             ElectricPower power = light.electricPower();
-            if (server && power != null) power.give(power.storage().capacity);
+            if (server && power != null) power.store().generate(power.store().getCapacity());
             return power != null ? handled : InteractionResult.PASS;
         }
         if (player.isShiftKeyDown()) {

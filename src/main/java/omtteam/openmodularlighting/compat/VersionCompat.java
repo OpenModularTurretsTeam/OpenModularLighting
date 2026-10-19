@@ -6,12 +6,16 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.BonemealableBlock;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+//? if fabric {
+import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
+//?}
 //? if >=1.21 {
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.Tag;
@@ -155,6 +159,18 @@ public final class VersionCompat {
         return stack.has(DataComponents.BLOCK_ENTITY_DATA);
         //?} else {
         /*return BlockItem.getBlockEntityData(stack) != null;
+        *///?}
+    }
+
+    /**
+     * Builder of a mod creative tab. Fabric places mod tabs on its own tab pages ({@code FabricItemGroup}); NeoForge
+     * sorts mod tabs itself.
+     */
+    public static CreativeModeTab.Builder creativeTabBuilder() {
+        //? if fabric {
+        return FabricItemGroup.builder();
+        //?} else {
+        /*return CreativeModeTab.builder();
         *///?}
     }
 }

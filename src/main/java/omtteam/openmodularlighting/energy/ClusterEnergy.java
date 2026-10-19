@@ -1,9 +1,9 @@
 package omtteam.openmodularlighting.energy;
 
-import net.fabricmc.fabric.api.transfer.v1.transaction.TransactionContext;
 import omtteam.openmodularlighting.blockentity.PanelLightBlockEntity;
 import omtteam.openmodularlighting.core.cluster.Cluster;
-import team.reborn.energy.api.EnergyStorage;
+import omtteam.openmodularlighting.core.energy.EnergyAccess;
+import omtteam.openmodularlighting.core.energy.EnergyStore;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -14,7 +14,7 @@ import java.util.List;
  * block and nothing has to be merged or divided when lights are placed or broken); the cluster only decides where
  * energy goes in and where a light finds energy when its own buffer runs low:
  * <ul>
- *     <li>{@link Storage}: what cables see. Inserting fills the emptiest lights first. Nothing can be extracted.</li>
+ *     <li>{@link View}: what cables see. Inserting fills the emptiest lights first. Nothing can be extracted.</li>
  *     <li>{@link #pull}: a light that cannot pay its next tick takes energy from the fullest other lights.</li>
  * </ul>
  */
@@ -36,9 +36,9 @@ public final class ClusterEnergy {
         ElectricPower own = light.buffer();
         if (cluster == null || cluster.size() < 2 || own == null) return true;
         long cost = own.cost();
-        long stored = own.storage().amount;
+        long stored = own.store().getAmount();
         if (cost == 0 || stored >= cost) return true;
-        long wanted = Math.min(own.storage().capacity, cost * PULL_TICKS) - stored;
+        long wanted = Math.min(own.store().getCapacity(), cost * PULL_TICKS) - stored;
         List<PanelLightBlockEntity> donors = new ArrayList<>(cluster.members());
         donors.remove(light);
         donors.sort(Comparator.comparingLong((PanelLightBlockEntity donor) -> amount(donor)).reversed());
@@ -47,46 +47,56 @@ public final class ClusterEnergy {
             if (wanted <= 0) break;
             long available = amount(donor);
             if (available <= 0) break; // sorted: the rest is empty too
-            long taken = donor.buffer().take(Math.min(wanted, (available + 1) / 2));
+            long taken = donor.buffer().store().drain(Math.min(wanted, (available + 1) / 2));
             wanted -= taken;
             gained += taken;
         }
-        own.give(gained);
+        own.store().generate(gained);
         return gained > 0;
     }
 
     private static long amount(PanelLightBlockEntity light) {
         ElectricPower buffer = light.buffer();
-        return buffer == null ? 0 : buffer.storage().amount;
+        return buffer == null ? 0 : buffer.store().getAmount();
     }
 
-    /** The energy storage of a whole cluster, as seen from one of its lights. Insert only. */
-    public static final class Storage implements EnergyStorage {
+    /** Inserts into one light's store; the loader adapters pass their own (Fabric: inside a transaction). */
+    @FunctionalInterface
+    public interface StoreInserter {
+        long insert(EnergyStore store, long maxAmount);
+    }
+
+    /** The energy of a whole cluster, as seen from one of its lights. Insert only. */
+    public static final class View implements EnergyAccess {
         private final PanelLightBlockEntity light;
 
-        public Storage(PanelLightBlockEntity light) {
+        public View(PanelLightBlockEntity light) {
             this.light = light;
         }
 
         @Override
-        public boolean supportsExtraction() {
-            return false;
+        public long insert(long maxAmount, boolean simulate) {
+            return fill(maxAmount, (store, amount) -> store.insert(amount, simulate));
         }
 
-        @Override
-        public long insert(long maxAmount, TransactionContext transaction) {
+        /**
+         * Inserts up to {@code maxAmount} into the lights of the cluster, emptiest first, each through {@code inserter}.
+         *
+         * @return the amount inserted
+         */
+        public long fill(long maxAmount, StoreInserter inserter) {
             List<PanelLightBlockEntity> members = members();
             members.sort(Comparator.comparingLong(ClusterEnergy::amount));
             long inserted = 0;
             for (PanelLightBlockEntity member : members) {
                 if (inserted >= maxAmount) break;
-                inserted += member.buffer().storage().insert(maxAmount - inserted, transaction);
+                inserted += inserter.insert(member.buffer().store(), maxAmount - inserted);
             }
             return inserted;
         }
 
         @Override
-        public long extract(long maxAmount, TransactionContext transaction) {
+        public long extract(long maxAmount, boolean simulate) {
             return 0;
         }
 
@@ -100,7 +110,7 @@ public final class ClusterEnergy {
         @Override
         public long getCapacity() {
             long sum = 0;
-            for (PanelLightBlockEntity member : members()) sum += member.buffer().storage().capacity;
+            for (PanelLightBlockEntity member : members()) sum += member.buffer().store().getCapacity();
             return sum;
         }
 

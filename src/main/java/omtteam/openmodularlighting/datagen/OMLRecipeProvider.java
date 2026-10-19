@@ -13,6 +13,7 @@ import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.ItemLike;
 import omtteam.openmodularlighting.OML;
 import omtteam.openmodularlighting.compat.BlockEnabledCondition;
+import omtteam.openmodularlighting.platform.fabric.FabricBlockEnabledCondition;
 import omtteam.openmodularlighting.compat.CommonTags;
 import omtteam.openmodularlighting.registry.ModItems;
 import org.jetbrains.annotations.Nullable;
@@ -46,7 +47,7 @@ public class OMLRecipeProvider extends FabricRecipeProvider {
     @Override
     public void buildRecipes(RecipeOutput output) {
         generate((builder, id, blocks) -> {
-            RecipeOutput target = blocks == null ? output : withConditions(output, BlockEnabledCondition.of(blocks));
+            RecipeOutput target = blocks == null ? output : withConditions(output, FabricBlockEnabledCondition.of(blocks));
             if (id == null) {
                 builder.save(target);
             } else {
@@ -63,7 +64,7 @@ public class OMLRecipeProvider extends FabricRecipeProvider {
     public void buildRecipes(Consumer<FinishedRecipe> output) {
         generate((builder, id, blocks) -> {
             Consumer<FinishedRecipe> target = blocks == null ? output
-                    : withConditions(output, BlockEnabledCondition.of(blocks));
+                    : withConditions(output, FabricBlockEnabledCondition.of(blocks));
             if (id == null) {
                 builder.save(target);
             } else {

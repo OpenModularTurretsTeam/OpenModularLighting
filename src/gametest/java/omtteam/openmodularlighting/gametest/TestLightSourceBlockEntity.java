@@ -17,7 +17,7 @@ public class TestLightSourceBlockEntity extends BlockEntity implements LightSour
     int recastRequests;
 
     public TestLightSourceBlockEntity(BlockPos pos, BlockState state) {
-        super(OMLGameTestMod.TEST_LIGHT_SOURCE_TYPE, pos, state);
+        super(TestBlockEntities.TEST_LIGHT_SOURCE, pos, state);
     }
 
     @Override

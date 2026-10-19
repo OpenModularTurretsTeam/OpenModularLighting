@@ -1,6 +1,10 @@
 package omtteam.openmodularlighting.gametest;
 
-import net.fabricmc.fabric.api.gametest.v1.FabricGameTest;
+//? if neoforge {
+/*import net.neoforged.neoforge.gametest.GameTestHolder;
+import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import omtteam.openmodularlighting.OML;
+*///?}
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
@@ -16,7 +20,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.PushReaction;
 import omtteam.openmodularlighting.block.LightBlock;
 import omtteam.openmodularlighting.blockentity.LightBlockEntity;
-import omtteam.openmodularlighting.blockentity.LightBlockEntityAccess;
 import omtteam.openmodularlighting.blockentity.PhantomLightBlockEntity;
 import omtteam.openmodularlighting.registry.ModBlocks;
 import omtteam.openmodularlighting.world.LightBlocks;
@@ -26,7 +29,11 @@ import omtteam.openmodularlighting.world.Positions;
  * In-world tests of the phantom light block (CLAUDE.md §6.3): persistent light blocks that are switched with
  * {@code LIT}, behave like air and clean up after themselves.
  */
-public class PhantomLightGameTest implements FabricGameTest {
+//? if neoforge {
+/*@GameTestHolder(OML.MOD_ID)
+@PrefixGameTestTemplate(false)
+*///?}
+public class PhantomLightGameTest implements OMLGameTests {
     private static final BlockPos LIGHT = new BlockPos(2, 2, 2);
     private static final BlockPos SOURCE_A = new BlockPos(2, 2, 5);
     private static final BlockPos SOURCE_B = new BlockPos(5, 2, 2);
@@ -216,13 +223,13 @@ public class PhantomLightGameTest implements FabricGameTest {
         LightBlocks.join(level, light, ModBlocks.PHANTOM_LIGHT, b, false);
         LightBlockEntity original = (LightBlockEntity) level.getBlockEntity(light);
 
-        CompoundTag tag = LightBlockEntityAccess.save(original, level.registryAccess());
+        CompoundTag tag = BlockEntityData.save(original, level.registryAccess());
         LightBlockEntity loaded = new PhantomLightBlockEntity(light, level.getBlockState(light));
-        LightBlockEntityAccess.load(loaded, tag, level.registryAccess());
+        BlockEntityData.load(loaded, tag, level.registryAccess());
         helper.assertTrue(loaded.sources().sources().equals(original.sources().sources()), "sources restored");
         helper.assertTrue(loaded.sources().activeSources().equals(java.util.Set.of(Positions.toPos(a))),
                 "active sources restored");
-        helper.assertTrue(LightBlockEntityAccess.clientData(original, level.registryAccess()).isEmpty(),
+        helper.assertTrue(BlockEntityData.clientData(original, level.registryAccess()).isEmpty(),
                 "nothing sent to clients");
         helper.succeed();
     }
@@ -230,7 +237,7 @@ public class PhantomLightGameTest implements FabricGameTest {
     // ---- Helpers ----
 
     private static TestLightSourceBlockEntity placeSource(GameTestHelper helper, BlockPos relative) {
-        helper.setBlock(relative, OMLGameTestMod.TEST_LIGHT_SOURCE);
+        helper.setBlock(relative, TestBlocks.TEST_LIGHT_SOURCE);
         return (TestLightSourceBlockEntity) helper.getLevel().getBlockEntity(helper.absolutePos(relative));
     }
 
