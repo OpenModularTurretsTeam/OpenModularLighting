@@ -2,8 +2,6 @@ package omtteam.openmodularlighting.client.render;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
-import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
@@ -18,6 +16,7 @@ import omtteam.openmodularlighting.block.LightBlock;
 import omtteam.openmodularlighting.blockentity.LightBlockEntity;
 import omtteam.openmodularlighting.blockentity.UvLightBlockEntity;
 import omtteam.openmodularlighting.registry.ModItems;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * The light debug tool (1.7.10 {@code TileEntityPhantomLightRenderer}): while it is held, every light block within
@@ -38,10 +37,6 @@ public final class LightBlockDebugRenderer {
     private LightBlockDebugRenderer() {
     }
 
-    public static void register() {
-        WorldRenderEvents.AFTER_ENTITIES.register(LightBlockDebugRenderer::render);
-    }
-
     /** Whether the local player holds the light debug tool in either hand. */
     public static boolean isHoldingDebugTool() {
         LocalPlayer player = Minecraft.getInstance().player;
@@ -49,13 +44,14 @@ public final class LightBlockDebugRenderer {
                 || player.getOffhandItem().is(ModItems.LIGHT_DEBUG_TOOL));
     }
 
-    private static void render(WorldRenderContext context) {
+    /**
+     * Draws the wireframes while the tool is held; called by the loader's world render event after the entities, with
+     * that frame's pose stack, buffers and camera position.
+     */
+    public static void render(@Nullable ClientLevel level, PoseStack poseStack, @Nullable MultiBufferSource buffers,
+                              Vec3 camera) {
         if (!isHoldingDebugTool()) return;
-        ClientLevel level = context.world();
-        MultiBufferSource buffers = context.consumers();
         if (level == null || buffers == null) return;
-        Vec3 camera = context.camera().getPosition();
-        PoseStack poseStack = context.matrixStack();
         VertexConsumer lines = buffers.getBuffer(RenderType.lines());
         int centerX = SectionPos.blockToSectionCoord(camera.x);
         int centerZ = SectionPos.blockToSectionCoord(camera.z);

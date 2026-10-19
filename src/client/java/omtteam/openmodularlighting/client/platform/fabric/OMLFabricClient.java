@@ -1,50 +1,44 @@
 package omtteam.openmodularlighting.client.platform.fabric;
 
 import net.fabricmc.api.ClientModInitializer;
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap;
+import net.fabricmc.fabric.api.client.item.v1.ItemTooltipCallback;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
+import net.fabricmc.fabric.api.client.rendering.v1.ColorProviderRegistry;
+import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.renderer.RenderType;
-import net.minecraft.network.chat.Component;
-import net.minecraft.world.item.BlockItem;
-import omtteam.openmodularlighting.block.FloodlightBlock;
-import omtteam.openmodularlighting.client.compat.ClientCompat;
-import omtteam.openmodularlighting.client.network.ClientPacketHandlers;
+import omtteam.openmodularlighting.client.OMLClient;
 import omtteam.openmodularlighting.client.platform.ClientPlatform;
 import omtteam.openmodularlighting.client.platform.ClientPlatformServices;
 import omtteam.openmodularlighting.client.render.FloodlightTint;
 import omtteam.openmodularlighting.client.render.LightBlockDebugRenderer;
-import omtteam.openmodularlighting.client.screen.CarbonFloodlightScreen;
-import omtteam.openmodularlighting.client.screen.ElectricFloodlightScreen;
-import omtteam.openmodularlighting.compat.VersionCompat;
 import omtteam.openmodularlighting.config.OMLConfig;
 import omtteam.openmodularlighting.registry.ModBlocks;
-import omtteam.openmodularlighting.registry.ModMenus;
 
 /**
- * Fabric client entrypoint: screens, renderers and render layers.
+ * Fabric client entrypoint: installs the client platform services, starts the client and wires Fabric's client
+ * callbacks to the shared code ({@link OMLClient}).
  */
 public final class OMLFabricClient implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
         ClientPlatform.install(new ClientPlatformServices(new FabricClientNetwork()));
-        ClientPacketHandlers.init();
+        OMLClient.init();
+        OMLClient.registerScreens(MenuScreens::register);
         // back to the local config after leaving a server
         ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> OMLConfig.useLocalConfig());
-        MenuScreens.register(ModMenus.ELECTRIC_FLOODLIGHT, ElectricFloodlightScreen::new);
-        MenuScreens.register(ModMenus.CARBON_FLOODLIGHT, CarbonFloodlightScreen::new);
-        FloodlightTint.register();
-        // the UV light texture has transparent pixels
+        ColorProviderRegistry.BLOCK.register(FloodlightTint::color, FloodlightTint.tintedBlocks());
+        // NeoForge reads these from "render_type" in the block models; Fabric ignores that field
         BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.UV_LIGHT, RenderType.cutout());
         BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.LIGHTPROOF_GLASS, RenderType.translucent());
         // light debug tool: wireframes around light blocks while it is held
-        LightBlockDebugRenderer.register();
-        // 1.7.10 ItemBlockFL: a dropped floodlight that kept its settings
-        ClientCompat.registerTooltip((stack, flag, lines) -> {
-            if (stack.getItem() instanceof BlockItem item && item.getBlock() instanceof FloodlightBlock
-                    && VersionCompat.hasBlockEntityData(stack)) {
-                lines.add(Component.translatable("tooltip.openmodularlighting.configured"));
-            }
-        });
+        WorldRenderEvents.AFTER_ENTITIES.register(context -> LightBlockDebugRenderer.render(context.world(),
+                context.matrixStack(), context.consumers(), context.camera().getPosition()));
+        //? if >=1.21 {
+        ItemTooltipCallback.EVENT.register((stack, context, flag, lines) -> OMLClient.appendTooltip(stack, flag, lines));
+        //?} else {
+        /*ItemTooltipCallback.EVENT.register(OMLClient::appendTooltip);
+        *///?}
     }
 }

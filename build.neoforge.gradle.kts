@@ -14,11 +14,10 @@ val client: SourceSet = sourceSets.create("client") {
     runtimeClasspath += sourceSets.main.get().output
 }
 
-// PORTING IN PROGRESS: these main packages do not compile on NeoForge yet (Fabric datagen, the Jade plugin), and
-// client code is limited to client/platform until the client is ported. The filter goes away when everything compiles.
+// PORTING IN PROGRESS: these main packages do not compile on NeoForge yet (Fabric datagen, the Jade plugin).
+// The filter goes away when everything compiles.
 val notPorted = listOf("datagen", "compat/jade")
 sourceSets.main { java { notPorted.forEach { exclude("$packagePath/$it/**") } } }
-client.java { include("$packagePath/client/platform/**") }
 
 neoForge {
     version = property("neoforge_version") as String

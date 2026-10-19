@@ -1,29 +1,17 @@
 package omtteam.openmodularlighting.client.compat;
 
-import net.fabricmc.fabric.api.client.item.v1.ItemTooltipCallback;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.network.chat.Component;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.TooltipFlag;
-
 import org.joml.Matrix4f;
-
-import java.util.List;
 
 /**
  * Hides client-side API differences between the supported Minecraft versions.
  */
 public final class ClientCompat {
     private ClientCompat() {
-    }
-
-    @FunctionalInterface
-    public interface TooltipAppender {
-        void append(ItemStack stack, TooltipFlag flag, List<Component> lines);
     }
 
     /**
@@ -59,15 +47,6 @@ public final class ClientCompat {
         //?} else {
         /*consumer.vertex(pose.pose(), x, y, z).color(255, 255, 255, 255).uv(u, v).overlayCoords(OverlayTexture.NO_OVERLAY)
                 .uv2(packedLight).normal(pose.normal(), normalX, normalY, normalZ).endVertex();
-        *///?}
-    }
-
-    /** Appends lines to item tooltips (called for every item). */
-    public static void registerTooltip(TooltipAppender appender) {
-        //? if >=1.21 {
-        ItemTooltipCallback.EVENT.register((stack, context, flag, lines) -> appender.append(stack, flag, lines));
-        //?} else {
-        /*ItemTooltipCallback.EVENT.register((stack, flag, lines) -> appender.append(stack, flag, lines));
         *///?}
     }
 }

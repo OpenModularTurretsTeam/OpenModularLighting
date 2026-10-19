@@ -150,7 +150,7 @@ The rules for loader differences mirror those for version differences, with one 
 - **Small differences** inside a shared class use the loader constants: `//? if fabric {` / `//? if neoforge {` (set in `stonecutter.gradle.kts`).
   Keep them inside `compat/` and `platform/`, never in gameplay code.
 - `core/` stays loader-free (`verifyCoreIsolation` also forbids `net.neoforged`).
-- **Porting in progress:** `build.neoforge.gradle.kts` leaves out the main packages listed in `notPorted` (now `datagen` and `compat/jade`), and compiles only `client/platform` of the client code.
+- **Porting in progress:** `build.neoforge.gradle.kts` leaves out the main packages listed in `notPorted` (now `datagen` and `compat/jade`); all client code compiles on NeoForge.
   Remove a package from the list once it compiles on NeoForge; remove the filter when everything compiles.
 - **Start-up:** both entrypoints call `OML.init()` (config, packets) first. Fabric then runs `OML.registrationSteps()` in order; NeoForge runs each `RegistrationStep` in the `RegisterEvent` of its registry and throws at common setup if a step never ran. A new registry class gets a step in that list, not a call in an entrypoint.
 - `publish_enabled=false` in `versions/1.21.1-neoforge/gradle.properties` keeps the NeoForge node a dry run even with tokens; remove it only when the user wants NeoForge releases.
@@ -254,7 +254,9 @@ Wrap each of these behind a helper where possible.
 | Creative tab builder | `VersionCompat.creativeTabBuilder()` (Fabric `FabricItemGroup`, NeoForge vanilla builder) |
 | Networking | `compat.network.NetworkCompat.registerC2S` / `registerS2C` / `sendToPlayer`; client: `client.compat.ClientNetworkCompat.registerHandler` / `sendToServer`. Packets are plain records with `write` / `read`, listed in `network.OMLPackets`. The facades forward to `platform.Network` / `client.platform.ClientNetwork` (Fabric: `PayloadTypeRegistry`; NeoForge: recorded and applied in `RegisterPayloadHandlersEvent`, optional channels, handlers on the main thread, S2C handlers dispatched from main to the handler the client registered; a packet without client handler is logged and dropped) |
 | Extended menus | `compat.MenuCompat.register` / `open` (passes the `BlockPos`; forwards to `platform.Menus`: Fabric extended screen handlers, NeoForge `IMenuTypeExtension` / `openMenu(provider, pos)`) |
-| Container screen background, vertices, tooltips | `client.compat.ClientCompat` |
+| Container screen background, vertices | `client.compat.ClientCompat` |
+| Client start-up (screens, tooltip lines) | `client.OMLClient` (`init`, `registerScreens(ScreenRegistrar)`, `appendTooltip`); tint `FloodlightTint.color` / `tintedBlocks`; debug wireframes `LightBlockDebugRenderer.render(level, poseStack, buffers, camera)`. The loader client entrypoints wire them to their events. |
+| Render layers | Fabric `BlockRenderLayerMap` in `OMLFabricClient`; NeoForge `"render_type"` in the block model JSON (Fabric ignores it). Keep both in sync. |
 
 ### Resources strategy
 
@@ -339,14 +341,17 @@ omtteam.openmodularlighting
 └── datagen/                       recipe, loot table, block tag, model providers (runs per version)
 
 src/client/java/omtteam/openmodularlighting/client
-├── platform/fabric/OMLFabricClient  ClientModInitializer: screens, renderers, render layers (client services:
-│                                  ClientPlatform + ClientPlatformServices, like Platform in main)
+├── OMLClient                      shared client start-up (init, registerScreens(ScreenRegistrar), appendTooltip)
+├── platform/                      ClientPlatform + ClientPlatformServices (ClientNetwork), like Platform in main;
+│   ├── fabric/                    OMLFabricClient (ClientModInitializer: wires Fabric's client callbacks), FabricClientNetwork
+│   └── neoforge/                  OMLNeoForgeClient (@Mod(dist = CLIENT): wires NeoForge's client events), NeoForgeClientNetwork
 ├── screen/                        FloodlightScreen (1.7.10 texture, one status line) → Electric…, CarbonFloodlightScreen
 ├── render/                        FloodlightTint (dye colour × 1.7.10 brightness per block), LightBlockDebugRenderer
-│                                  (light debug tool: wireframes around light blocks while held; a world render
-│                                  callback, not a block entity renderer, so it costs nothing while not held)
+│                                  (light debug tool: wireframes around light blocks while held; called from the
+│                                  loader's world render event, not a block entity renderer, so it costs nothing while
+│                                  not held)
 ├── compat/                        ClientCompat, ClientNetworkCompat
-└── network/                       ClientPacketHandlers (config sync; back to the local config on disconnect)
+└── network/                       ClientPacketHandlers (config sync handler)
 ```
 
 Dependency direction: `client → main → core`. `core` depends on nothing. `main` never references `client`.
@@ -622,7 +627,7 @@ Update this checklist as work progresses.
 - [x] Item transfer: `inventory.ItemAccess`; Fabric `FabricItemStorages`, NeoForge `NeoForgeItemHandler`
 - [x] Registration: `OML.init()` + `OML.registrationSteps()` (NeoForge: per `RegisterEvent`, safety check at common setup); capabilities (items, energy); block use, config sync on join, recipe condition codec, creative tab builder, plain `c:` tags; all main code except `datagen` and `compat/jade` compiles on NeoForge, unit tests run there too
 - [ ] Check on NeoForge in a client: blocks, interaction, menus, energy/item capabilities (no NeoForge GameTests yet)
-- [ ] Client: screens, colour handlers, render types, debug renderer, tooltips
+- [x] Client: `OMLClient` + `ScreenRegistrar`; screens, colour handler, render types (model JSON), debug renderer, tooltip, disconnect hook wired in `OMLNeoForgeClient` (check by hand with `:1.21.1-neoforge:runClient`)
 - [ ] Datagen / recipe conditions (`neoforge:conditions`)
 - [ ] GameTests on NeoForge
 - [ ] Jade on NeoForge
