@@ -17,6 +17,7 @@ It lights up large areas with invisible light blocks placed along a beam, so you
 | **UV Floodlight** | Casts a short beam (8 blocks) of dim UV light that hurts living things standing in it, 4 damage per second. | Energy: 80 E/t |
 | **Grow Light** | Lights the block below it and makes the crop two blocks below grow faster (about one growth step every 20 s). A black-light mode gives the growth without the light. | Energy: 40 E/t |
 | **Small / Square Fluorescent Light** | Cheap little panels that light up the 5 blocks next to them. The small one can be turned by 90°, and a shapeless recipe converts between the two. | Energy: 2 E/t |
+| **Cube Light** | A full block that lights all 6 blocks around it. | Energy: 2 E/t, accepted from every side |
 
 All lights turn on with a **redstone signal**. The signal can be inverted, so that a light is on without redstone and
 turns off when powered. After a light turns off, it waits 2 seconds before it can turn on again, to prevent flickering.
@@ -39,7 +40,8 @@ plants. When you build into a beam or remove a block from it, the beam adjusts.
 
 - Electric lights take energy from cables and generators of other tech mods: on Fabric through **Team Reborn Energy** (included in the mod, e.g. Tech Reborn), on NeoForge as **Forge Energy** (FE, 1 FE = 1 E).
   Each light stores 50 000 E.
-  Fluorescent and grow lights only accept energy from the back.
+  Fluorescent and grow lights only accept energy from the back, cube lights from every side.
+- Fluorescent and grow lights that touch and face the same way share their energy, and so do touching cube lights.
 - Batteries in the battery slot charge the light.
 - Hoppers and pipes can insert fuel and batteries, but can't take anything out.
 
@@ -47,7 +49,7 @@ plants. When you build into a beam or remove a block from it, the beam adjusts.
 
 Smelt **Raw Filament** (glowstone, redstone, gold) into **Glowing Filament**. Craft it into an **Electric Incandescent
 Light Bulb**, the part needed for every electric light. The non-electric floodlight needs a **Non-electric Lantern**,
-made from a Mantle, a Fuel Dissolver and flint and steel. All recipes are shown in the recipe book or in a recipe
+made from a Mantle, a Fuel Dissolver and flint and steel. The **Cube Light** is made from glass, a light bulb and iron. All recipes are shown in the recipe book or in a recipe
 viewer.
 
 The **Lightblock Debug Tool** shows the invisible light blocks while you hold it: yellow for normal light, magenta for UV

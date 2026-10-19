@@ -10,11 +10,11 @@ This file guides Claude Code when working in this repository. Read it fully befo
 A **NeoForge 1.21.1** build is being added on the branch `neoforge-test` (see §4 "Loaders" and §9).
 It is a test run for the same setup in OpenModularTurrets (`../OMT1.20.1+`), so keep the build logic and the `platform/` pattern mod-independent.
 
-`oldmod/` is the **read-only reference** for the port. Never edit it and never build it. Reproduce its behaviour; do not copy its structure (static singletons, metadata, `ForgeDirection`, CoFH API).
+`oldmod/` is the **read-only reference** for the port. Never edit it and never build it. It is a source of ideas, values and assets, not a specification: the beam thinning, the persistent light blocks and other details differ on purpose. Do not copy its structure (static singletons, metadata, `ForgeDirection`, CoFH API).
 
 Core gameplay:
 
-- **Floodlights** light large areas with invisible light blocks ("phantom lights") along a beam. The beam can be a straight line, a narrow cone or a wide cone. Unlike 1.7.10, the phantom lights stay in place and are only switched on and off (see §6.3).
+- **Floodlights** light large areas with invisible light blocks ("phantom lights") along a beam. The beam can be a straight line, a narrow cone or a wide cone. The phantom lights stay in place and are only switched on and off (see §6.3).
 - **Grow light**: lights the block in front and gives random growth ticks to a crop two blocks ahead.
 - **UV floodlight**: a short beam of UV light blocks that damages living entities standing in it.
 - **Fluorescent lights**: small, cheap lights that illuminate their 5 neighbouring blocks.
@@ -226,7 +226,7 @@ The game logic of the mod lives in the `core` package and is completely free of 
 
 The core layer works through small interfaces that `main` implements: `LightWorld.cellAt(pos)` classifies a block as a `Cell` (air, phantom light, UV light, opaque, transparent, unloaded; see its Javadoc for the mapping from `BlockState`), and `PowerSource` pays a tick's cost. Positions in core are the `Pos` record, not `BlockPos`; `Facing` has the same ordinal order as `Direction`.
 
-The 1.7.10 beam loops are kept in the test sources as a reference (`core/light/Legacy1710Beams`). `BeamCasterTest` checks that `BeamCaster` produces exactly their positions in random worlds, for every facing and many ranges. If you change a shape on purpose, change the reference too and say so.
+The original beam loops are kept in the test sources as a reference (`core/light/Legacy1710Beams`). `BeamCasterTest` checks that `BeamCaster` produces their positions (filtered by the same `Spacing`) in random worlds, for every facing and many ranges. If you change a shape on purpose, change the reference too and say so.
 
 ---
 
@@ -325,7 +325,7 @@ omtteam.openmodularlighting
 │                                  LightSourceBlockEntity (interface of all lights); LightBlockEntity (sources,
 │                                  save/load) → PhantomLightBE, UvLightBE (damage)
 ├── item/                          crafting items (filament, bulb, mantle …), LightDebugToolItem
-├── menu/                          FloodlightMenu (1.7.10 layout) → ElectricFloodlightMenu, CarbonFloodlightMenu;
+├── menu/                          FloodlightMenu → ElectricFloodlightMenu, CarbonFloodlightMenu;
 │                                  LongContainerData (syncs longs as two shorts)
 ├── inventory/                     ItemAccess (container slot range + insert/extract filters as other blocks see them;
 │                                  loader adapters in platform/<loader>)
@@ -360,8 +360,8 @@ src/client/java/omtteam/openmodularlighting/client
 ├── platform/                      ClientPlatform + ClientPlatformServices (ClientNetwork), like Platform in main;
 │   ├── fabric/                    OMLFabricClient (ClientModInitializer: wires Fabric's client callbacks), FabricClientNetwork
 │   └── neoforge/                  OMLNeoForgeClient (@Mod(dist = CLIENT): wires NeoForge's client events), NeoForgeClientNetwork
-├── screen/                        FloodlightScreen (1.7.10 texture, one status line) → Electric…, CarbonFloodlightScreen
-├── render/                        FloodlightTint (dye colour × 1.7.10 brightness per block), LightBlockDebugRenderer
+├── screen/                        FloodlightScreen (one status line) → Electric…, CarbonFloodlightScreen
+├── render/                        FloodlightTint (dye colour × a brightness factor per block), LightBlockDebugRenderer
 │                                  (light debug tool: wireframes around light blocks while held; called from the
 │                                  loader's world render event, not a block entity renderer, so it costs nothing while
 │                                  not held)
@@ -381,26 +381,26 @@ Every former metadata variant is its own block. Record old → new IDs in `docs/
 | `carbonFloodlight` | `carbon_floodlight` | burns furnace fuel instead of energy; GUI with fuel slot |
 | `uvFloodlight` | `uv_floodlight` | places UV light blocks that damage entities; no mode, no timeout |
 | `growLight` | `grow_light` | modes: normal lighting / black light (no light, growth only); always placed facing down; energy only from the back |
-| `smallElectricFloodlightMetaBlock` meta 0 | `small_fluorescent_light` | lights 5 neighbours; 6 px strip, `rotated` blockstate (1.7.10 `rotationState`); energy only from the back |
+| `smallElectricFloodlightMetaBlock` meta 0 | `small_fluorescent_light` | lights 5 neighbours; 6 px strip, `rotated` blockstate; energy only from the back |
 | `smallElectricFloodlightMetaBlock` meta 1 | `square_fluorescent_light` | same, full square, not rotatable; shapeless recipes convert between the two |
 | – (new) | `cube_light` | full block, lights its 6 neighbours (`BeamShape.cube`); energy from every side, shared with touching cube lights; `energyUsageCubeLight` (2), enabled with the fluorescent switch |
 | `tilePhantomLight` | `phantom_light` | invisible, no collision, replaceable; `LIT` → light level 15, else 0 (§6.3) |
 | `tileUVLight` | `uv_light` | `LIT` → light level 4 and damages living entities, else 0 and harmless; visibility configurable |
 | items: `rawFilament`, `glowingFilament`, `electricIncandescentLightBulb`, `carbonDissolver`, `carbonLantern`, `mantle`, `lightDebugTool` | `raw_filament`, `glowing_filament`, `light_bulb`, `carbon_dissolver`, `carbon_lantern`, `mantle`, `light_debug_tool` | crafting items; while the debug tool is held, light blocks get wireframes (phantom yellow, UV magenta, dimmer while unlit), as with the 1.7.10 `TileEntityPhantomLightRenderer` |
 
-Recipes (`datagen.OMLRecipeProvider`, ported from `oldmod/.../handler/RecipeHandler.java`): raw filament (glowstone, redstone, gold) smelts into glowing filament → light bulb → electric/UV/grow lights and fluorescent lights. Mantle + carbon dissolver + flint and steel → carbon lantern → carbon floodlight.
+Recipes (`datagen.OMLRecipeProvider`): raw filament (glowstone, redstone, gold) smelts into glowing filament → light bulb → electric/UV/grow lights and fluorescent lights. Mantle + carbon dissolver + flint and steel → carbon lantern → carbon floodlight.
 
-- Iron, gold, redstone and glass panes use the common `c:` tags (`compat.CommonTags`); the other ingredients are the vanilla items of the 1.7.10 recipes.
+- Iron, gold, redstone and glass panes use the common `c:` tags (`compat.CommonTags`); the other ingredients are vanilla items.
 - **Config switches:** every recipe carries the resource condition `openmodularlighting:block_enabled` (`compat.BlockEnabledCondition`; registered by `platform/fabric/FabricBlockEnabledCondition`, a different API on each version, and `platform/neoforge/NeoForgeBlockEnabledCondition`) with the registry paths of the blocks that need it. It loads if any of them is enabled (`ConfigData.Blocks.isEnabled`). Datagen adds the condition to the recipe-unlock advancements too.
-- Filament, glowing filament and light bulb are needed by electric floodlight, fluorescent lights, UV floodlight **and grow light**. 1.7.10 forgot the grow light, so with only the grow light enabled, bulbs could not be crafted.
+- Filament, glowing filament and light bulb are needed by electric floodlight, fluorescent lights, UV floodlight **and grow light**. Without the grow light in this list, bulbs could not be crafted with only the grow light enabled.
 - Lightproof glass: shapeless, 1 black stained glass + 1 coal (`minecraft:coals`, so charcoal works too) → 1. It has no config switch, so its recipe carries no `block_enabled` condition (`Saver.saveAlways`).
 - Also: fluorescent lights (`" G "`, `"GBG"`, `"III"` → 2, plus the shapeless conversion between small and square), UV floodlight (floodlight frame with black stained glass), grow light (`"III"`, `"CBC"`, `"GGG"` with pink stained glass).
 
-**Panel lights (fluorescent, grow).** 1.7.10 drew them with block entity renderers. Here they are plain JSON block models: a 3 px panel on the back face, with the 1.7.10 64 × 32 box texture mapped onto it, and the dye tint as on the floodlights. The models are built facing up and turned per facing like vanilla's `end_rod` (`block.PanelShapes` uses the same table for the outlines). The panels have no collision, only an outline, as in 1.7.10.
+**Panel lights (fluorescent, grow).** They are plain JSON block models, not block entity renderers: a 3 px panel on the back face, with a 64 × 32 box texture mapped onto it, and the dye tint as on the floodlights. The models are built facing up and turned per facing like vanilla's `end_rod` (`block.PanelShapes` uses the same table for the outlines). The panels have no collision, only an outline.
 
 ### 6.3 Light mechanics
 
-> **Changed from 1.7.10, take this into account when porting.** The old mod placed phantom light blocks when a light turned on and removed them when it turned off. Placing and removing blocks (with their block entities) is expensive. In this port, **phantom light blocks stay in the world while their floodlight exists. Turning a light on or off only switches the `LIT` blockstate of its phantom lights (light level 15 ↔ 0).** Do not port the add-on-activate / remove-on-deactivate logic of `TileEntityMetaFloodlight` and `TileEntityPhantomLight`; port only the beam shapes.
+> **Light blocks are not placed and removed on every switch.** Placing and removing blocks (with their block entities) is expensive, so **phantom light blocks stay in the world while their floodlight exists. Turning a light on or off only switches the `LIT` blockstate of its phantom lights (light level 15 ↔ 0).**
 
 Light is made by **phantom light blocks** placed in air along the beam. Each phantom light has a `LIT` blockstate (`lightLevel = LIT ? 15 : 0`) and a block entity that stores which floodlights reach it and which of them are on.
 
@@ -413,7 +413,7 @@ Light is made by **phantom light blocks** placed in air along the beam. Each pha
 
 #### Casting
 
-- Walk each ray outward. On air: place a phantom light, or reuse one at that position, and add this source. On an existing phantom light: add this source. On an opaque block: stop the ray. Non-opaque blocks (glass, plants) are passed through without placing light. UV light blocks are passed through without placing light, as in 1.7.10.
+- Walk each ray outward. On air: place a phantom light, or reuse one at that position, and add this source. On an existing phantom light: add this source. On an opaque block: stop the ray. Non-opaque blocks (glass, plants) are passed through without placing light. UV light blocks are passed through without placing light.
 - **Unloaded chunks:** never place or read blocks in unloaded chunks (avoids cascading chunk loads). Stop the ray instead.
 
 #### Keeping the beam correct when the world changes
@@ -444,9 +444,9 @@ Beam shapes (defined along +X, then rotated to the facing):
 | Grow light | 1 | front block only (only in "normal lighting" mode) |
 | UV | `rangeUV` (8) | straight ray of `uv_light`. Replaces phantom lights it meets (their sources are flagged for a re-cast). |
 
-**Thinning (deliberate change from 1.7.10, `core.beam.Spacing`).** To save phantom lights, `BeamMode.shape` leaves out light blocks at some distances along the facing direction (beam-space x). The rays are still followed over every block, so walls stop them exactly as before. Straight: lights at 1, 3, 5, … (the second block is the first one skipped). Both cones keep the 1.7.10 geometry from the first block. Their centre line is thinned like the straight beam (1, 3, 5, …); the rest of the cone is offset by one from it and skips the odd distances (2, 4, 6, …). Fluorescent, grow and UV beams are not thinned. `BeamCasterTest` compares against the 1.7.10 reference loops filtered by the same spacing. Consequence: a block change next to a skipped position may have no phantom light beside it, so the light then notices only at its periodic re-check (§6.3).
+**Thinning (`core.beam.Spacing`).** To save phantom lights, `BeamMode.shape` leaves out light blocks at some distances along the facing direction (beam-space x). The rays are still followed over every block, so walls stop them exactly as without thinning. Straight: lights at 1, 3, 5, … (the second block is the first one skipped). Both cones start at the first block and keep their full geometry. Their centre line is thinned like the straight beam (1, 3, 5, …); the rest of the cone is offset by one from it and skips the odd distances (2, 4, 6, …). Fluorescent, grow and UV beams are not thinned. `BeamCasterTest` compares against the reference loops (`Legacy1710Beams`) filtered by the same spacing. Consequence: a block change next to a skipped position may have no phantom light beside it, so the light then notices only at its periodic re-check (§6.3).
 
-Port the old loops exactly, including the integer division and the "skip inner ray" rule. Cover them with unit tests that compare against the 1.7.10 offsets.
+Keep the integer division and the "skip inner ray" rule of the beam loops. Cover the shapes with unit tests that compare against the reference loops.
 
 ### 6.4 Light state machine (all floodlights)
 
@@ -455,7 +455,7 @@ Implemented by `core.state.LightController#tick`; `main` refuels / charges first
 Every tick on the server:
 
 1. If a re-cast is flagged (by a light block, a mode/config change or the periodic re-check): re-cast diff-based (§6.3). This happens on or off, because the phantom lights exist in both states, and is not delayed by the timeout (a re-cast does not switch anything).
-2. If `timeout > 0`: decrement and return. The timeout (`timeoutFloodlights`, 40 ticks) starts when a light turns off, to stop flickering. The UV floodlight has no timeout (as in 1.7.10).
+2. If `timeout > 0`: decrement and return. The timeout (`timeoutFloodlights`, 40 ticks) starts when a light turns off, to stop flickering. The UV floodlight has no timeout.
 3. `active = redstonePowered XOR inverted`.
 4. If active **and** it can pay this tick's cost: on the first active tick switch the cached phantom lights on and set the floodlight's own `LIT` blockstate, then pay the cost. Remember `wasActive`.
 5. Otherwise, if `wasActive`: switch the cached phantom lights off, clear `LIT`, start the timeout.
@@ -465,14 +465,14 @@ The timeout still applies: toggling `LIT` is much cheaper than placing blocks, b
 
 ### 6.5 Power and fuel
 
-- Electric lights have an internal buffer of **50 000 E** (`core.energy.EnergyStore`; exposed as `EnergyAccess` through Team Reborn Energy on Fabric and FE on NeoForge, 1 E = 1 FE; accepting on all sides; fluorescent and grow lights only on the back face, opposite the facing). Up to the whole buffer can be inserted per tick (as the 1.7.10 RF storage). **Nothing can be extracted** (1.7.10 allowed it, which let cables drain lights).
+- Electric lights have an internal buffer of **50 000 E** (`core.energy.EnergyStore`; exposed as `EnergyAccess` through Team Reborn Energy on Fabric and FE on NeoForge, 1 E = 1 FE; accepting on all sides; fluorescent and grow lights only on the back face, opposite the facing). Up to the whole buffer can be inserted per tick. **Nothing can be extracted**, so cables cannot drain lights.
 - **Panel lights share energy** (`blockentity.PanelLightBlockEntity`, `energy.ClusterEnergy`; cube lights use the same base but accept energy on every side and cluster only with cube lights on any of their 6 faces): fluorescent and grow lights (any mix) that touch on their sides and face the same way form a `core.cluster.Cluster` (in memory, not saved; joins on the first tick, leaves in `setRemoved`, splits in `refresh()` once per tick). Each light keeps its own buffer. The back-face storage shows the whole cluster: inserting fills the emptiest light first, nothing can be extracted. A light that cannot pay its next tick takes energy from the fullest others (each gives at most half).
 - The battery slot accepts any item with extractable energy in the loader's energy API (`energy.Batteries` → `platform.Energy`), and is discharged into the buffer each tick while the buffer has room.
-- Cost per tick: `energyUsage` (20) for straight, ×2 for cones; fluorescent 2; UV 80; grow light 40. 1.7.10 used RF; treat 1 RF = 1 E.
+- Cost per tick: `energyUsage` (20) for straight, ×2 for cones; fluorescent 2; UV 80; grow light 40.
 - The carbon floodlight burns one furnace fuel item when `timeRemaining` reaches 0:
-  `timeRemaining += carbonTime × burnTime / 1600 × 20` (coal = `carbonTime` seconds of straight light). The mode does not matter when refuelling; instead every tick the light runs uses up 1 (straight) or 2 (both cones, `CarbonFuel.drain`) of it, so cones burn fuel twice as fast. The GUI shows the time left in the current mode (`CarbonFuel.runTicks`). As in 1.7.10 refuelling happens even while the light is off.
-  If the formula gives 0 ticks (tiny burn time, or `carbonTime = 0`), the item is **not** consumed (`FuelTimer.refuel` returns false). 1.7.10 burned one item per tick in that case.
-  Fuel is any furnace fuel of the loader (`platform.Fuel`: Fabric's `FuelRegistry`, NeoForge's burn time incl. its data map). The remainder stays in the slot like in a furnace (lava bucket → bucket, `Fuel.remainder`, the loader's stack-aware hook); 1.7.10 deleted it.
+  `timeRemaining += carbonTime × burnTime / 1600 × 20` (coal = `carbonTime` seconds of straight light). The mode does not matter when refuelling; instead every tick the light runs uses up 1 (straight) or 2 (both cones, `CarbonFuel.drain`) of it, so cones burn fuel twice as fast. The GUI shows the time left in the current mode (`CarbonFuel.runTicks`). Refuelling happens even while the light is off.
+  If the formula gives 0 ticks (tiny burn time, or `carbonTime = 0`), the item is **not** consumed (`FuelTimer.refuel` returns false).
+  Fuel is any furnace fuel of the loader (`platform.Fuel`: Fabric's `FuelRegistry`, NeoForge's burn time incl. its data map). The remainder stays in the slot like in a furnace (lava bucket → bucket, `Fuel.remainder`, the loader's stack-aware hook).
 - Inventories (1 slot, a vanilla `SimpleContainer`) are exposed as `inventory.ItemAccess.insertOnly` (`FloodlightBlockEntity#getItemAccess`): Fabric `ItemStorage.SIDED` (`platform/fabric/FabricItemStorages`, slotted for Jade), NeoForge `IItemHandler` (`NeoForgeItemHandler`). Insertion only accepts valid fuel or energy items. Extraction is disabled.
 
 ### 6.6 Interaction
@@ -486,7 +486,7 @@ The timeout still applies: toggling `LIT` is much cheaper than placing blocks, b
 | Right-click with the light debug tool | fills the energy buffer of an electric light (debug aid) |
 | Right-click (anything else) | open the GUI: carbon GUI for the carbon floodlight, the shared electric GUI (energy + battery slot) for all electric lights |
 
-Use the convention tag `compat.CommonTags.WRENCHES` (`c:wrenches` on 1.20.1, `c:tools/wrench` on 1.21) instead of the old mod-specific wrench checks. A stick always works for the mode (1.7.10: only without a wrench mod), but only a wrench dismantles. Sneaking with any other item passes, so the item can be used (e.g. placing a block). Dye is not consumed; any wool resets the colour. Messages go to chat (`displayClientMessage(…, false)`), as in 1.7.10.
+Use the convention tag `compat.CommonTags.WRENCHES` (`c:wrenches` on 1.20.1, `c:tools/wrench` on 1.21) instead of mod-specific wrench checks. A stick always works for the mode, but only a wrench dismantles. Sneaking with any other item passes, so the item can be used (e.g. placing a block). Dye is not consumed; any wool resets the colour. Messages go to chat (`displayClientMessage(…, false)`).
 Interaction goes through `compat.InteractiveBlock`, so it is the same on both versions.
 
 ### 6.7 Block entity data
@@ -495,16 +495,16 @@ Base data (`FloodlightBlockEntity`): `inverted`, `mode`, `color`, `active`, `was
 Subclasses add the energy buffer, the 1-slot inventory, `timeRemaining` (carbon), `rotationState` (fluorescent) and `nextGrowTick` (grow light).
 Every floodlight caches the positions of its current shape (the phantom or UV light blocks it placed or joined) as a `long[]` (`BlockPos.asLong`). It is saved with the BE so that turning on and off after a reload does not need a re-cast. A floodlight saved without it (or with a different mode) re-casts on its first tick.
 Phantom and UV light BEs store their sources as two `long` lists, `sources` (all) and `activeSources` (those currently on). `LIT` follows `!activeSources.isEmpty()`, and the block is removed when `sources` is empty.
-The client needs `color` (and later `rotationState`) for rendering: send them in the update tag. On the client, a colour change re-renders the block (`sendBlockUpdated` with `UPDATE_IMMEDIATE`), because the tint is read from the block entity (`client.render.FloodlightTint`: the dye's map colour × the 1.7.10 brightness factor of the block).
+The client needs `color` (and later `rotationState`) for rendering: send them in the update tag. On the client, a colour change re-renders the block (`sendBlockUpdated` with `UPDATE_IMMEDIATE`), because the tint is read from the block entity (`client.render.FloodlightTint`: the dye's map colour × a brightness factor of the block).
 
-**Dropped item (1.7.10 `BlockFL.getDrops`).** A broken floodlight keeps mode, invert, colour and energy / burn time on the item (block entity data, `VersionCompat.setBlockEntityData`). Vanilla loads it back when the item is placed, and the tooltip shows "Configured". Unlike 1.7.10:
+**Dropped item.** A broken floodlight keeps mode, invert, colour and energy / burn time on the item (block entity data, `VersionCompat.setBlockEntityData`). Vanilla loads it back when the item is placed, and the tooltip shows "Configured". Also:
 - the data is only added if something differs from a new light, so unconfigured drops still stack;
 - the beam, the on/off state and the slot contents are not kept. Slot contents drop as items, so nothing is lost when a block is removed without drops (creative mode, commands).
 
 ### 6.8 Grow light
 
-- Target = the block two in front. It grows only if the block in front is air or a phantom light (1.7.10 phantom lights counted as air) and the target is a `BonemealableBlock` that `isValidBonemealTarget` (`VersionCompat`). Call `performBonemeal` on it. Growth only happens on ticks the light runs (and pays), also in black-light mode.
-- The next grow tick is random: `nextGrowTick = now + rand(20 / chance) + 0.5 × 20 / chance` (`chanceGrowLight` = 0.05, so 1 growth per ~20 s on average). With `chanceGrowLight = 0` the crop never grows (1.7.10 overflowed there).
+- Target = the block two in front. It grows only if the block in front is air or a phantom light (phantom lights count as air) and the target is a `BonemealableBlock` that `isValidBonemealTarget` (`VersionCompat`). Call `performBonemeal` on it. Growth only happens on ticks the light runs (and pays), also in black-light mode.
+- The next grow tick is random: `nextGrowTick = now + rand(20 / chance) + 0.5 × 20 / chance` (`chanceGrowLight` = 0.05, so 1 growth per ~20 s on average). With `chanceGrowLight = 0` the crop never grows.
 
 ### 6.9 UV light damage
 
@@ -521,9 +521,9 @@ Unlike phantom lights, UV light BEs have to tick for the damage. They do nothing
 - Fields are documented with `@Comment` and range-checked with `@Range` (package `config`). `ConfigWriter` writes them as `//` comments (JSONC) above each key, together with the default, and `ConfigRanges` clamps on load. Add both annotations to every new config field.
 - Server-authoritative values that clients need (e.g. for tooltips) are synced on join.
 - Read values with `OMLConfig.get()` (for example `OMLConfig.get().general.rangeStraightFloodlight`). Never cache them: on a client connected to a server, `get()` returns the server's config, and after disconnecting it returns the local one again.
-- New fields go into `ConfigData` (sections `blocks` and `general`, like the 1.7.10 categories). Only `int`, `double`, `boolean` and `List<String>` are supported. Unknown keys are removed and wrong types reset to the default on load.
+- New fields go into `ConfigData` (sections `blocks` and `general`). Only `int`, `double`, `boolean` and `List<String>` are supported. Unknown keys are removed and wrong types reset to the default on load.
 
-Fields carried over from 1.7.10 (`oldmod/.../handler/ConfigHandler.java`), with default and range:
+Fields with default and range:
 
 | Field | Default | Range | Meaning |
 | --- | --- | --- | --- |
@@ -555,7 +555,6 @@ Fields carried over from 1.7.10 (`oldmod/.../handler/ConfigHandler.java`), with 
 
 - Every variant of subblocks is an **individual registered block/item** with a lowercase snake_case ID.
   `docs/id-mapping.md` maps the 1.7.10 IDs to the current ones.
-- When porting a feature, read the matching `oldmod/` class first and match its behaviour and balance values.
 
 ### Designing APIs
 
@@ -650,7 +649,7 @@ Update this checklist as work progresses.
 ### Later / optional (ask first)
 
 - [x] Jade tooltip (replaces WAILA: invert and mode; optional dependency, the user chose Jade only, no WTHIT); GameTests
-- [x] Light debug tool function (1.7.10 wireframe renderer; client only, check with `runClient`)
+- [x] Light debug tool function (wireframe renderer; client only, check with `runClient`)
 
 ---
 

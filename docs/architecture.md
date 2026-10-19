@@ -69,7 +69,7 @@ Packages below `omtteam.openmodularlighting` (main):
 | Package | Responsibility |
 | --- | --- |
 | `OML` | `MOD_ID`, `OML.id(path)`, `init()` and `registrationSteps()`, used by both entrypoints |
-| `core.math` | `Pos`, `Facing`, `Rotation` (port of the 1.7.10 `MathUtil.rotate`) |
+| `core.math` | `Pos`, `Facing`, `Rotation` (rotates the shapes to the facing) |
 | `core.beam` | `BeamShape` (the ray patterns), `BeamMode` and `GrowMode`, `Spacing` (the thinning of light blocks along a beam), `Ray` |
 | `core.light` | `BeamCaster` (walks the rays), `LightWorld` and `Cell`, `LightType`, `LightSources` (all and active sources of a light block), `ShapeDiff` |
 | `core.state` | `LightController` (the on/off state machine), `PowerSource`, `FuelTimer`, `RecheckTimer` |
@@ -165,7 +165,7 @@ The state machine itself, with the timeout against flicker, is `core.state.Light
    Joining positions that are already covered is a no-op, so this also repairs light blocks lost while a chunk was unloaded.
 4. The positions that joined become the cached shape (a `long[]` saved with the block entity, so a reload does not need a cast).
 
-The shapes are the 1.7.10 loops ported exactly; `BeamCasterTest` checks `BeamCaster` against the kept originals in `Legacy1710Beams` in random worlds.
+`BeamCasterTest` checks `BeamCaster` against reference loops in the test sources (`Legacy1710Beams`, filtered by the same thinning) in random worlds.
 
 ### Light blocks and their sources
 
@@ -224,7 +224,7 @@ See "A config value" below for adding one.
 
 ### A beam shape or mode
 
-Add the shape to `core.beam.BeamShape` / `BeamMode`, with a unit test in `core/beam` and, if it should match 1.7.10, an entry in `Legacy1710Beams` that `BeamCasterTest` compares against.
+Add the shape to `core.beam.BeamShape` / `BeamMode`, with a unit test in `core/beam` and, if the new shape belongs in the comparison, an entry in `Legacy1710Beams` that `BeamCasterTest` compares against.
 The block entity returns it from `currentShape()` and puts everything it depends on into `shapeKey()`, so a change triggers a re-cast.
 
 ### A light
@@ -232,7 +232,7 @@ The block entity returns it from `currentShape()` and puts everything it depends
 1. A block extending `FloodlightBlock` (or `PanelLightBlock`) and a block entity extending `FloodlightBlockEntity` (or `PanelLightBlockEntity`); the block entity chooses `power()`, `currentShape()` and `shapeKey()`.
 2. Register block, item and block entity in `ModBlocks`, `ModItems`, `ModBlockEntities`; add it to the lookups of both loaders if it has energy or item access (`FabricBlockLookups`, the capability registration in `OMLNeoForge`, both use `ModBlockEntities.lights()`).
 3. Blockstate, model, lang entries (`en_us`, `de_de`, `ru_ru`), and the recipe, loot table and tags in `datagen`.
-4. A GameTest in `src/gametest` (and its entry in `src/gametest/resources/fabric.mod.json`), and an entry in `docs/id-mapping.md` if it replaces a 1.7.10 block.
+4. A GameTest in `src/gametest` (and its entry in `src/gametest/resources/fabric.mod.json`), and an entry in `docs/id-mapping.md` if it replaces a block of the old mod.
 
 ### A config value
 
@@ -270,7 +270,7 @@ The NeoForge build converts the Fabric 1.21.1 output at build time, so nothing N
 | --- | --- |
 | core uses only Java and core | the `verifyCoreIsolation` task |
 | core rules behave as specified | unit tests in `src/test` (they run on the NeoForge node too) |
-| the beam shapes still equal the 1.7.10 loops | `BeamCasterTest` against `Legacy1710Beams` |
+| the beam shapes still equal the reference loops (with thinning) | `BeamCasterTest` against `Legacy1710Beams` |
 | lights, light blocks, energy, items, recipes and Jade work in a real world | GameTests in `src/gametest`: Fabric `runGameTest`, NeoForge `runGameTestServer` |
 | formatting (tabs, trailing whitespace, final newline) | `spotlessCheck` |
 | the changelog has a section for the version being published | `publishMods` |
