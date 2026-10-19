@@ -1,8 +1,5 @@
 package omtteam.openmodularlighting.blockentity;
 
-import net.fabricmc.fabric.api.transfer.v1.item.InventoryStorage;
-import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
-import net.fabricmc.fabric.api.transfer.v1.storage.SlottedStorage;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -29,6 +26,7 @@ import omtteam.openmodularlighting.core.state.RecheckTimer;
 import omtteam.openmodularlighting.core.energy.EnergyAccess;
 import omtteam.openmodularlighting.energy.ElectricPower;
 import omtteam.openmodularlighting.energy.LightPower;
+import omtteam.openmodularlighting.inventory.ItemAccess;
 import omtteam.openmodularlighting.registry.ModBlocks;
 import omtteam.openmodularlighting.world.LevelLightWorld;
 import omtteam.openmodularlighting.world.LightBlocks;
@@ -67,9 +65,8 @@ public abstract class FloodlightBlockEntity extends CompatBlockEntity implements
             return isValidItem(stack);
         }
     };
-    private final InventoryStorage inventoryStorage = InventoryStorage.of(inventory, null);
     /** Hoppers and pipes may insert valid items only and cannot extract (1.7.10). */
-    private final SlottedStorage<ItemVariant> itemStorage = new InsertOnlySlottedStorage(inventoryStorage);
+    private final ItemAccess itemAccess = ItemAccess.insertOnly(inventory);
 
     /** Light block positions of the current beam, in casting order. */
     private List<BlockPos> shape = List.of();
@@ -230,8 +227,9 @@ public abstract class FloodlightBlockEntity extends CompatBlockEntity implements
         return inventory;
     }
 
-    public SlottedStorage<ItemVariant> getItemStorage() {
-        return itemStorage;
+    /** The slot as other blocks see it, on every side (the loader adapters wrap it). */
+    public ItemAccess getItemAccess(@Nullable Direction side) {
+        return itemAccess;
     }
 
     /** The electric power of this light, or null if it burns fuel. */

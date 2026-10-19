@@ -150,7 +150,7 @@ The rules for loader differences mirror those for version differences, with one 
 - **Small differences** inside a shared class use the loader constants: `//? if fabric {` / `//? if neoforge {` (set in `stonecutter.gradle.kts`).
   Keep them inside `compat/` and `platform/`, never in gameplay code.
 - `core/` stays loader-free (`verifyCoreIsolation` also forbids `net.neoforged`).
-- **Porting in progress:** `build.neoforge.gradle.kts` compiles only the packages (or single files) listed in `ported` (now `core`, `platform`, `compat/network` and `compat/MenuCompat.java`).
+- **Porting in progress:** `build.neoforge.gradle.kts` compiles only the packages (or single files) listed in `ported` (now `core`, `platform`, `inventory`, `compat/network` and `compat/MenuCompat.java`).
   Add a package once it no longer uses Fabric API or Team Reborn Energy directly; remove the filter when everything compiles.
 - `publish_enabled=false` in `versions/1.21.1-neoforge/gradle.properties` keeps the NeoForge node a dry run even with tokens; remove it only when the user wants NeoForge releases.
 
@@ -308,7 +308,9 @@ omtteam.openmodularlighting
 ├── item/                          crafting items (filament, bulb, mantle …), LightDebugToolItem
 ├── menu/                          FloodlightMenu (1.7.10 layout) → ElectricFloodlightMenu, CarbonFloodlightMenu;
 │                                  LongContainerData (syncs longs as two shorts)
-├── registry/                      ModBlocks, ModItems, ModBlockEntities (+ API lookups), ModMenus, ModCreativeTabs
+├── inventory/                     ItemAccess (container slot range + insert/extract filters as other blocks see them;
+│                                  loader adapters in platform/<loader>)
+├── registry/                      ModBlocks, ModItems, ModBlockEntities (+ lights() for the loader lookups), ModMenus, ModCreativeTabs
 ├── energy/                        ElectricPower (EnergyStore of a light), ClusterEnergy (pull + insert-only View),
 │                                  Batteries (battery-slot check and discharge via platform.Energy)
 ├── world/                         LightBlocks (join / leave / setActive on light blocks, applies LightSources
@@ -326,7 +328,7 @@ omtteam.openmodularlighting
 │   │                              IllegalStateException. Services: LoaderInfo (configDir, isModLoaded), Fuel (burnTime, remainder), Network, Menus,
 │   │                              Energy (isBattery, dischargeItem, pushToBlock)
 │   ├── fabric/                    OMLFabric (ModInitializer: install services, OML.init(), Fabric callbacks),
-│   │                              FabricBlockLookups (item + energy lookups), FabricEnergyStorages (Team Reborn
+│   │                              FabricBlockLookups (item + energy lookups), FabricItemStorages, FabricEnergyStorages (Team Reborn
 │   │                              adapters: SnapshotParticipant per EnergyStore, weak-keyed/-valued cache; cluster view),
 │   │                              Fabric… service implementations
 │   └── neoforge/                  OMLNeoForge (@Mod entrypoint; port in progress), NeoForge… service implementations;
@@ -448,7 +450,7 @@ The timeout still applies: toggling `LIT` is much cheaper than placing blocks, b
   `timeRemaining += carbonTime × burnTime / 1600 × 20` (coal = `carbonTime` seconds of straight light). The mode does not matter when refuelling; instead every tick the light runs uses up 1 (straight) or 2 (both cones, `CarbonFuel.drain`) of it, so cones burn fuel twice as fast. The GUI shows the time left in the current mode (`CarbonFuel.runTicks`). As in 1.7.10 refuelling happens even while the light is off.
   If the formula gives 0 ticks (tiny burn time, or `carbonTime = 0`), the item is **not** consumed (`FuelTimer.refuel` returns false). 1.7.10 burned one item per tick in that case.
   Fuel is any furnace fuel of the loader (`platform.Fuel`: Fabric's `FuelRegistry`, NeoForge's burn time incl. its data map). The remainder stays in the slot like in a furnace (lava bucket → bucket, `Fuel.remainder`, the loader's stack-aware hook); 1.7.10 deleted it.
-- Inventories (1 slot) are exposed through `ItemStorage.SIDED`. Insertion only accepts valid fuel or energy items. Extraction is disabled.
+- Inventories (1 slot, a vanilla `SimpleContainer`) are exposed as `inventory.ItemAccess.insertOnly` (`FloodlightBlockEntity#getItemAccess`): Fabric `ItemStorage.SIDED` (`platform/fabric/FabricItemStorages`, slotted for Jade), NeoForge `IItemHandler` (`NeoForgeItemHandler`). Insertion only accepts valid fuel or energy items. Extraction is disabled.
 
 ### 6.6 Interaction
 
@@ -614,9 +616,9 @@ Update this checklist as work progresses.
 - [x] Services `Network` + `ClientNetwork` (`ClientPlatform` / `ClientPlatformServices`, NeoForge client entrypoint `OMLNeoForgeClient`)
 - [x] Service `Menus` (`createBlockMenuType`, `openBlockMenu`; `BlockPos` only)
 - [x] `core.energy.EnergyStore` + `EnergyAccess`; service `Energy` (`isBattery`, `dischargeItem`, `pushToBlock`); Fabric adapters + lookups in `platform/fabric`; NeoForge `NeoForgeEnergyHandler` (FE adapter, capability registration still to do)
+- [x] Item transfer: `inventory.ItemAccess`; Fabric `FabricItemStorages`, NeoForge `NeoForgeItemHandler` (capability registration still to do)
 - [ ] Registration through `RegisterEvent`
 - [ ] Networking, menus, block interaction, config sync, creative tab
-- [ ] Item transfer (`IItemHandler`), then energy (loader-neutral buffer + Team Reborn / `IEnergyStorage` adapters)
 - [ ] Client: screens, colour handlers, render types, debug renderer, tooltips
 - [ ] Datagen / recipe conditions (`neoforge:conditions`)
 - [ ] GameTests on NeoForge

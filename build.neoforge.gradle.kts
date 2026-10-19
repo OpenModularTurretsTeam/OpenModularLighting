@@ -16,7 +16,7 @@ val client: SourceSet = sourceSets.create("client") {
 
 // PORTING IN PROGRESS: only these packages (or single files) compile on NeoForge so far. Each is added once it no
 // longer uses Fabric API or Team Reborn Energy directly; the filter goes away when everything compiles.
-val ported = listOf("core", "platform", "compat/network", "compat/MenuCompat.java")
+val ported = listOf("core", "platform", "inventory", "compat/network", "compat/MenuCompat.java")
 sourceSets.main { java { ported.forEach { include("$packagePath/$it/**") } } }
 client.java { include("$packagePath/client/platform/**") }
 sourceSets.test { java { include("$packagePath/core/**") } }

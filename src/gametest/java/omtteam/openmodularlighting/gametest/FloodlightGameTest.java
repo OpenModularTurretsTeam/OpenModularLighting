@@ -1,6 +1,10 @@
 package omtteam.openmodularlighting.gametest;
 
 import net.fabricmc.fabric.api.gametest.v1.FabricGameTest;
+import net.fabricmc.fabric.api.transfer.v1.item.ItemStorage;
+import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
+import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
+import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTest;
@@ -273,6 +277,24 @@ public class FloodlightGameTest implements FabricGameTest {
             remove(helper, pos);
             helper.succeed();
         });
+    }
+
+    @GameTest(template = EMPTY_STRUCTURE)
+    public void pipesMayOnlyInsertValidItems(GameTestHelper helper) {
+        helper.setBlock(LIGHT, ModBlocks.CARBON_FLOODLIGHT.defaultBlockState().setValue(FloodlightBlock.FACING, Direction.UP));
+        CarbonFloodlightBlockEntity light = (CarbonFloodlightBlockEntity) helper.getLevel().getBlockEntity(helper.absolutePos(LIGHT));
+        BlockPos pos = helper.absolutePos(LIGHT);
+        Storage<ItemVariant> storage = ItemStorage.SIDED.find(helper.getLevel(), pos, Direction.NORTH);
+        helper.assertTrue(storage != null, "the slot is exposed");
+        try (Transaction transaction = Transaction.openOuter()) {
+            helper.assertTrue(storage.insert(ItemVariant.of(Items.STONE), 1, transaction) == 0, "no fuel, not accepted");
+            helper.assertTrue(storage.insert(ItemVariant.of(Items.COAL), 5, transaction) == 5, "fuel accepted");
+            helper.assertTrue(storage.extract(ItemVariant.of(Items.COAL), 5, transaction) == 0, "nothing comes out");
+            transaction.commit();
+        }
+        helper.assertTrue(light.getInventory().getItem(0).is(Items.COAL), "coal in the slot");
+        remove(helper, pos);
+        helper.succeed();
     }
 
     @GameTest(template = EMPTY_STRUCTURE)

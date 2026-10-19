@@ -17,7 +17,7 @@ public final class FabricBlockLookups {
 
     public static void register() {
         for (BlockEntityType<? extends FloodlightBlockEntity> type : ModBlockEntities.lights()) {
-            ItemStorage.SIDED.registerForBlockEntity((light, side) -> light.getItemStorage(), type);
+            ItemStorage.SIDED.registerForBlockEntity((light, side) -> FabricItemStorages.of(light.getItemAccess(side)), type);
             EnergyStorage.SIDED.registerForBlockEntity((light, side) -> {
                 EnergyAccess access = light.getEnergyAccess(side);
                 return access == null ? null : FabricEnergyStorages.of(access);
