@@ -11,6 +11,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import omtteam.openmodularlighting.blockentity.BeamFloodlightBlockEntity;
 import omtteam.openmodularlighting.blockentity.CarbonFloodlightBlockEntity;
 import omtteam.openmodularlighting.blockentity.FloodlightBlockEntity;
+import omtteam.openmodularlighting.camo.CamoBlock;
 import omtteam.openmodularlighting.compat.MenuCompat;
 import omtteam.openmodularlighting.menu.CarbonFloodlightMenu;
 import omtteam.openmodularlighting.registry.ModBlockEntities;
@@ -23,7 +24,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Carbon (non-electric) floodlight: the same modes as the electric one, powered by furnace fuel.
  */
-public class CarbonFloodlightBlock extends FloodlightBlock {
+public class CarbonFloodlightBlock extends FloodlightBlock implements CamoBlock {
     //? if >=1.21 {
     private static final MapCodec<CarbonFloodlightBlock> CODEC = simpleCodec(CarbonFloodlightBlock::new);
     //?}

@@ -29,6 +29,9 @@
   "tooltip.openmodularlighting.configured": "Konfiguriert",
   "gui.openmodularlighting.grow_light_lighting": "Normales Licht",
   "gui.openmodularlighting.grow_light_black_light": "Schwarzlicht",
+  "gui.openmodularlighting.disguise": "Tarnung",
+  "gui.openmodularlighting.camo_invalid": "Nur volle, undurchsichtige Blöcke können als Tarnung dienen.",
+  "tooltip.openmodularlighting.camo_slot": "Mit einem vollen, undurchsichtigen Block anklicken, um die Lampe zu tarnen; mit leerer Hand anklicken, um die Tarnung zu entfernen.",
   "death.attack.openmodularlighting.uv_light": "%1$s wurde von UV-Licht verbrannt",
   "config.jade.plugin_openmodularlighting.light": "Open Modular Lighting: Lampen"
 }

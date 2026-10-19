@@ -7,6 +7,7 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
+import net.neoforged.neoforge.client.event.ModelEvent;
 import net.neoforged.neoforge.client.event.RegisterColorHandlersEvent;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
@@ -14,6 +15,7 @@ import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.entity.player.ItemTooltipEvent;
 import omtteam.openmodularlighting.OML;
 import omtteam.openmodularlighting.client.OMLClient;
+import omtteam.openmodularlighting.client.camo.CamoModels;
 import omtteam.openmodularlighting.client.platform.ClientPlatform;
 import omtteam.openmodularlighting.client.platform.ClientPlatformServices;
 import omtteam.openmodularlighting.client.render.FloodlightTint;
@@ -35,6 +37,8 @@ public final class OMLNeoForgeClient {
         modBus.addListener((RegisterMenuScreensEvent event) -> OMLClient.registerScreens(event::register));
         modBus.addListener((RegisterColorHandlersEvent.Block event) ->
                 event.register(FloodlightTint::color, FloodlightTint.tintedBlocks()));
+        modBus.addListener((ModelEvent.ModifyBakingResult event) -> event.getModels().replaceAll((id, model) ->
+                CamoModels.isCamoModel(id.id()) ? new NeoForgeCamoModel(model) : model));
         // back to the local config after leaving a server
         NeoForge.EVENT_BUS.addListener((ClientPlayerNetworkEvent.LoggingOut event) -> OMLConfig.useLocalConfig());
         NeoForge.EVENT_BUS.addListener((ItemTooltipEvent event) ->

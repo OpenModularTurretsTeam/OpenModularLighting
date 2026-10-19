@@ -13,6 +13,8 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import omtteam.openmodularlighting.block.FloodlightBlock;
 import omtteam.openmodularlighting.block.LightBlock;
+import omtteam.openmodularlighting.camo.CamoBlock;
+import omtteam.openmodularlighting.camo.CamoData;
 import omtteam.openmodularlighting.compat.CompatBlockEntity;
 import omtteam.openmodularlighting.compat.VersionCompat;
 import omtteam.openmodularlighting.config.OMLConfig;
@@ -59,6 +61,7 @@ public abstract class FloodlightBlockEntity extends CompatBlockEntity implements
     /** Periodic re-cast (every ~20 s) for world changes that sent no block update. */
     private final RecheckTimer recheck = new RecheckTimer();
     private int color = NO_COLOR;
+    private final CamoData camo = new CamoData();
     protected final SimpleContainer inventory = new SimpleContainer(1) {
         @Override
         public boolean canPlaceItem(int slot, ItemStack stack) {
@@ -223,6 +226,29 @@ public abstract class FloodlightBlockEntity extends CompatBlockEntity implements
         syncToClient();
     }
 
+    /** Whether this light can be disguised ({@link CamoBlock}: the electric, carbon and UV floodlights). */
+    public boolean supportsCamo() {
+        return getBlockState().getBlock() instanceof CamoBlock;
+    }
+
+    /** The disguise, or {@code null} for the light's own look. */
+    @Nullable
+    public BlockState getCamo() {
+        return camo.get();
+    }
+
+    /** Sets the disguise ({@code null} removes it); the caller checked {@code CamoRules.isValidDisguise}. */
+    public void setCamo(@Nullable BlockState state) {
+        if (supportsCamo() && camo.set(state)) {
+            syncToClient();
+        }
+    }
+
+    @Override
+    protected @Nullable Object renderData() {
+        return camo.get();
+    }
+
     public SimpleContainer getInventory() {
         return inventory;
     }
@@ -276,11 +302,11 @@ public abstract class FloodlightBlockEntity extends CompatBlockEntity implements
 
     /** Whether the dropped item keeps this light's settings ("Configured" tooltip). */
     public boolean hasCustomSettings() {
-        return controller.isInverted() || color != NO_COLOR || power().hasStored();
+        return controller.isInverted() || color != NO_COLOR || camo.get() != null || power().hasStored();
     }
 
     /**
-     * Settings kept on the dropped item: invert, colour, mode and energy / burn time (as in 1.7.10). Not the beam or
+     * Settings kept on the dropped item: invert, colour, disguise, mode and energy / burn time. Not the beam or
      * on/off state, and not the slot contents, which are dropped separately.
      */
     public CompoundTag saveItemData() {
@@ -293,12 +319,14 @@ public abstract class FloodlightBlockEntity extends CompatBlockEntity implements
     protected void writeSettings(CompoundTag tag) {
         tag.putBoolean(INVERTED, controller.isInverted());
         tag.putInt(COLOR, color);
+        camo.write(tag);
         power().write(tag);
     }
 
     /** Reads what {@link #writeSettings} wrote. */
     protected void readSettings(CompoundTag tag) {
         color = tag.contains(COLOR) ? tag.getInt(COLOR) : NO_COLOR;
+        camo.read(tag);
         power().read(tag);
     }
 
@@ -317,6 +345,7 @@ public abstract class FloodlightBlockEntity extends CompatBlockEntity implements
     @Override
     protected void readData(CompoundTag tag, HolderLookup.Provider registries) {
         int oldColor = color;
+        BlockState oldCamo = camo.get();
         controller.load(tag.getBoolean(INVERTED), tag.getBoolean(ON), tag.getInt(TIMEOUT));
         readSettings(tag);
         NonNullList<ItemStack> items = NonNullList.withSize(1, ItemStack.EMPTY);
@@ -329,15 +358,15 @@ public abstract class FloodlightBlockEntity extends CompatBlockEntity implements
             setShape(List.of());
             cachedShapeKey = null;
         }
-        if (level != null && level.isClientSide() && oldColor != color) {
-            // the tint comes from the block entity: re-render the block
-            level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), Block.UPDATE_IMMEDIATE);
+        if (oldColor != color || oldCamo != camo.get()) {
+            remesh(); // tint and disguise come from the block entity (client only)
         }
     }
 
-    /** Clients only need the colour (the on/off state is the {@code LIT} blockstate). */
+    /** Clients only need the colour and the disguise (the on/off state is the {@code LIT} blockstate). */
     @Override
     protected void writeClientData(CompoundTag tag, HolderLookup.Provider registries) {
         tag.putInt(COLOR, color);
+        camo.write(tag);
     }
 }

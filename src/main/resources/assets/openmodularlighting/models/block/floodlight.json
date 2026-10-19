@@ -1,5 +1,6 @@
 {
   "parent": "minecraft:block/block",
+  "render_type": "minecraft:cutout",
   "textures": {
     "particle": "#side"
   },
@@ -14,6 +15,13 @@
         "west": {"uv": [0, 0, 16, 16], "texture": "#side", "cullface": "west", "tintindex": 0},
         "up": {"uv": [0, 0, 16, 16], "texture": "#side", "cullface": "up", "tintindex": 0},
         "down": {"uv": [0, 0, 16, 16], "texture": "#side", "cullface": "down", "tintindex": 0}
+      }
+    },
+    {
+      "from": [0, 0, 0],
+      "to": [16, 16, 16],
+      "faces": {
+        "north": {"uv": [0, 0, 16, 16], "texture": "#lamp", "cullface": "north", "tintindex": 1}
       }
     }
   ]

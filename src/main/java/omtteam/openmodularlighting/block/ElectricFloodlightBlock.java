@@ -9,6 +9,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import omtteam.openmodularlighting.blockentity.BeamFloodlightBlockEntity;
 import omtteam.openmodularlighting.blockentity.ElectricFloodlightBlockEntity;
 import omtteam.openmodularlighting.blockentity.FloodlightBlockEntity;
+import omtteam.openmodularlighting.camo.CamoBlock;
 import omtteam.openmodularlighting.registry.ModBlockEntities;
 //? if >=1.21 {
 import com.mojang.serialization.MapCodec;
@@ -19,7 +20,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Electric floodlight: straight, narrow cone or wide cone, powered by Team Reborn Energy.
  */
-public class ElectricFloodlightBlock extends FloodlightBlock {
+public class ElectricFloodlightBlock extends FloodlightBlock implements CamoBlock {
     //? if >=1.21 {
     private static final MapCodec<ElectricFloodlightBlock> CODEC = simpleCodec(ElectricFloodlightBlock::new);
     //?}

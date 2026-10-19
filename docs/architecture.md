@@ -60,7 +60,7 @@ Source sets (Loom split source sets on Fabric, the same split built by hand on N
 | Source set | Contents | Shipped |
 | --- | --- | --- |
 | `src/main` | everything that runs on both sides, including `fabric.mod.json` and `neoforge.mods.toml` (templated) | yes |
-| `src/client` | screens, tint, debug renderer, client networking | yes, client only |
+| `src/client` | screens, tint, disguise models, debug renderer, client networking | yes, client only |
 | `src/test` | JUnit tests of the core and the config | no |
 | `src/gametest` | in-world GameTests as a separate test mod (own mod id), shared by both loaders | no |
 
@@ -81,7 +81,8 @@ Packages below `omtteam.openmodularlighting` (main):
 | `world` | `LightBlocks` (place, switch and remove light blocks), `LevelLightWorld`, `Positions` |
 | `energy` | `LightPower` with `ElectricPower` and `FuelPower`, `ClusterEnergy`, `Batteries` |
 | `inventory` | `ItemAccess`: the slot range and filters other blocks see (wrapped by the loader adapters) |
-| `item`, `menu` | crafting items and the light debug tool; the container menus and `LongContainerData` |
+| `item`, `menu` | crafting items and the light debug tool; the container menus (with the disguise slot) and `LongContainerData` |
+| `camo` | disguise of the floodlights: `CamoBlock` (marker of the lights that can be disguised), `CamoRules` (which blocks are valid), `CamoData` (the disguise and its NBT) |
 | `registry` | `ModBlocks`, `ModItems`, `ModBlockEntities`, `ModMenus`, `ModCreativeTabs`, `ModDamageTypes`, `RegistrationStep` |
 | `network` | `OMLPackets` (all packet types) and `ConfigSyncPacket` |
 | `config` | the JSON config: `ConfigData` (fields), `@Comment`, `@Range`, `ConfigWriter`, `ConfigRanges`, `ConfigValidator`, `OMLConfig` (load, save, sync) |
@@ -137,7 +138,7 @@ A new registry class gets a `RegistrationStep` in that list, not a call in an en
 Last, the entrypoint wires its loader to the shared code: the item and energy access of the lights (`FabricBlockLookups`, NeoForge capabilities), block use (`InteractiveBlock.handleUse`), the config sync on join and the recipe condition.
 
 On the client, the loader client entrypoint (`OMLFabricClient`, `OMLNeoForgeClient`) installs the client platform services and calls `OMLClient.init()`.
-It then registers what `OMLClient` lists with its loader: screens, the dye tint, tooltips and the debug renderer.
+It then registers what `OMLClient` lists with its loader: screens, the dye tint, tooltips and the debug renderer, and wraps the models of the `CamoBlock`s in the loader's disguise model (`FabricCamoModel`, `NeoForgeCamoModel`).
 Render layers are the one thing kept twice: `BlockRenderLayerMap` on Fabric, `"render_type"` in the block model JSON on NeoForge.
 
 ### A light's tick (server)
@@ -211,9 +212,11 @@ The loader's block-use event calls `InteractiveBlock.handleUse`, which calls `Fl
 
 - sneak with an empty hand: toggle invert; stick or wrench: `configure` (cycle the mode, turn the small fluorescent light); wrench plus sneak: dismantle; dye or wool: set the colour;
 - anything else opens the menu: `MenuCompat.open` → `platform.Menus` → `ElectricFloodlightMenu` or `CarbonFloodlightMenu`.
+  On a `CamoBlock`, `FloodlightMenu` adds the phantom disguise slot: a click there calls `FloodlightBlockEntity.setCamo` on the server.
 
 Changes that affect the beam (`setMode`) end in `shapeChanged()`, which re-casts at once.
-The server is the only place that changes state; the screens only show it (the menus sync energy and burn time with `LongContainerData`) and the colour reaches the client in the block entity's update tag.
+The server is the only place that changes state; the screens only show it (the menus sync energy and burn time with `LongContainerData`) and the colour and the disguise reach the client in the block entity's update tag.
+The disguise is drawn by the loader's model wrapper: the block entity hands it over as render data (`CompatBlockEntity.renderData`), and the wrapper emits the disguise's quads plus the lamp quads of the light's own model (tint index 1, a cutout overlay on the front face).
 
 ### Config
 
