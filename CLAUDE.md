@@ -85,7 +85,7 @@ Check exact latest patch versions of Loader, API, Loom and Stonecutter when sett
 │   │   ├── gradle.properties   # minecraft_version, fabric_api, java_version=21 …
 │   │   └── src/main/generated/ # datagen output for 1.21.1 (committed)
 │   └── 1.21.1-neoforge/
-│       └── gradle.properties   # neoforge_version, minecraft_dependency (Maven range), publish_enabled=false …
+│       └── gradle.properties   # neoforge_version, minecraft_dependency (Maven range) …
 └── src/
     ├── main/java/omtteam/openmodularlighting/...
     ├── main/resources/         # SHARED assets + fabric.mod.json and META-INF/neoforge.mods.toml (templated)
@@ -153,7 +153,7 @@ The rules for loader differences mirror those for version differences, with one 
 - `core/` stays loader-free (`verifyCoreIsolation` also forbids `net.neoforged`).
 - **Everything compiles on NeoForge except `datagen`,** which is Fabric-only by design (NeoForge gets the converted Fabric output, §5 "Resources strategy").
 - **Start-up:** both entrypoints call `OML.init()` (config, packets) first. Fabric then runs `OML.registrationSteps()` in order; NeoForge runs each `RegistrationStep` in the `RegisterEvent` of its registry and throws at common setup if a step never ran. A new registry class gets a step in that list, not a call in an entrypoint.
-- `publish_enabled=false` in `versions/1.21.1-neoforge/gradle.properties` keeps the NeoForge node a dry run even with tokens; remove it only when the user wants NeoForge releases.
+- NeoForge is published like the Fabric nodes. `publish_enabled=false` in a node's `gradle.properties` would make that node a dry run even with tokens (`mod-common`).
 
 ### Commands
 
@@ -629,7 +629,7 @@ Update this checklist as work progresses.
 
 ### NeoForge 1.21.1 (branch `neoforge-test`, reusable for OMT)
 
-- [x] Build: Stonecutter nodes `<version>-<loader>`, `buildSrc` convention plugin, `build.neoforge.gradle.kts` (ModDevGradle), `neoforge.mods.toml` template, client source set, `platform/<loader>` exclusion, loader constants, publishing disabled for NeoForge
+- [x] Build: Stonecutter nodes `<version>-<loader>`, `buildSrc` convention plugin, `build.neoforge.gradle.kts` (ModDevGradle), `neoforge.mods.toml` template, client source set, `platform/<loader>` exclusion, loader constants, publishing (enabled from 1.0.0-beta.3)
 - [x] `@Mod` entrypoint loads in a NeoForge GameTest server run
 - [x] `platform/` shape (§7): wiring from the entrypoints; services via `Platform` / `PlatformServices` (+ `ClientPlatform` / `ClientPlatformServices`)
 - [x] Entrypoints split: `OML.init()` shared, `OMLFabric` / `OMLFabricClient` in `platform/fabric`

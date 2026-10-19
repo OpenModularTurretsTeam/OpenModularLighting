@@ -1,8 +1,8 @@
 # Open Modular Lighting
 
-Floodlights for Fabric on **Minecraft 1.20.1 and 1.21.1**. Open Modular Lighting is a port of the Forge 1.7.10 mod
-*FloodLights* by Keridos. It lights up large areas with invisible light blocks placed along a beam, so you can light a
-cave, a farm or a base without placing torches everywhere.
+Floodlights for **Fabric** (Minecraft 1.20.1 and 1.21.1) and **NeoForge** (Minecraft 1.21.1).
+Open Modular Lighting is a port of the Forge 1.7.10 mod *FloodLights* by Keridos.
+It lights up large areas with invisible light blocks placed along a beam, so you can light a cave, a farm or a base without placing torches everywhere.
 
 > Status: alpha. Expect bugs, and back up your worlds.
 
@@ -37,9 +37,9 @@ plants. When you build into a beam or remove a block from it, the beam adjusts.
 
 ### Power
 
-- Electric lights use **Team Reborn Energy** (included in the mod), so cables and generators from Tech Reborn and other
-  Fabric tech mods can power them. Each light stores 50 000 E. Fluorescent and grow lights only accept energy from the
-  back.
+- Electric lights take energy from cables and generators of other tech mods: on Fabric through **Team Reborn Energy** (included in the mod, e.g. Tech Reborn), on NeoForge as **Forge Energy** (FE, 1 FE = 1 E).
+  Each light stores 50 000 E.
+  Fluorescent and grow lights only accept energy from the back.
 - Batteries in the battery slot charge the light.
 - Hoppers and pipes can insert fuel and batteries, but can't take anything out.
 
@@ -66,8 +66,8 @@ Jade is not required.
 
 ## Requirements
 
-- Minecraft 1.20.1 (Java 17) or 1.21.1 (Java 21)
-- [Fabric Loader](https://fabricmc.net/) and [Fabric API](https://modrinth.com/mod/fabric-api)
+- Fabric: Minecraft 1.20.1 (Java 17) or 1.21.1 (Java 21), with [Fabric Loader](https://fabricmc.net/) and [Fabric API](https://modrinth.com/mod/fabric-api)
+- NeoForge: Minecraft 1.21.1 (Java 21), with [NeoForge](https://neoforged.net/) 21.1
 
 ## Building from source
 
@@ -75,8 +75,9 @@ Gradle has to run on **Java 25 or newer**. The Java 17 and 21 toolchains for com
 if they are missing.
 
 ```bash
-./gradlew chiseledBuild            # build both versions (with unit tests and GameTests)
-./gradlew :1.21.1-fabric:runClient # start a test client
+./gradlew chiseledBuild              # build all versions and loaders (with unit tests and GameTests)
+./gradlew :1.21.1-fabric:runClient   # start a Fabric test client
+./gradlew :1.21.1-neoforge:runClient # start a NeoForge test client
 ```
 
 The jars end up in `versions/<minecraft version>-<loader>/build/libs/`. See `CHANGELOG.md` for the changes.

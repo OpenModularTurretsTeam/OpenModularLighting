@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to Open Modular Lighting (Fabric). The format follows
+All notable changes to Open Modular Lighting (Fabric and NeoForge). The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 Add every user-visible change as a one-line entry under **Unreleased** (sections: Added, Changed, Fixed, Removed),
@@ -9,8 +9,11 @@ turns *Unreleased* into the release section; `chiseledPublish` uploads exactly t
 
 ## [Unreleased]
 
+## [1.0.0-beta.3] - 2026-10-19
+
 ### Added
 
+- NeoForge 1.21.1 version, with the same blocks, energy (FE), item handlers and optional Jade tooltip as the Fabric version
 - Cube light: a full block that lights all 6 neighbouring blocks, takes energy from every side and shares it with touching cube lights; crafted from glass, a light bulb and iron, enabled together with the fluorescent lights
 
 ### Changed
