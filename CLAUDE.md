@@ -583,6 +583,30 @@ Design them step by step, together with the user:
    Propose, wait for the decision, then implement that piece.
 3. Do not implement a whole API in one go, and do not pick a signature on your own because it seems obvious; a small choice (e.g. which parameters a callback gets) is still the user's call.
 
+### Code shared with OpenModularTurrets
+
+Parts of the code exist almost identically in OpenModularTurrets (`../OMT1.20.1+`, branch `neoforge-test`), which has the same section:
+
+- the platform layer (`platform/`, `client/platform/`, `NetworkCompat`, `PacketType`, `MenuCompat`), `ItemAccess`, `RegistrationStep`, `ScreenRegistrar`, `LongContainerData`, `@Comment` / `@Range`, `ConfigSyncPacket`, and `buildSrc` (`mod-common`);
+- energy (`core.energy.EnergyStore`, `EnergyAccess`, `FabricEnergyStorages`, `NeoForgeEnergyHandler`);
+- `CompatBlockEntity` (identical) and camouflage (`camo/CamoBlock`, `CamoData`, `CamoRules`, `client/camo/CamoModels`, `FabricCamoModel`, `NeoForgeCamoModel`; on the branch `worktree-floodlight-camo` until merged).
+  OpenModularTurrets also has a `CamoHost`, a camo menu and screen, camo light properties and a camouflage trap.
+
+The camo copies differ on purpose in three points only: the disguise rule (OpenModularTurrets: any full block; here: full opaque blocks only), extra quads on top of the disguise (the lamp overlay here), and the NBT key (`"camo"` here, `"Camo"` there; it must stay per mod, or saved disguises are lost).
+
+Until there is a shared library:
+
+- When you change one of these files, check whether the same change belongs in the other mod, and tell the user (do not edit the other repository unasked).
+- Keep the camo differences limited to the three points above, so that they can later become parameters (a disguise rule, an overlay hook, the NBT key); shaping those is API design (§7 "Designing APIs").
+
+Shared library (assessment from 2026-10-20, a recommendation; building it is the user's decision and a new dependency, §1; it would not be the old OMLib):
+
+- Not yet: about 2,000 lines are shared, and copying the small service interfaces costs little.
+- Extract it at the next Minecraft version bump, when both camo models have to be reworked anyway, or earlier if a third mod needs the code.
+  Start with camouflage, `CompatBlockEntity` and the platform services.
+- Bundle it jar-in-jar, so players do not download anything extra; it must then stay binary-compatible within a major version, because the loader picks the highest bundled version.
+- The platform services need a redesign for a library: `Platform.install` allows one install per JVM, and the network registration uses the mod's own id.
+
 ---
 
 ## 8. Coding Conventions
