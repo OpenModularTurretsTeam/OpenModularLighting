@@ -1,15 +1,13 @@
 package omtteam.openmodularlighting.energy;
 
-import net.fabricmc.fabric.api.registry.FuelRegistry;
-import net.fabricmc.fabric.api.transfer.v1.item.InventoryStorage;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.SimpleContainer;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import omtteam.openmodularlighting.config.OMLConfig;
 import omtteam.openmodularlighting.core.beam.BeamMode;
 import omtteam.openmodularlighting.core.formula.CarbonFuel;
 import omtteam.openmodularlighting.core.state.FuelTimer;
+import omtteam.openmodularlighting.platform.Platform;
 
 import java.util.function.Supplier;
 
@@ -30,9 +28,7 @@ public final class FuelPower implements LightPower {
 
     /** Furnace burn time of an item in ticks, 0 if it is no fuel. */
     public static int burnTime(ItemStack stack) {
-        if (stack.isEmpty()) return 0;
-        Integer ticks = FuelRegistry.INSTANCE.get(stack.getItem());
-        return ticks == null ? 0 : Math.max(0, ticks);
+        return Platform.fuel().burnTime(stack);
     }
 
     /** Stored burn time, in ticks of straight light. */
@@ -64,17 +60,17 @@ public final class FuelPower implements LightPower {
      * Burns the next item as soon as the timer is empty, even while the light is off (1.7.10). Leaves the remainder (lava bucket → bucket) like a furnace.
      */
     @Override
-    public void prepare(SimpleContainer inventory, InventoryStorage inventoryStorage) {
+    public void prepare(SimpleContainer inventory) {
         if (!timer.needsFuel()) return;
         ItemStack stack = inventory.getItem(0);
         int burnTime = burnTime(stack);
         if (burnTime <= 0 || !timer.refuel(CarbonFuel.ticks(burnTime, OMLConfig.get().general.carbonTime))) {
             return;
         }
-        Item remainder = stack.getItem().getCraftingRemainingItem();
+        ItemStack remainder = Platform.fuel().remainder(stack);
         stack.shrink(1);
-        if (stack.isEmpty() && remainder != null) {
-            inventory.setItem(0, new ItemStack(remainder));
+        if (stack.isEmpty() && !remainder.isEmpty()) {
+            inventory.setItem(0, remainder);
         } else {
             inventory.setChanged();
         }

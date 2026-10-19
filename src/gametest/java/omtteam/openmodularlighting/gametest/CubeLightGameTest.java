@@ -29,7 +29,7 @@ public class CubeLightGameTest implements FabricGameTest {
     @GameTest(template = EMPTY_STRUCTURE)
     public void lightsAllSixNeighbours(GameTestHelper helper) {
         CubeLightBlockEntity light = place(helper, LIGHT);
-        light.electricPower().storage().amount = ElectricPower.CAPACITY;
+        light.electricPower().store().setAmountUnchecked(ElectricPower.CAPACITY);
         helper.setBlock(LIGHT.above(), Blocks.REDSTONE_BLOCK);
         BlockPos pos = helper.absolutePos(LIGHT);
         helper.succeedWhen(() -> {
@@ -81,7 +81,7 @@ public class CubeLightGameTest implements FabricGameTest {
         BlockState state = helper.getLevel().getBlockState(pos);
         ((InteractiveBlock) state.getBlock()).onUse(state, helper.getLevel(), pos, player, InteractionHand.MAIN_HAND,
                 new BlockHitResult(Vec3.atCenterOf(pos), Direction.UP, pos, false));
-        helper.assertTrue(light.electricPower().storage().amount == ElectricPower.CAPACITY, "charged");
+        helper.assertTrue(light.electricPower().store().getAmount() == ElectricPower.CAPACITY, "charged");
         remove(helper, pos);
         helper.succeed();
     }

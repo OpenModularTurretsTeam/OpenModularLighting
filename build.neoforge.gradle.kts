@@ -14,9 +14,9 @@ val client: SourceSet = sourceSets.create("client") {
     runtimeClasspath += sourceSets.main.get().output
 }
 
-// PORTING IN PROGRESS: only these packages compile on NeoForge so far. Each package is added once it no longer
-// uses Fabric API or Team Reborn Energy directly; the filter goes away when everything compiles.
-val ported = listOf("core", "platform")
+// PORTING IN PROGRESS: only these packages (or single files) compile on NeoForge so far. Each is added once it no
+// longer uses Fabric API or Team Reborn Energy directly; the filter goes away when everything compiles.
+val ported = listOf("core", "platform", "compat/network", "compat/MenuCompat.java")
 sourceSets.main { java { ported.forEach { include("$packagePath/$it/**") } } }
 client.java { include("$packagePath/client/platform/**") }
 sourceSets.test { java { include("$packagePath/core/**") } }

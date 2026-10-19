@@ -7,10 +7,10 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import omtteam.openmodularlighting.core.cluster.Cluster;
 import omtteam.openmodularlighting.core.cluster.ClusterNode;
+import omtteam.openmodularlighting.core.energy.EnergyAccess;
 import omtteam.openmodularlighting.energy.ClusterEnergy;
 import omtteam.openmodularlighting.energy.ElectricPower;
 import org.jetbrains.annotations.Nullable;
-import team.reborn.energy.api.EnergyStorage;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -28,7 +28,7 @@ public abstract class PanelLightBlockEntity extends FloodlightBlockEntity implem
     /** Not saved: built again when the light first ticks after loading. */
     @Nullable
     private Cluster<PanelLightBlockEntity> cluster;
-    private final ClusterEnergy.Storage clusterStorage = new ClusterEnergy.Storage(this);
+    private final ClusterEnergy.View clusterEnergy = new ClusterEnergy.View(this);
     private int pullCooldown;
 
     protected PanelLightBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
@@ -44,8 +44,8 @@ public abstract class PanelLightBlockEntity extends FloodlightBlockEntity implem
     /** The energy of the whole cluster: inserting fills the emptiest lights first, nothing can be extracted. */
     @Nullable
     @Override
-    public EnergyStorage getEnergyStorage(@Nullable Direction side) {
-        return acceptsEnergyFrom(side) ? clusterStorage : null;
+    public EnergyAccess getEnergyAccess(@Nullable Direction side) {
+        return acceptsEnergyFrom(side) ? clusterEnergy : null;
     }
 
     @Override

@@ -1,4 +1,4 @@
-package omtteam.openmodularlighting.client;
+package omtteam.openmodularlighting.client.platform.fabric;
 
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap;
@@ -9,6 +9,8 @@ import net.minecraft.world.item.BlockItem;
 import omtteam.openmodularlighting.block.FloodlightBlock;
 import omtteam.openmodularlighting.client.compat.ClientCompat;
 import omtteam.openmodularlighting.client.network.ClientPacketHandlers;
+import omtteam.openmodularlighting.client.platform.ClientPlatform;
+import omtteam.openmodularlighting.client.platform.ClientPlatformServices;
 import omtteam.openmodularlighting.client.render.FloodlightTint;
 import omtteam.openmodularlighting.client.render.LightBlockDebugRenderer;
 import omtteam.openmodularlighting.client.screen.CarbonFloodlightScreen;
@@ -18,11 +20,12 @@ import omtteam.openmodularlighting.registry.ModBlocks;
 import omtteam.openmodularlighting.registry.ModMenus;
 
 /**
- * Client entrypoint of Open Modular Lighting: screens, renderers and render layers.
+ * Fabric client entrypoint: screens, renderers and render layers.
  */
-public class OpenModularLightingClient implements ClientModInitializer {
+public final class OMLFabricClient implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
+        ClientPlatform.install(new ClientPlatformServices(new FabricClientNetwork()));
         ClientPacketHandlers.init();
         MenuScreens.register(ModMenus.ELECTRIC_FLOODLIGHT, ElectricFloodlightScreen::new);
         MenuScreens.register(ModMenus.CARBON_FLOODLIGHT, CarbonFloodlightScreen::new);

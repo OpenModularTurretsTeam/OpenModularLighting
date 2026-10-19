@@ -17,10 +17,10 @@
   "environment": "*",
   "entrypoints": {
     "main": [
-      "omtteam.openmodularlighting.OML"
+      "omtteam.openmodularlighting.platform.fabric.OMLFabric"
     ],
     "client": [
-      "omtteam.openmodularlighting.client.OpenModularLightingClient"
+      "omtteam.openmodularlighting.client.platform.fabric.OMLFabricClient"
     ],
     "fabric-datagen": [
       "omtteam.openmodularlighting.datagen.OMLDataGenerator"

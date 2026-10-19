@@ -1,9 +1,6 @@
 package omtteam.openmodularlighting;
 
-import net.fabricmc.api.ModInitializer;
 import net.minecraft.resources.ResourceLocation;
-import omtteam.openmodularlighting.compat.BlockEnabledCondition;
-import omtteam.openmodularlighting.compat.InteractiveBlock;
 import omtteam.openmodularlighting.compat.VersionCompat;
 import omtteam.openmodularlighting.config.OMLConfig;
 import omtteam.openmodularlighting.network.OMLPackets;
@@ -16,9 +13,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Common entrypoint of Open Modular Lighting, and its shared constants.
+ * Shared constants and start-up of Open Modular Lighting.
+ * The loader entrypoints ({@code platform/<loader>/}) call {@link #init()} and wire their loader's events.
  */
-public final class OML implements ModInitializer {
+public final class OML {
     public static final String MOD_ID = "openmodularlighting";
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 
@@ -29,8 +27,13 @@ public final class OML implements ModInitializer {
         return VersionCompat.id(MOD_ID, path);
     }
 
-    @Override
-    public void onInitialize() {
+    private OML() {
+    }
+
+    /**
+     * Loads the config and registers all content. Called once by the loader entrypoint.
+     */
+    public static void init() {
         LOGGER.info("Initializing Open Modular Lighting");
         OMLPackets.init();
         OMLConfig.init(); // before blocks: recipes and block properties come from the config
@@ -39,7 +42,5 @@ public final class OML implements ModInitializer {
         ModBlockEntities.init();
         ModMenus.init();
         ModCreativeTabs.init();
-        BlockEnabledCondition.register();
-        InteractiveBlock.registerCallback();
     }
 }

@@ -68,7 +68,7 @@ public class UvFloodlightGameTest implements FabricGameTest {
         BlockPos floodlightRel = new BlockPos(3, 0, 3);
         helper.setBlock(floodlightRel, ModBlocks.ELECTRIC_FLOODLIGHT.defaultBlockState().setValue(FloodlightBlock.FACING, Direction.UP));
         FloodlightBlockEntity floodlight = (FloodlightBlockEntity) level.getBlockEntity(helper.absolutePos(floodlightRel));
-        floodlight.electricPower().storage().amount = ElectricPower.CAPACITY;
+        floodlight.electricPower().store().setAmountUnchecked(ElectricPower.CAPACITY);
         helper.setBlock(floodlightRel.south(), Blocks.REDSTONE_BLOCK);
         BlockPos uvRel = new BlockPos(0, 3, 3);
         placeUv(helper, uvRel, true);
@@ -92,7 +92,7 @@ public class UvFloodlightGameTest implements FabricGameTest {
     private static void placeUv(GameTestHelper helper, BlockPos relative, boolean energy) {
         helper.setBlock(relative, ModBlocks.UV_FLOODLIGHT.defaultBlockState().setValue(FloodlightBlock.FACING, Direction.EAST));
         FloodlightBlockEntity light = (FloodlightBlockEntity) helper.getLevel().getBlockEntity(helper.absolutePos(relative));
-        if (energy) light.electricPower().storage().amount = ElectricPower.CAPACITY;
+        if (energy) light.electricPower().store().setAmountUnchecked(ElectricPower.CAPACITY);
     }
 
     private static Pig pig(GameTestHelper helper, BlockPos relative) {

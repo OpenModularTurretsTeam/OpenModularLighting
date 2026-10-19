@@ -30,7 +30,7 @@ public class FluorescentLightGameTest implements FabricGameTest {
     @GameTest(template = EMPTY_STRUCTURE)
     public void lightsTheBlockInFrontAndTheFourBesideIt(GameTestHelper helper) {
         FloodlightBlockEntity light = place(helper, ModBlocks.SMALL_FLUORESCENT_LIGHT, Direction.UP);
-        light.electricPower().storage().amount = ElectricPower.CAPACITY;
+        light.electricPower().store().setAmountUnchecked(ElectricPower.CAPACITY);
         helper.setBlock(LIGHT.below(), Blocks.REDSTONE_BLOCK); // behind the light
         BlockPos pos = helper.absolutePos(LIGHT);
         helper.succeedWhen(() -> {
@@ -112,7 +112,7 @@ public class FluorescentLightGameTest implements FabricGameTest {
                 helper.assertTrue(storage.insert(1000, transaction) == 1000, "inserted");
                 transaction.commit();
             }
-            long total = a.buffer().storage().amount + b.buffer().storage().amount;
+            long total = a.buffer().store().getAmount() + b.buffer().store().getAmount();
             helper.assertTrue(total == 1000, "all energy is in the cluster: " + total);
             helper.assertTrue(storage.getAmount() == 1000, "cluster amount " + storage.getAmount());
             helper.assertTrue(storage.getCapacity() == 2 * ElectricPower.CAPACITY, "cluster capacity " + storage.getCapacity());
@@ -129,11 +129,11 @@ public class FluorescentLightGameTest implements FabricGameTest {
     public void aLightRunsOnTheEnergyOfItsNeighbour(GameTestHelper helper) {
         PanelLightBlockEntity charged = place(helper, ModBlocks.SMALL_FLUORESCENT_LIGHT, Direction.UP, LIGHT.east());
         PanelLightBlockEntity empty = place(helper, ModBlocks.SMALL_FLUORESCENT_LIGHT, Direction.UP, LIGHT);
-        charged.buffer().storage().amount = ElectricPower.CAPACITY;
+        charged.buffer().store().setAmountUnchecked(ElectricPower.CAPACITY);
         helper.setBlock(LIGHT.below(), Blocks.REDSTONE_BLOCK); // powers only the empty light
         helper.succeedWhen(() -> {
             helper.assertTrue(empty.isLightOn(), "the empty light is on");
-            helper.assertTrue(charged.buffer().storage().amount < ElectricPower.CAPACITY, "neighbour paid");
+            helper.assertTrue(charged.buffer().store().getAmount() < ElectricPower.CAPACITY, "neighbour paid");
             helper.assertFalse(charged.isLightOn(), "the charged light has no redstone and stays off");
             remove(helper, helper.absolutePos(LIGHT));
             remove(helper, helper.absolutePos(LIGHT.east()));

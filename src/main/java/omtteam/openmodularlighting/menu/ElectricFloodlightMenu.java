@@ -32,7 +32,7 @@ public class ElectricFloodlightMenu extends FloodlightMenu {
     public static ElectricFloodlightMenu server(int containerId, Inventory playerInventory, FloodlightBlockEntity light,
                                                 ElectricPower power) {
         return new ElectricFloodlightMenu(containerId, playerInventory, light.getBlockPos(), light, light.getInventory(),
-                new LongContainerData(() -> power.storage().amount, () -> power.storage().capacity));
+                new LongContainerData(() -> power.store().getAmount(), () -> power.store().getCapacity()));
     }
 
     public long getEnergy() {

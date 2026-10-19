@@ -63,7 +63,7 @@ public class GrowLightGameTest implements FabricGameTest {
         helper.setBlock(LIGHT, ModBlocks.GROW_LIGHT.defaultBlockState());
         helper.setBlock(LIGHT.east(), Blocks.REDSTONE_BLOCK);
         GrowLightBlockEntity light = (GrowLightBlockEntity) helper.getLevel().getBlockEntity(helper.absolutePos(LIGHT));
-        light.electricPower().storage().amount = ElectricPower.CAPACITY;
+        light.electricPower().store().setAmountUnchecked(ElectricPower.CAPACITY);
         return light;
     }
 

@@ -26,6 +26,7 @@ import omtteam.openmodularlighting.core.light.ShapeDiff;
 import omtteam.openmodularlighting.core.math.Pos;
 import omtteam.openmodularlighting.core.state.LightController;
 import omtteam.openmodularlighting.core.state.RecheckTimer;
+import omtteam.openmodularlighting.core.energy.EnergyAccess;
 import omtteam.openmodularlighting.energy.ElectricPower;
 import omtteam.openmodularlighting.energy.LightPower;
 import omtteam.openmodularlighting.registry.ModBlocks;
@@ -33,7 +34,6 @@ import omtteam.openmodularlighting.world.LevelLightWorld;
 import omtteam.openmodularlighting.world.LightBlocks;
 import omtteam.openmodularlighting.world.Positions;
 import org.jetbrains.annotations.Nullable;
-import team.reborn.energy.api.EnergyStorage;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -120,7 +120,7 @@ public abstract class FloodlightBlockEntity extends CompatBlockEntity implements
 
     public static void serverTick(Level level, BlockPos pos, BlockState state, FloodlightBlockEntity light) {
         light.beforePower(level);
-        light.power().prepare(light.inventory, light.inventoryStorage);
+        light.power().prepare(light.inventory);
         if (!Arrays.equals(light.cachedShapeKey, light.shapeKey())) {
             light.controller.requestRecast(); // placed, loaded without cache, mode or config changed
         }
@@ -245,11 +245,11 @@ public abstract class FloodlightBlockEntity extends CompatBlockEntity implements
         return true;
     }
 
-    /** Energy storage exposed on {@code side} ({@code EnergyStorage.SIDED}), or null. */
+    /** Energy exposed to other blocks on {@code side} (the loader adapters wrap it), or null. */
     @Nullable
-    public EnergyStorage getEnergyStorage(@Nullable Direction side) {
+    public EnergyAccess getEnergyAccess(@Nullable Direction side) {
         ElectricPower electric = electricPower();
-        return electric != null && acceptsEnergyFrom(side) ? electric.storage() : null;
+        return electric != null && acceptsEnergyFrom(side) ? electric.store() : null;
     }
 
     /** The light block positions of the current beam. */

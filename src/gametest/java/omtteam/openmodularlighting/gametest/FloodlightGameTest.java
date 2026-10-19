@@ -18,6 +18,8 @@ import omtteam.openmodularlighting.blockentity.ElectricFloodlightBlockEntity;
 import omtteam.openmodularlighting.blockentity.FloodlightBlockEntity;
 import omtteam.openmodularlighting.compat.VersionCompat;
 import omtteam.openmodularlighting.core.beam.BeamMode;
+import omtteam.openmodularlighting.core.energy.EnergyStore;
+import omtteam.openmodularlighting.platform.Platform;
 import omtteam.openmodularlighting.registry.ModBlocks;
 
 import java.util.List;
@@ -37,7 +39,7 @@ public class FloodlightGameTest implements FabricGameTest {
     @GameTest(template = EMPTY_STRUCTURE)
     public void placedFloodlightCastsADarkBeam(GameTestHelper helper) {
         ElectricFloodlightBlockEntity light = placeElectric(helper);
-        light.getEnergyStorage().amount = ElectricFloodlightBlockEntity.CAPACITY;
+        light.getEnergyStore().setAmountUnchecked(ElectricFloodlightBlockEntity.CAPACITY);
         BlockPos pos = helper.absolutePos(LIGHT);
         helper.succeedWhen(() -> {
             assertBeam(helper, pos, false);
@@ -51,13 +53,13 @@ public class FloodlightGameTest implements FabricGameTest {
     @GameTest(template = EMPTY_STRUCTURE)
     public void redstoneTurnsTheBeamOnAndOff(GameTestHelper helper) {
         ElectricFloodlightBlockEntity light = placeElectric(helper);
-        light.getEnergyStorage().amount = ElectricFloodlightBlockEntity.CAPACITY;
+        light.getEnergyStore().setAmountUnchecked(ElectricFloodlightBlockEntity.CAPACITY);
         BlockPos pos = helper.absolutePos(LIGHT);
         helper.setBlock(REDSTONE, Blocks.REDSTONE_BLOCK);
         helper.runAfterDelay(3, () -> {
             assertBeam(helper, pos, true);
             helper.assertTrue(lit(helper, LIGHT), "floodlight itself is lit");
-            helper.assertTrue(light.getEnergyStorage().amount < ElectricFloodlightBlockEntity.CAPACITY, "uses energy");
+            helper.assertTrue(light.getEnergyStore().getAmount() < ElectricFloodlightBlockEntity.CAPACITY, "uses energy");
             helper.setBlock(REDSTONE, Blocks.AIR);
         });
         helper.runAfterDelay(5, () -> {
@@ -82,7 +84,7 @@ public class FloodlightGameTest implements FabricGameTest {
     @GameTest(template = EMPTY_STRUCTURE)
     public void invertedFloodlightShinesWithoutRedstone(GameTestHelper helper) {
         ElectricFloodlightBlockEntity light = placeElectric(helper);
-        light.getEnergyStorage().amount = ElectricFloodlightBlockEntity.CAPACITY;
+        light.getEnergyStore().setAmountUnchecked(ElectricFloodlightBlockEntity.CAPACITY);
         light.toggleInverted();
         BlockPos pos = helper.absolutePos(LIGHT);
         helper.succeedWhen(() -> {
@@ -101,12 +103,27 @@ public class FloodlightGameTest implements FabricGameTest {
         light.getInventory().setItem(0, battery);
         BlockPos pos = helper.absolutePos(LIGHT);
         helper.succeedWhen(() -> {
-            helper.assertTrue(light.getEnergyStorage().amount == 10_000,
-                    "energy moved into the floodlight, has " + light.getEnergyStorage().amount);
+            helper.assertTrue(light.getEnergyStore().getAmount() == 10_000,
+                    "energy moved into the floodlight, has " + light.getEnergyStore().getAmount());
             ItemStack inSlot = light.getInventory().getItem(0);
             helper.assertTrue(OMLGameTestMod.TEST_BATTERY.getStoredEnergy(inSlot) == 0, "battery empty");
             remove(helper, pos);
         });
+    }
+
+    @GameTest(template = EMPTY_STRUCTURE)
+    public void pushesEnergyIntoABlockThroughTheLoaderApi(GameTestHelper helper) {
+        ElectricFloodlightBlockEntity light = placeElectric(helper);
+        BlockPos pos = helper.absolutePos(LIGHT);
+        EnergyStore source = new EnergyStore(1000, 0, 100, () -> { });
+        source.generate(1000);
+        long moved = Platform.energy().pushToBlock(helper.getLevel(), pos, Direction.NORTH, source, 500);
+        helper.assertTrue(moved == 100, "maxExtract of the source limits the push, moved " + moved);
+        helper.assertTrue(source.getAmount() == 900 && light.getEnergyStore().getAmount() == 100, "energy arrived");
+        long none = Platform.energy().pushToBlock(helper.getLevel(), pos.east(), Direction.WEST, source, 500);
+        helper.assertTrue(none == 0 && source.getAmount() == 900, "no energy block there, nothing moved");
+        remove(helper, pos);
+        helper.succeed();
     }
 
     // ---- Re-casting ----
@@ -114,7 +131,7 @@ public class FloodlightGameTest implements FabricGameTest {
     @GameTest(template = EMPTY_STRUCTURE)
     public void blockingTheBeamShortensItAndUnblockingRestoresIt(GameTestHelper helper) {
         ElectricFloodlightBlockEntity light = placeElectric(helper);
-        light.getEnergyStorage().amount = ElectricFloodlightBlockEntity.CAPACITY;
+        light.getEnergyStore().setAmountUnchecked(ElectricFloodlightBlockEntity.CAPACITY);
         BlockPos pos = helper.absolutePos(LIGHT);
         ServerLevel level = helper.getLevel();
         helper.setBlock(REDSTONE, Blocks.REDSTONE_BLOCK);
@@ -137,7 +154,7 @@ public class FloodlightGameTest implements FabricGameTest {
     @GameTest(template = EMPTY_STRUCTURE)
     public void lightproofGlassStopsTheBeamLikeAWall(GameTestHelper helper) {
         ElectricFloodlightBlockEntity light = placeElectric(helper);
-        light.getEnergyStorage().amount = ElectricFloodlightBlockEntity.CAPACITY;
+        light.getEnergyStore().setAmountUnchecked(ElectricFloodlightBlockEntity.CAPACITY);
         BlockPos pos = helper.absolutePos(LIGHT);
         ServerLevel level = helper.getLevel();
         helper.setBlock(REDSTONE, Blocks.REDSTONE_BLOCK);
@@ -161,7 +178,7 @@ public class FloodlightGameTest implements FabricGameTest {
     @GameTest(template = EMPTY_STRUCTURE)
     public void modeChangeRecastsAtOnce(GameTestHelper helper) {
         ElectricFloodlightBlockEntity light = placeElectric(helper);
-        light.getEnergyStorage().amount = ElectricFloodlightBlockEntity.CAPACITY;
+        light.getEnergyStore().setAmountUnchecked(ElectricFloodlightBlockEntity.CAPACITY);
         BlockPos pos = helper.absolutePos(LIGHT);
         ServerLevel level = helper.getLevel();
         helper.setBlock(REDSTONE, Blocks.REDSTONE_BLOCK);
@@ -189,7 +206,7 @@ public class FloodlightGameTest implements FabricGameTest {
     @GameTest(template = EMPTY_STRUCTURE)
     public void breakingRemovesTheBeamAndTheDropKeepsTheSettings(GameTestHelper helper) {
         ElectricFloodlightBlockEntity light = placeElectric(helper);
-        light.getEnergyStorage().amount = 1234;
+        light.getEnergyStore().setAmountUnchecked(1234);
         BlockPos pos = helper.absolutePos(LIGHT);
         ServerLevel level = helper.getLevel();
         helper.runAfterDelay(2, () -> {
@@ -253,6 +270,21 @@ public class FloodlightGameTest implements FabricGameTest {
             int full = 300 * 10;
             helper.assertTrue(light.getTicksRemaining() < full && light.getTicksRemaining() > full - 10,
                     "cone run time shown: " + light.getTicksRemaining());
+            remove(helper, pos);
+            helper.succeed();
+        });
+    }
+
+    @GameTest(template = EMPTY_STRUCTURE)
+    public void carbonFloodlightLeavesFuelRemainder(GameTestHelper helper) {
+        helper.setBlock(LIGHT, ModBlocks.CARBON_FLOODLIGHT.defaultBlockState().setValue(FloodlightBlock.FACING, Direction.UP));
+        CarbonFloodlightBlockEntity light = (CarbonFloodlightBlockEntity) helper.getLevel().getBlockEntity(helper.absolutePos(LIGHT));
+        light.getInventory().setItem(0, new ItemStack(Items.LAVA_BUCKET));
+        BlockPos pos = helper.absolutePos(LIGHT);
+        // refuelling also happens while the light is off (1.7.10), so no redstone is needed
+        helper.runAfterDelay(2, () -> {
+            helper.assertTrue(light.getInventory().getItem(0).is(Items.BUCKET), "the lava bucket leaves a bucket, like in a furnace");
+            helper.assertTrue(light.getTicksRemaining() > 0, "the lava was burnt");
             remove(helper, pos);
             helper.succeed();
         });
