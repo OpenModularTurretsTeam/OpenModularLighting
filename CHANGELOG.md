@@ -9,6 +9,10 @@ turns *Unreleased* into the release section; `chiseledPublish` uploads exactly t
 
 ## [Unreleased]
 
+### Added
+
+- Cube light: a full block that lights all 6 neighbouring blocks, takes energy from every side and shares it with touching cube lights; crafted from glass, a light bulb and iron, enabled together with the fluorescent lights
+
 ### Changed
 
 - File names and the mod version name the loader (e.g. "+1.21.1-fabric"), in preparation for NeoForge builds
