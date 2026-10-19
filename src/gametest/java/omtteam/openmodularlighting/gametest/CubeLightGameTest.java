@@ -1,6 +1,10 @@
 package omtteam.openmodularlighting.gametest;
 
-import net.fabricmc.fabric.api.gametest.v1.FabricGameTest;
+//? if neoforge {
+/*import net.neoforged.neoforge.gametest.GameTestHolder;
+import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import omtteam.openmodularlighting.OML;
+*///?}
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTest;
@@ -20,10 +24,13 @@ import omtteam.openmodularlighting.blockentity.CubeLightBlockEntity;
 import omtteam.openmodularlighting.blockentity.PanelLightBlockEntity;
 import omtteam.openmodularlighting.energy.ElectricPower;
 import omtteam.openmodularlighting.registry.ModBlocks;
-import team.reborn.energy.api.EnergyStorage;
 
 /** Cube light: 6 lit neighbours, energy from every side, shared with touching cube lights. */
-public class CubeLightGameTest implements FabricGameTest {
+//? if neoforge {
+/*@GameTestHolder(OML.MOD_ID)
+@PrefixGameTestTemplate(false)
+*///?}
+public class CubeLightGameTest implements OMLGameTests {
     private static final BlockPos LIGHT = new BlockPos(3, 3, 3);
 
     @GameTest(template = EMPTY_STRUCTURE)
@@ -48,7 +55,7 @@ public class CubeLightGameTest implements FabricGameTest {
         place(helper, LIGHT);
         BlockPos pos = helper.absolutePos(LIGHT);
         for (Direction side : Direction.values()) {
-            helper.assertTrue(EnergyStorage.SIDED.find(helper.getLevel(), pos, side) != null, "accepts energy from " + side);
+            helper.assertTrue(OMLGameTestMod.transfer().hasEnergy(helper.getLevel(), pos, side), "accepts energy from " + side);
         }
         remove(helper, pos);
         helper.succeed();

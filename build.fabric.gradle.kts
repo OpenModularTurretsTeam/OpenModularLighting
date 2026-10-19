@@ -34,7 +34,7 @@ fabricApi {
     // GameTest server; it needs no EULA. Client game tests are not used.
     configureTests {
         createSourceSet = true
-        modId = "$modId-gametest"
+        modId = "${modId}_gametest"
         enableGameTests = true
         enableClientGameTests = false
     }

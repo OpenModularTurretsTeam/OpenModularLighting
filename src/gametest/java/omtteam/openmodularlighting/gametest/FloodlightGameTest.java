@@ -1,10 +1,10 @@
 package omtteam.openmodularlighting.gametest;
 
-import net.fabricmc.fabric.api.gametest.v1.FabricGameTest;
-import net.fabricmc.fabric.api.transfer.v1.item.ItemStorage;
-import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
-import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
-import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
+//? if neoforge {
+/*import net.neoforged.neoforge.gametest.GameTestHolder;
+import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import omtteam.openmodularlighting.OML;
+*///?}
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTest;
@@ -33,7 +33,11 @@ import java.util.List;
  * {@link OMLGameTestMod#TEST_RANGE}, so every beam stays inside its test structure; lights shine up and remove
  * themselves at the end.
  */
-public class FloodlightGameTest implements FabricGameTest {
+//? if neoforge {
+/*@GameTestHolder(OML.MOD_ID)
+@PrefixGameTestTemplate(false)
+*///?}
+public class FloodlightGameTest implements OMLGameTests {
     private static final BlockPos LIGHT = new BlockPos(3, 1, 3);
     private static final BlockPos REDSTONE = new BlockPos(3, 1, 4);
     private static final int RANGE = OMLGameTestMod.TEST_RANGE;
@@ -100,8 +104,8 @@ public class FloodlightGameTest implements FabricGameTest {
     @GameTest(template = EMPTY_STRUCTURE)
     public void chargesFromABatteryInItsSlot(GameTestHelper helper) {
         ElectricFloodlightBlockEntity light = placeElectric(helper);
-        ItemStack battery = new ItemStack(OMLGameTestMod.TEST_BATTERY);
-        OMLGameTestMod.TEST_BATTERY.setStoredEnergy(battery, 10_000);
+        ItemStack battery = new ItemStack(TestItems.TEST_BATTERY);
+        TestItems.TEST_BATTERY.setStoredEnergy(battery, 10_000);
         helper.assertTrue(light.isValidItem(battery), "battery accepted");
         helper.assertTrue(!light.isValidItem(new ItemStack(Items.COAL)), "coal is no battery");
         light.getInventory().setItem(0, battery);
@@ -110,7 +114,7 @@ public class FloodlightGameTest implements FabricGameTest {
             helper.assertTrue(light.getEnergyStore().getAmount() == 10_000,
                     "energy moved into the floodlight, has " + light.getEnergyStore().getAmount());
             ItemStack inSlot = light.getInventory().getItem(0);
-            helper.assertTrue(OMLGameTestMod.TEST_BATTERY.getStoredEnergy(inSlot) == 0, "battery empty");
+            helper.assertTrue(TestItems.TEST_BATTERY.getStoredEnergy(inSlot) == 0, "battery empty");
             remove(helper, pos);
         });
     }
@@ -284,14 +288,11 @@ public class FloodlightGameTest implements FabricGameTest {
         helper.setBlock(LIGHT, ModBlocks.CARBON_FLOODLIGHT.defaultBlockState().setValue(FloodlightBlock.FACING, Direction.UP));
         CarbonFloodlightBlockEntity light = (CarbonFloodlightBlockEntity) helper.getLevel().getBlockEntity(helper.absolutePos(LIGHT));
         BlockPos pos = helper.absolutePos(LIGHT);
-        Storage<ItemVariant> storage = ItemStorage.SIDED.find(helper.getLevel(), pos, Direction.NORTH);
-        helper.assertTrue(storage != null, "the slot is exposed");
-        try (Transaction transaction = Transaction.openOuter()) {
-            helper.assertTrue(storage.insert(ItemVariant.of(Items.STONE), 1, transaction) == 0, "no fuel, not accepted");
-            helper.assertTrue(storage.insert(ItemVariant.of(Items.COAL), 5, transaction) == 5, "fuel accepted");
-            helper.assertTrue(storage.extract(ItemVariant.of(Items.COAL), 5, transaction) == 0, "nothing comes out");
-            transaction.commit();
-        }
+        TestTransfer transfer = OMLGameTestMod.transfer();
+        ServerLevel level = helper.getLevel();
+        helper.assertTrue(transfer.insertItem(level, pos, Direction.NORTH, new ItemStack(Items.STONE)) == 0, "no fuel, not accepted");
+        helper.assertTrue(transfer.insertItem(level, pos, Direction.NORTH, new ItemStack(Items.COAL, 5)) == 5, "fuel accepted");
+        helper.assertTrue(transfer.extractItem(level, pos, Direction.NORTH, new ItemStack(Items.COAL), 5) == 0, "nothing comes out");
         helper.assertTrue(light.getInventory().getItem(0).is(Items.COAL), "coal in the slot");
         remove(helper, pos);
         helper.succeed();

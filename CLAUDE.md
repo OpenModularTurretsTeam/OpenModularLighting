@@ -169,7 +169,7 @@ The rules for loader differences mirror those for version differences, with one 
 ./gradlew :1.20.1-fabric:runDatagen               # regenerate data for a node
 ./gradlew :1.21.1-fabric:runDatagen
 ./gradlew :1.21.1-neoforge:runClient              # NeoForge client (run dir versions/1.21.1-neoforge/run)
-./gradlew :1.21.1-neoforge:runGameTestServer      # NeoForge GameTest server (no tests registered yet)
+./gradlew :1.21.1-neoforge:runGameTestServer      # NeoForge GameTests (also part of check/build)
 ./gradlew chiseledPublish                         # upload all nodes to CurseForge/Modrinth (custom task)
 ./gradlew :1.21.1-fabric:publishMods              # upload one node
 ```
@@ -189,13 +189,25 @@ The rules for loader differences mirror those for version differences, with one 
 
 ### GameTests (`src/gametest`)
 
-- In-world tests run on a headless GameTest server (`runGameTest`, part of `check`). It needs **no EULA**: the run directory gets `eula=false`, and that is fine. Do not accept the EULA on the user's behalf.
-- `src/gametest` is a separate test mod (`openmodularlighting-gametest`, set up with Loom's `fabricApi.configureTests`). It is not in the release jar. It registers test-only blocks, for example `TestLightSourceBlock`, a fake light source whose on/off state and shape the test sets directly.
-- Tests implement `FabricGameTest` and use `@GameTest(template = EMPTY_STRUCTURE)`. Add new test classes to the `fabric-gametest` entrypoint in `src/gametest/resources/fabric.mod.json`.
+- In-world tests run on a headless GameTest server (Fabric `runGameTest`, NeoForge `runGameTestServer`; both part of `check`). It needs **no EULA**: the run directory gets `eula=false`, and that is fine. Do not accept the EULA on the user's behalf.
+- `src/gametest` is a separate test mod (`openmodularlighting_gametest`; Fabric: Loom's `fabricApi.configureTests` + `fabric.mod.json`, NeoForge: the `gametest` source set registered as a second mod + `META-INF/neoforge.mods.toml`). It is not in the release jar. It registers test-only content (`TestBlocks`, `TestBlockEntities`, `TestItems` through `OMLGameTestMod.registrationSteps()`), for example `TestLightSourceBlock`, a fake light source whose on/off state and shape the test sets directly.
+- **The test classes are shared by both loaders.** They implement `OMLGameTests` (not `FabricGameTest`) and use `@GameTest(template = EMPTY_STRUCTURE)`: our own 8 × 8 × 8 air structure (`src/gametest/resources/data/openmodularlighting/structure/empty.nbt`, a copy in `structures/` for 1.20.1). Every test class also carries the NeoForge annotations behind a condition:
+
+  ```java
+  //? if neoforge {
+  /*@GameTestHolder(OML.MOD_ID)
+  @PrefixGameTestTemplate(false)
+  *///?}
+  public class FooGameTest implements OMLGameTests {
+  ```
+
+  Add a new test class to the `fabric-gametest` entrypoint in `src/gametest/resources/fabric.mod.json` as well (NeoForge finds it through `@GameTestHolder`).
+- Loader-specific test code lives in `gametest/platform/<loader>`: the entrypoints (`OMLFabricGameTests`, `OMLNeoForgeGameTests`), `TestTransfer` (energy and items through the loader's API, `OMLGameTestMod.transfer()`; use it to test the loader adapters) and the energy access of the test battery.
+- **No test class may sit in a main-mod package:** NeoForge loads the test mod as its own module, and two modules cannot share a package. Reach protected block entity methods through vanilla's public ones (`BlockEntityData.save` / `load` / `clientData`).
 - Tests in the same batch run side by side, and finished tests leave beacons (light 15) next to their structure. A test that checks for darkness needs its own `batch` and must compare against the light level measured before it starts.
-- Protected methods are reached through small access classes in the same package (e.g. `blockentity/LightBlockEntityAccess`).
-- 1.21 encloses every test structure in barriers. Light beams therefore have to stay inside the 8 × 8 × 8 structure: the test mod sets both beam ranges to `OMLGameTestMod.TEST_RANGE` (6) when the server starts. Entrypoints do not run in dependency order, so test setup that depends on the main mod (such as the config or `Platform` services) belongs in a server lifecycle event, not in `onInitialize`.
-- The test mod also has a test battery (`TestBatteryItem`, a Team Reborn `SimpleEnergyItem`).
+- 1.21 encloses every test structure in barriers. Light beams therefore have to stay inside the 8 × 8 × 8 structure: the test mod sets both beam ranges to `OMLGameTestMod.TEST_RANGE` (6) when the server starts. Entrypoints do not run in dependency order, so test setup that depends on the main mod (such as the config or `Platform` services) belongs in a server lifecycle event (`OMLGameTestMod.onServerStarting`), not in the entrypoint.
+- The test mod also has a test battery (`TestBatteryItem`, energy in the item's custom data; Team Reborn Energy on Fabric, an item capability on NeoForge).
+- `JadeTooltipGameTest` runs on Fabric only until Jade is set up on NeoForge (excluded in `build.neoforge.gradle.kts`).
 - The client (screens, models, tint, tooltips) is not covered: Fabric's client GameTests need Minecraft 1.21.4+. Check it by hand with `runClient`.
 
 ### Core Game Logic Source
@@ -632,7 +644,7 @@ Update this checklist as work progresses.
 - [ ] Check on NeoForge in a client: blocks, interaction, menus, energy/item capabilities (no NeoForge GameTests yet)
 - [x] Client: `OMLClient` + `ScreenRegistrar`; screens, colour handler, render types (model JSON), debug renderer, tooltip, disconnect hook wired in `OMLNeoForgeClient` (check by hand with `:1.21.1-neoforge:runClient`)
 - [x] Data on NeoForge: converted from the Fabric 1.21.1 datagen output at build time (`convertFabricData`, `datagen_from`); loading it on NeoForge is checked by the NeoForge GameTests (next step)
-- [ ] GameTests on NeoForge
+- [x] GameTests on NeoForge: shared test classes (`OMLGameTests`, own empty structure, NeoForge annotations behind a condition), `TestTransfer`, loader-neutral test battery; 45 of 48 run on NeoForge (Jade test pending)
 - [ ] Jade on NeoForge
 
 ### Later / optional (ask first)

@@ -1,12 +1,12 @@
 {
   "schemaVersion": 1,
-  "id": "openmodularlighting-gametest",
+  "id": "openmodularlighting_gametest",
   "version": "1.0.0",
   "name": "Open Modular Lighting Game Tests",
   "environment": "*",
   "entrypoints": {
     "main": [
-      "omtteam.openmodularlighting.gametest.OMLGameTestMod"
+      "omtteam.openmodularlighting.gametest.platform.fabric.OMLFabricGameTests"
     ],
     "fabric-gametest": [
       "omtteam.openmodularlighting.gametest.PhantomLightGameTest",
