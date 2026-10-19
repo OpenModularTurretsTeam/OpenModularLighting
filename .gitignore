@@ -20,3 +20,6 @@ bin/
 
 # 1.7.10 reference source (read-only, not part of this repo)
 oldmod/
+
+# Claude Code (local settings, worktrees, memory)
+.claude/
