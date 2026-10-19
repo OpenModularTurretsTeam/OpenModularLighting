@@ -270,6 +270,9 @@ Wrap each of these behind a helper where possible.
   - Configure the output directory relative to the version project (`project.file("src/main/generated")` → `versions/<v>/src/main/generated`).
   - Add that directory as a resource source dir.
   - Commit the generated files.
+  - **NeoForge has no datagen of its own.** `build.neoforge.gradle.kts` (`convertFabricData`) copies the Fabric output of the node named by `datagen_from` (`1.21.1-fabric`) into the NeoForge resources at build time, turning `fabric:load_conditions` into `neoforge:conditions` (`condition` → `type`).
+    Only conditions in this mod's namespace convert (registered under the same id on both loaders); any other condition fails the build.
+    So regenerate the Fabric data and the NeoForge jar follows; nothing NeoForge-specific is committed.
 - Do not handwrite files into `data/` in shared resources.
 - Do not generate new images via AI, f.ex. for textures. If an image is needed, use a placeholder image and tell the user which images are missing.
 
@@ -628,7 +631,7 @@ Update this checklist as work progresses.
 - [x] Registration: `OML.init()` + `OML.registrationSteps()` (NeoForge: per `RegisterEvent`, safety check at common setup); capabilities (items, energy); block use, config sync on join, recipe condition codec, creative tab builder, plain `c:` tags; all main code except `datagen` and `compat/jade` compiles on NeoForge, unit tests run there too
 - [ ] Check on NeoForge in a client: blocks, interaction, menus, energy/item capabilities (no NeoForge GameTests yet)
 - [x] Client: `OMLClient` + `ScreenRegistrar`; screens, colour handler, render types (model JSON), debug renderer, tooltip, disconnect hook wired in `OMLNeoForgeClient` (check by hand with `:1.21.1-neoforge:runClient`)
-- [ ] Datagen / recipe conditions (`neoforge:conditions`)
+- [x] Data on NeoForge: converted from the Fabric 1.21.1 datagen output at build time (`convertFabricData`, `datagen_from`); loading it on NeoForge is checked by the NeoForge GameTests (next step)
 - [ ] GameTests on NeoForge
 - [ ] Jade on NeoForge
 
