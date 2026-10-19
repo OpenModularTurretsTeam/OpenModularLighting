@@ -76,6 +76,7 @@ Check exact latest patch versions of Loader, API, Loom and Stonecutter when sett
 ├── settings.gradle.kts         # declares the Stonecutter nodes (<minecraft version>-<loader>)
 ├── gradle.properties           # shared properties (mod_id, mod_version, maven_group …)
 ├── docs/id-mapping.md          # 1.7.10 ID → new ID table
+├── docs/architecture.md        # overview of the code for developers (layers, flows, how to add things)
 ├── oldmod/                     # 1.7.10 Forge source, reference only (do not edit)
 ├── versions/
 │   ├── 1.20.1-fabric/

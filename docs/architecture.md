@@ -1,0 +1,290 @@
+# Architecture
+
+A guide to the code of Open Modular Lighting (OML) for people working on it: how it is layered, what lives where, how the main flows run, and how to add the common things.
+It describes the code as it is; where it falls short of its own rules, the last section says so.
+
+Building, running and the Stonecutter commands are in the README and in `CLAUDE.md` (section 4).
+The gameplay rules (beam shapes, state machine, power) are specified in `CLAUDE.md` (sections 6.3 to 6.10); this document shows where they live in the code.
+
+## The idea in one paragraph
+
+A **light** (floodlight, grow light, fluorescent light, cube light, UV floodlight) is a block with a block entity that owns the state: on or off, inverted, power, mode and the cached shape of its beam.
+The beam itself is made of **light blocks** (invisible phantom lights, or UV lights) that the light places in the air along the beam and then leaves in place.
+Turning a light on or off only switches the `LIT` blockstate of those light blocks; they are placed and removed only when the beam changes shape or the light is broken.
+All game rules (beam shapes, which positions a ray reaches, which sources keep a light block alive, the on/off state machine, energy and fuel formulas) are plain Java in `core`, without any Minecraft class, so they are unit-tested in milliseconds.
+The Minecraft-facing code around it translates between the game and the core and is kept as thin as possible.
+
+## Layers
+
+```mermaid
+flowchart TB
+    client["client<br/>screens, tint, debug renderer, tooltips<br/><i>client only</i>"]
+    game["game layer (main)<br/>blocks, block entities, items, menus, network,<br/>registry, config, world, energy"]
+    platform["platform/&lt;loader&gt;<br/>entrypoints, capabilities, events"]
+    compat["compat<br/>1.20.1 / 1.21.1 differences"]
+    core["core<br/>game rules, plain Java"]
+    client --> game
+    client --> compat
+    game --> compat
+    game --> core
+    platform --> game
+```
+
+An arrow means "may use".
+The other directions are forbidden:
+
+- **core** uses only Java and itself: no Minecraft, loader or other OML packages.
+  The `verifyCoreIsolation` task (part of `check`) fails the build if a file under `core/` imports `net.minecraft`, `net.fabricmc`, `net.neoforged`, `com.mojang`, `team.reborn` or a non-core OML package.
+- **main** code never uses **client** code: the client classes do not exist on a dedicated server.
+  This is not checked by a rule yet; the split source sets make it a compile error on every node (the `client` source set sees `main`, not the other way round).
+
+### How core talks to the game
+
+The core defines small interfaces for what it needs from the world; the game layer implements them.
+This is the only place where the two meet, and the reason the core can be tested with fakes (`src/test/.../core/light/TestWorld`).
+
+| Core interface (`core`) | Implemented by (game layer) | What it gives the core |
+| --- | --- | --- |
+| `light.LightWorld` | `world.LevelLightWorld` | classifies a block position as a `Cell`: air, phantom light, UV light, opaque, transparent or unloaded |
+| `state.PowerSource` | `energy.ElectricPower`, `energy.FuelPower` (through `energy.LightPower`) | whether the light can run this tick, and paying for it |
+| `cluster.ClusterNode` | `blockentity.PanelLightBlockEntity` | who a light is connected to, for the shared energy of touching lights |
+| `energy.EnergyAccess` | the lights' `getEnergyAccess(side)` (the buffer of `energy.ElectricPower`, or `energy.ClusterEnergy.View` for panel lights) | what other blocks may do with a light's energy (insert; extract is never allowed) |
+
+Positions in core are the `Pos` record and directions the `Facing` enum (same ordinal order as `Direction`); `world.Positions` converts both ways.
+The block entities own one core object each and forward to it: `FloodlightBlockEntity` → `LightController`, `LightBlockEntity` → `LightSources`, `PanelLightBlockEntity` → `Cluster`.
+
+## Where things live
+
+Source sets (Loom split source sets on Fabric, the same split built by hand on NeoForge, plus the two test sets):
+
+| Source set | Contents | Shipped |
+| --- | --- | --- |
+| `src/main` | everything that runs on both sides, including `fabric.mod.json` and `neoforge.mods.toml` (templated) | yes |
+| `src/client` | screens, tint, debug renderer, client networking | yes, client only |
+| `src/test` | JUnit tests of the core and the config | no |
+| `src/gametest` | in-world GameTests as a separate test mod (own mod id), shared by both loaders | no |
+
+Packages below `omtteam.openmodularlighting` (main):
+
+| Package | Responsibility |
+| --- | --- |
+| `OML` | `MOD_ID`, `OML.id(path)`, `init()` and `registrationSteps()`, used by both entrypoints |
+| `core.math` | `Pos`, `Facing`, `Rotation` (port of the 1.7.10 `MathUtil.rotate`) |
+| `core.beam` | `BeamShape` (the ray patterns), `BeamMode` and `GrowMode`, `Spacing` (the thinning of light blocks along a beam), `Ray` |
+| `core.light` | `BeamCaster` (walks the rays), `LightWorld` and `Cell`, `LightType`, `LightSources` (all and active sources of a light block), `ShapeDiff` |
+| `core.state` | `LightController` (the on/off state machine), `PowerSource`, `FuelTimer`, `RecheckTimer` |
+| `core.cluster` | `Cluster` and `ClusterNode`: connected groups with join, leave and split, generic enough to reuse for multiblocks |
+| `core.energy` | `EnergyStore` (the buffer) and `EnergyAccess` |
+| `core.formula` | `CarbonFuel`, `GrowChance`, `EnergyCost` |
+| `block` | `FloodlightBlock` (base of every light: `FACING`, `LIT`, interaction, drops) with its subclasses; `LightBlock` (base of the phantom and UV light blocks); `PanelShapes` |
+| `blockentity` | `FloodlightBlockEntity` (base of every light) and subclasses; `LightBlockEntity` (sources of a light block) with `PhantomLightBlockEntity` and `UvLightBlockEntity`; `LightSourceBlockEntity` |
+| `world` | `LightBlocks` (place, switch and remove light blocks), `LevelLightWorld`, `Positions` |
+| `energy` | `LightPower` with `ElectricPower` and `FuelPower`, `ClusterEnergy`, `Batteries` |
+| `inventory` | `ItemAccess`: the slot range and filters other blocks see (wrapped by the loader adapters) |
+| `item`, `menu` | crafting items and the light debug tool; the container menus and `LongContainerData` |
+| `registry` | `ModBlocks`, `ModItems`, `ModBlockEntities`, `ModMenus`, `ModCreativeTabs`, `ModDamageTypes`, `RegistrationStep` |
+| `network` | `OMLPackets` (all packet types) and `ConfigSyncPacket` |
+| `config` | the JSON config: `ConfigData` (fields), `@Comment`, `@Range`, `ConfigWriter`, `ConfigRanges`, `ConfigValidator`, `OMLConfig` (load, save, sync) |
+| `compat` | every 1.20.1 / 1.21.1 difference (`VersionCompat`, `CompatBlockEntity`, `InteractiveBlock`, `MenuCompat`, `network/`), `CommonTags`, the recipe condition, and the optional Jade plugin (`compat/jade`) |
+| `platform` | the loader services shared code calls (`Platform` holding `PlatformServices`: `LoaderInfo`, `Fuel`, `Network`, `Menus`, `Energy`); `platform.fabric` and `platform.neoforge` hold the entrypoints and implementations and only compile for their loader |
+| `datagen` | recipes, loot tables, tags, damage types (Fabric only, generated per version) |
+
+The block and block entity hierarchies mirror each other:
+
+```mermaid
+flowchart TB
+    subgraph blocks
+        FB[FloodlightBlock] --> EFB[ElectricFloodlightBlock]
+        FB --> CFB[CarbonFloodlightBlock]
+        FB --> UFB[UvFloodlightBlock]
+        FB --> CLB[CubeLightBlock]
+        FB --> PLB[PanelLightBlock]
+        PLB --> FLB[FluorescentLightBlock]
+        PLB --> GLB[GrowLightBlock]
+        LB[LightBlock] --> PHB[PhantomLightBlock]
+        LB --> UVB[UvLightBlock]
+    end
+    subgraph block entities
+        FBE[FloodlightBlockEntity] --> BFBE[BeamFloodlightBlockEntity]
+        BFBE --> EFBE[ElectricFloodlightBlockEntity]
+        BFBE --> CFBE[CarbonFloodlightBlockEntity]
+        FBE --> UFBE[UvFloodlightBlockEntity]
+        FBE --> PLBE[PanelLightBlockEntity]
+        PLBE --> FLBE[FluorescentLightBlockEntity]
+        PLBE --> GLBE[GrowLightBlockEntity]
+        PLBE --> CLBE[CubeLightBlockEntity]
+        LBE[LightBlockEntity] --> PHBE[PhantomLightBlockEntity]
+        LBE --> UVBE[UvLightBlockEntity]
+    end
+```
+
+The upper tree in each half is the **lights** (they have a `FACING`, a GUI and a tick); the lower one is the **light blocks** they place (no GUI, no tick except the UV damage).
+
+## How the main flows run
+
+### Startup
+
+The loader entrypoint (`OMLFabric`, `OMLNeoForge`) first installs the platform services, then calls `OML.init()`.
+The order matters:
+
+1. `OMLPackets.init()`: the packet types (NeoForge accepts them only until its payload registration event).
+2. `OMLConfig.init()`: blocks and recipes read the config, so it comes before any registration.
+
+Then the registrations of `OML.registrationSteps()`: blocks, items, block entities, menus, creative tab.
+Fabric runs them in this order; NeoForge runs each in the `RegisterEvent` of its registry and fails at common setup if one never ran.
+A new registry class gets a `RegistrationStep` in that list, not a call in an entrypoint.
+
+Last, the entrypoint wires its loader to the shared code: the item and energy access of the lights (`FabricBlockLookups`, NeoForge capabilities), block use (`InteractiveBlock.handleUse`), the config sync on join and the recipe condition.
+
+On the client, the loader client entrypoint (`OMLFabricClient`, `OMLNeoForgeClient`) installs the client platform services and calls `OMLClient.init()`.
+It then registers what `OMLClient` lists with its loader: screens, the dye tint, tooltips and the debug renderer.
+Render layers are the one thing kept twice: `BlockRenderLayerMap` on Fabric, `"render_type"` in the block model JSON on NeoForge.
+
+### A light's tick (server)
+
+`FloodlightBlockEntity.serverTick`:
+
+1. `beforePower`: panel lights keep their cluster up to date and pull energy from it.
+2. `power().prepare`: charge from the battery slot, or burn the next fuel item.
+3. A re-cast is flagged if the shape key (mode, ranges) differs from the one the cached shape was cast with, or if the periodic `RecheckTimer` fires (every 10 to 30 s).
+4. `LightController.tick(redstone, power, timeout)` returns a `TickResult`: re-cast or not, switch on, off or neither, and whether the light ran (and paid) this tick.
+5. A re-cast runs first (`recast`), then the switch (`switchLights`), then the light's own `LIT` is set.
+6. `afterTick` is the hook of subclasses (the grow light's growth ticks).
+
+The state machine itself, with the timeout against flicker, is `core.state.LightController`; it knows nothing about blocks.
+
+### Casting a beam
+
+`FloodlightBlockEntity.recast`:
+
+1. `BeamCaster.cast(shape, origin, facing, lightType, new LevelLightWorld(level))` walks every ray of the shape and returns the positions that should hold a light block.
+   A ray stops at an opaque or unloaded cell, passes through transparent ones without a position, and the cone rules (the inner ray is skipped if its outer ray was blocked early) live here.
+2. `ShapeDiff.between(cached, cast)` gives the positions that dropped out.
+   For each, `LightBlocks.leave` removes this light as a source; a light block with no sources left removes itself.
+3. Every cast position is joined through `LightBlocks.join`: it places a light block in air (or where `LightBlock.canReplace` allows), then adds this light as a source.
+   Joining positions that are already covered is a no-op, so this also repairs light blocks lost while a chunk was unloaded.
+4. The positions that joined become the cached shape (a `long[]` saved with the block entity, so a reload does not need a cast).
+
+The shapes are the 1.7.10 loops ported exactly; `BeamCasterTest` checks `BeamCaster` against the kept originals in `Legacy1710Beams` in random worlds.
+
+### Light blocks and their sources
+
+A `LightBlockEntity` stores two lists: `sources` (every light that reaches this block) and `activeSources` (those that are on), in `core.light.LightSources`.
+Every change returns an `Effect` (`NONE`, `TURN_ON`, `TURN_OFF`, `REMOVE`) which `LightBlocks.apply` carries out on the block: `LIT` is `!activeSources.isEmpty()`, and the block goes away when `sources` is empty.
+So several floodlights can share one block, and it stays lit as long as one of them is on.
+
+`LightBlocks` always uses `LightBlocks.FLAGS` (clients are told, no neighbour or shape updates).
+Without that, every toggle would update the next light block and start re-cast chains.
+
+Light blocks do not tick (there can be thousands).
+Instead they react to the world:
+
+- `neighborChanged` and `onRemove` call `requestRecastOfSources()`, which only flags the sources; the light re-casts on its next tick, never inside the neighbour callback.
+- `randomTick` calls `LightBlockEntity.refresh()`: sources whose block entity is gone, or no longer covers this position, are dropped, `LIT` is corrected and the block removes itself if nothing is left.
+  Sources in unloaded chunks are left alone (`SourceStatus.UNKNOWN`).
+
+The UV light block is the exception that ticks: while lit it hurts every `LivingEntity` inside it once a second (`UvLightBlockEntity.serverTick`).
+
+### Power and fuel
+
+A light's `LightPower` is chosen by its block entity: `ElectricPower` (an `EnergyStore` of 50 000 E plus a battery slot) or `FuelPower` (a `FuelTimer` plus a fuel slot).
+`prepare` runs before the logic each tick, `PowerSource.canRun()` / `run()` is what `LightController` calls.
+The numbers are in `core.formula` (`EnergyCost`, `CarbonFuel`, `GrowChance`).
+
+Outside access goes through the loader:
+
+- Energy: `core.energy.EnergyAccess`, exposed as Team Reborn Energy on Fabric (`FabricEnergyStorages`) and as an FE capability on NeoForge (`NeoForgeEnergyHandler`).
+  Only inserting is possible; there is no extraction.
+- Items: `inventory.ItemAccess.insertOnly`, exposed as `ItemStorage.SIDED` on Fabric (`FabricItemStorages`) and as `IItemHandler` on NeoForge.
+- Battery slot and fuel values: `platform.Energy` and `platform.Fuel`.
+
+### Shared energy of panel lights
+
+Fluorescent, grow and cube lights (`PanelLightBlockEntity`) that touch and face the same way form a `core.cluster.Cluster` (cube lights: any face, cube lights only).
+The cluster is in memory only: a light joins on its first tick, leaves in `setRemoved`, and a possible split is found in `refresh()` once per tick, so breaking a wall of lights costs one flood fill.
+Each light keeps its own buffer; `ClusterEnergy` shows the whole cluster to the outside (inserting fills the emptiest light first) and lets a light that cannot pay take from the fullest others.
+
+### A click on a light
+
+Right-click handling does not use vanilla's `use` methods, because they differ between 1.20.1 and 1.21.1.
+The loader's block-use event calls `InteractiveBlock.handleUse`, which calls `FloodlightBlock.onUse` on the server:
+
+- sneak with an empty hand: toggle invert; stick or wrench: `configure` (cycle the mode, turn the small fluorescent light); wrench plus sneak: dismantle; dye or wool: set the colour;
+- anything else opens the menu: `MenuCompat.open` → `platform.Menus` → `ElectricFloodlightMenu` or `CarbonFloodlightMenu`.
+
+Changes that affect the beam (`setMode`) end in `shapeChanged()`, which re-casts at once.
+The server is the only place that changes state; the screens only show it (the menus sync energy and burn time with `LongContainerData`) and the colour reaches the client in the block entity's update tag.
+
+### Config
+
+`OMLConfig.get()` is the only way to read a value, and the value is never cached by the caller: on a client connected to a server it returns the server's config (synced by `ConfigSyncPacket` when the player joins).
+See "A config value" below for adding one.
+
+## How to add …
+
+### A beam shape or mode
+
+Add the shape to `core.beam.BeamShape` / `BeamMode`, with a unit test in `core/beam` and, if it should match 1.7.10, an entry in `Legacy1710Beams` that `BeamCasterTest` compares against.
+The block entity returns it from `currentShape()` and puts everything it depends on into `shapeKey()`, so a change triggers a re-cast.
+
+### A light
+
+1. A block extending `FloodlightBlock` (or `PanelLightBlock`) and a block entity extending `FloodlightBlockEntity` (or `PanelLightBlockEntity`); the block entity chooses `power()`, `currentShape()` and `shapeKey()`.
+2. Register block, item and block entity in `ModBlocks`, `ModItems`, `ModBlockEntities`; add it to the lookups of both loaders if it has energy or item access (`FabricBlockLookups`, the capability registration in `OMLNeoForge`, both use `ModBlockEntities.lights()`).
+3. Blockstate, model, lang entries (`en_us`, `de_de`, `ru_ru`), and the recipe, loot table and tags in `datagen`.
+4. A GameTest in `src/gametest` (and its entry in `src/gametest/resources/fabric.mod.json`), and an entry in `docs/id-mapping.md` if it replaces a 1.7.10 block.
+
+### A config value
+
+Add a field to the right section of `config.ConfigData` with `@Comment` and `@Range`; the file, its comments and the range check follow from them.
+Only `int`, `double`, `boolean` and `List<String>` are supported.
+
+### A packet
+
+Define the payload (a record with `write` and `read`), list it in `network.OMLPackets` through `NetworkCompat`, and handle it on the other side (client handlers are registered through `ClientNetworkCompat`).
+A packet from the client must be validated on the server before it changes anything.
+
+### A loader service
+
+If shared code needs something only a loader can do, define a small interface in `platform` (design it first, see `CLAUDE.md` section 7), add it to `PlatformServices` (every entrypoint then fails to compile until it supplies one) and implement it in `platform/fabric` and `platform/neoforge`.
+Whole loader-specific classes go into those packages; a small difference inside a shared class uses `//? if fabric {` / `//? if neoforge {`, but only in `compat/` and `platform/`.
+
+### Code that differs between 1.20.1 and 1.21.1
+
+The source is written for 1.21.1; Stonecutter comments switch it to 1.20.1.
+Put the difference into a small helper in `compat` (for example `VersionCompat`) and call that, instead of `//? if` blocks in gameplay code.
+Block entities extend `compat.CompatBlockEntity` (override `readData` / `writeData`).
+The table of known differences is in `CLAUDE.md`, section 5.
+
+### Recipes, loot tables, tags
+
+Never handwrite files under `data/`: add them to the providers in `datagen` and run `./gradlew :1.21.1-fabric:runDatagen :1.20.1-fabric:runDatagen`.
+The output is committed per version.
+The NeoForge build converts the Fabric 1.21.1 output at build time, so nothing NeoForge-specific is committed.
+
+## Rules the build checks
+
+`./gradlew chiseledBuild` (or `check` for one node) fails when one of these is broken:
+
+| Rule | Checked by |
+| --- | --- |
+| core uses only Java and core | the `verifyCoreIsolation` task |
+| core rules behave as specified | unit tests in `src/test` (they run on the NeoForge node too) |
+| the beam shapes still equal the 1.7.10 loops | `BeamCasterTest` against `Legacy1710Beams` |
+| lights, light blocks, energy, items, recipes and Jade work in a real world | GameTests in `src/gametest`: Fabric `runGameTest`, NeoForge `runGameTestServer` |
+| formatting (tabs, trailing whitespace, final newline) | `spotlessCheck` |
+| the changelog has a section for the version being published | `publishMods` |
+
+The client (screens, models, tint, tooltips) is not covered by any test; check it by hand with `runClient`.
+
+## Known weak spots
+
+Things that make the code harder to work with than they should be.
+They are known, not hidden:
+
+- **No architecture test beyond the core.** Nothing checks that `main` stays free of `client`, or watches for package cycles; the packages `block`, `blockentity`, `world`, `energy` and `registry` do depend on each other (registry ↔ blocks ↔ block entities, as in most Minecraft mods).
+- **`FloodlightBlockEntity` does a lot** (about 340 lines): ticking, the cached shape and the re-cast, settings, the colour, the slot and saving.
+  The cast and the shape cache would be the first candidates to move out.
+- **Phantom lights beside skipped positions.** Because of the thinning (`core.beam.Spacing`), a block change next to a position without a light block may reach no light block at all, so the beam notices it only at the periodic re-check (10 to 30 s).
+- **The client is untested** except by hand, since Fabric's client GameTests need Minecraft 1.21.4 or newer.
+- **Render layers are kept twice** (Fabric in code, NeoForge in the model JSON) and must be changed together.
