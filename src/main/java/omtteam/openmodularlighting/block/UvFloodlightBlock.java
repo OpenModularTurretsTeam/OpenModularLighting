@@ -6,6 +6,7 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import omtteam.openmodularlighting.blockentity.FloodlightBlockEntity;
 import omtteam.openmodularlighting.blockentity.UvFloodlightBlockEntity;
+import omtteam.openmodularlighting.camo.CamoBlock;
 import omtteam.openmodularlighting.registry.ModBlockEntities;
 //? if >=1.21 {
 import com.mojang.serialization.MapCodec;
@@ -16,7 +17,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * UV floodlight (1.7.10 {@code BlockUVLight}): a floodlight block with a straight beam of UV light. No mode.
  */
-public class UvFloodlightBlock extends FloodlightBlock {
+public class UvFloodlightBlock extends FloodlightBlock implements CamoBlock {
     //? if >=1.21 {
     private static final MapCodec<UvFloodlightBlock> CODEC = simpleCodec(UvFloodlightBlock::new);
     //?}

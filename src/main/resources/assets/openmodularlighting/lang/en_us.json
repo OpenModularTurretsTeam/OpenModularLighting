@@ -31,6 +31,9 @@
   "tooltip.openmodularlighting.configured": "Configured",
   "gui.openmodularlighting.grow_light_lighting": "Normal lighting",
   "gui.openmodularlighting.grow_light_black_light": "Black light",
+  "gui.openmodularlighting.disguise": "Disguise",
+  "gui.openmodularlighting.camo_invalid": "Only full, opaque blocks can be used as a disguise.",
+  "tooltip.openmodularlighting.camo_slot": "Click with a full, opaque block to disguise the light; click with an empty hand to remove the disguise.",
   "death.attack.openmodularlighting.uv_light": "%1$s was burned by UV light",
   "config.jade.plugin_openmodularlighting.light": "Open Modular Lighting: lights"
 }

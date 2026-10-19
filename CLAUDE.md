@@ -206,6 +206,7 @@ The rules for loader differences mirror those for version differences, with one 
 - Loader-specific test code lives in `gametest/platform/<loader>`: the entrypoints (`OMLFabricGameTests`, `OMLNeoForgeGameTests`), `TestTransfer` (energy and items through the loader's API, `OMLGameTestMod.transfer()`; use it to test the loader adapters) and the energy access of the test battery.
 - **No test class may sit in a main-mod package:** NeoForge loads the test mod as its own module, and two modules cannot share a package. Reach protected block entity methods through vanilla's public ones (`BlockEntityData.save` / `load` / `clientData`).
 - Tests in the same batch run side by side, and finished tests leave beacons (light 15) next to their structure. A test that checks for darkness needs its own `batch` and must compare against the light level measured before it starts.
+- The test mod must not load in normal dev runs: NeoForge's `client` and `server` runs set `loadedMods` to the main mod only (ModDevGradle loads every registered mod by default), and Loom's `runClient` never includes it. Otherwise its range override below applies in play.
 - 1.21 encloses every test structure in barriers. Light beams therefore have to stay inside the 8 × 8 × 8 structure: the test mod sets both beam ranges to `OMLGameTestMod.TEST_RANGE` (6) when the server starts. Entrypoints do not run in dependency order, so test setup that depends on the main mod (such as the config or `Platform` services) belongs in a server lifecycle event (`OMLGameTestMod.onServerStarting`), not in the entrypoint.
 - The test mod also has a test battery (`TestBatteryItem`, energy in the item's custom data; Team Reborn Energy on Fabric, an item capability on NeoForge).
 - The client (screens, models, tint, tooltips) is not covered: Fabric's client GameTests need Minecraft 1.21.4+. Check it by hand with `runClient`.
@@ -259,7 +260,7 @@ Wrap each of these behind a helper where possible.
 | Difference | Helper |
 | --- | --- |
 | `ResourceLocation` | `OML.id(path)`, `VersionCompat.id(ns, path)` |
-| BlockEntity NBT + update tag | extend `compat.CompatBlockEntity`: override `readData` / `writeData` (+ optional `writeClientData`), call `syncToClient()` |
+| BlockEntity NBT + update tag | extend `compat.CompatBlockEntity`: override `readData` / `writeData` (+ optional `writeClientData`), call `syncToClient()`; data for the block model while meshing: override `renderData()` (Fabric render data, NeoForge `RENDER_DATA` model data), call `remesh()` on the client when it changed |
 | ItemStack NBT, slot lists | `VersionCompat.saveStack` / `loadStack`, `saveItems` / `loadItems` |
 | ItemStack extra data | `VersionCompat.hasCustomData` / `getCustomData` / `setCustomData` / `updateCustomData` |
 | Block interaction | implement `compat.InteractiveBlock#onUse`; `InteractiveBlock.handleUse` is called by the loader's block-use event (Fabric `UseBlockCallback`, NeoForge `PlayerInteractEvent.RightClickBlock`; same in both versions) |
@@ -268,7 +269,7 @@ Wrap each of these behind a helper where possible.
 | Extended menus | `compat.MenuCompat.register` / `open` (passes the `BlockPos`; forwards to `platform.Menus`: Fabric extended screen handlers, NeoForge `IMenuTypeExtension` / `openMenu(provider, pos)`) |
 | Container screen background, vertices | `client.compat.ClientCompat` |
 | Client start-up (screens, tooltip lines) | `client.OMLClient` (`init`, `registerScreens(ScreenRegistrar)`, `appendTooltip`); tint `FloodlightTint.color` / `tintedBlocks`; debug wireframes `LightBlockDebugRenderer.render(level, poseStack, buffers, camera)`. The loader client entrypoints wire them to their events. |
-| Render layers | Fabric `BlockRenderLayerMap` in `OMLFabricClient`; NeoForge `"render_type"` in the block model JSON (Fabric ignores it). Keep both in sync. |
+| Render layers | Fabric `BlockRenderLayerMap` in `OMLFabricClient`; NeoForge `"render_type"` in the block model JSON (Fabric ignores it). Keep both in sync. The floodlights (`CamoBlock`s) are cutout because of their lamp overlay (§6.11). |
 
 ### Resources strategy
 
@@ -325,8 +326,9 @@ omtteam.openmodularlighting
 │                                  LightSourceBlockEntity (interface of all lights); LightBlockEntity (sources,
 │                                  save/load) → PhantomLightBE, UvLightBE (damage)
 ├── item/                          crafting items (filament, bulb, mantle …), LightDebugToolItem
-├── menu/                          FloodlightMenu → ElectricFloodlightMenu, CarbonFloodlightMenu;
+├── menu/                          FloodlightMenu (+ disguise slot on CamoBlocks) → ElectricFloodlightMenu, CarbonFloodlightMenu;
 │                                  LongContainerData (syncs longs as two shorts)
+├── camo/                          disguise (§6.11): CamoBlock (marker), CamoRules (valid disguises), CamoData (state + NBT)
 ├── inventory/                     ItemAccess (container slot range + insert/extract filters as other blocks see them;
 │                                  loader adapters in platform/<loader>)
 ├── registry/                      ModBlocks, ModItems, ModBlockEntities (+ lights() for the loader lookups), ModMenus, ModCreativeTabs
@@ -358,8 +360,11 @@ omtteam.openmodularlighting
 src/client/java/omtteam/openmodularlighting/client
 ├── OMLClient                      shared client start-up (init, registerScreens(ScreenRegistrar), appendTooltip)
 ├── platform/                      ClientPlatform + ClientPlatformServices (ClientNetwork), like Platform in main;
-│   ├── fabric/                    OMLFabricClient (ClientModInitializer: wires Fabric's client callbacks), FabricClientNetwork
-│   └── neoforge/                  OMLNeoForgeClient (@Mod(dist = CLIENT): wires NeoForge's client events), NeoForgeClientNetwork
+│   ├── fabric/                    OMLFabricClient (ClientModInitializer: wires Fabric's client callbacks), FabricClientNetwork,
+│   │                              FabricCamoModel (disguise model, Renderer API)
+│   └── neoforge/                  OMLNeoForgeClient (@Mod(dist = CLIENT): wires NeoForge's client events), NeoForgeClientNetwork,
+│                                  NeoForgeCamoModel (disguise model, ModelData)
+├── camo/                          CamoModels (which models get wrapped, LAMP_TINT_INDEX)
 ├── screen/                        FloodlightScreen (one status line) → Electric…, CarbonFloodlightScreen
 ├── render/                        FloodlightTint (dye colour × a brightness factor per block), LightBlockDebugRenderer
 │                                  (light debug tool: wireframes around light blocks while held; called from the
@@ -484,20 +489,20 @@ The timeout still applies: toggling `LIT` is much cheaper than placing blocks, b
 | Sneak + right-click with a wrench | break the block and drop it |
 | Right-click with dye | set render colour (dye index); right-click with white wool resets it (colour 16 = no tint) |
 | Right-click with the light debug tool | fills the energy buffer of an electric light (debug aid) |
-| Right-click (anything else) | open the GUI: carbon GUI for the carbon floodlight, the shared electric GUI (energy + battery slot) for all electric lights |
+| Right-click (anything else) | open the GUI: carbon GUI for the carbon floodlight, the shared electric GUI (energy + battery slot) for all electric lights; the electric, carbon and UV floodlights also get the disguise slot (§6.11) |
 
 Use the convention tag `compat.CommonTags.WRENCHES` (`c:wrenches` on 1.20.1, `c:tools/wrench` on 1.21) instead of mod-specific wrench checks. A stick always works for the mode, but only a wrench dismantles. Sneaking with any other item passes, so the item can be used (e.g. placing a block). Dye is not consumed; any wool resets the colour. Messages go to chat (`displayClientMessage(…, false)`).
 Interaction goes through `compat.InteractiveBlock`, so it is the same on both versions.
 
 ### 6.7 Block entity data
 
-Base data (`FloodlightBlockEntity`): `inverted`, `mode`, `color`, `active`, `wasActive`, `timeout`, `customName`, `owner`. Facing moves to the blockstate (`FACING`, plus `LIT`), not BE data.
+Base data (`FloodlightBlockEntity`): `inverted`, `mode`, `color`, `camo` (§6.11), `active`, `wasActive`, `timeout`, `customName`, `owner`. Facing moves to the blockstate (`FACING`, plus `LIT`), not BE data.
 Subclasses add the energy buffer, the 1-slot inventory, `timeRemaining` (carbon), `rotationState` (fluorescent) and `nextGrowTick` (grow light).
 Every floodlight caches the positions of its current shape (the phantom or UV light blocks it placed or joined) as a `long[]` (`BlockPos.asLong`). It is saved with the BE so that turning on and off after a reload does not need a re-cast. A floodlight saved without it (or with a different mode) re-casts on its first tick.
 Phantom and UV light BEs store their sources as two `long` lists, `sources` (all) and `activeSources` (those currently on). `LIT` follows `!activeSources.isEmpty()`, and the block is removed when `sources` is empty.
-The client needs `color` (and later `rotationState`) for rendering: send them in the update tag. On the client, a colour change re-renders the block (`sendBlockUpdated` with `UPDATE_IMMEDIATE`), because the tint is read from the block entity (`client.render.FloodlightTint`: the dye's map colour × a brightness factor of the block).
+The client needs `color` and `camo` (and later `rotationState`) for rendering: send them in the update tag. On the client, a colour or disguise change re-renders the block (`CompatBlockEntity.remesh()`), because the tint and the disguise are read from the block entity (`client.render.FloodlightTint`: the dye's map colour × a brightness factor of the block).
 
-**Dropped item.** A broken floodlight keeps mode, invert, colour and energy / burn time on the item (block entity data, `VersionCompat.setBlockEntityData`). Vanilla loads it back when the item is placed, and the tooltip shows "Configured". Also:
+**Dropped item.** A broken floodlight keeps mode, invert, colour, disguise and energy / burn time on the item (block entity data, `VersionCompat.setBlockEntityData`). Vanilla loads it back when the item is placed, and the tooltip shows "Configured". Also:
 - the data is only added if something differs from a new light, so unconfigured drops still stack;
 - the beam, the on/off state and the slot contents are not kept. Slot contents drop as items, so nothing is lost when a block is removed without drops (creative mode, commands).
 
@@ -542,6 +547,18 @@ Fields with default and range:
 | `uvLightRendered` | true | – | client: show UV light blocks |
 
 `IGWNotifierEnabled` is dropped.
+
+### 6.11 Disguise (camouflage)
+
+Taken over from OpenModularTurrets (`../OMT1.20.1+`, `camo/` and `FabricCamoModel` / `NeoForgeCamoModel`); keep the two in step where they share code.
+
+- **Which lights:** the electric, carbon and UV floodlights (`camo.CamoBlock`). Not the panel lights (thin, no full face to disguise) and not the cube light (no front, it would vanish completely).
+- **Valid disguises** (`CamoRules.isValidDisguise`): full, opaque blocks only (`isSolidRender`), drawn from a normal model, without a block entity. A floodlight hides its neighbours' faces like any solid block, so a see-through disguise would show holes into the world. The disguise is the default state of the item's block. An invalid disguise read from NBT is dropped.
+- **Setting it:** the phantom slot in the floodlight GUI (`FloodlightMenu.CAMO_SLOT`, only on `CamoBlock`s). Clicking it with a block sets the disguise (the block stays in the cursor), with an empty cursor removes it; shift-clicking a block that does not fit the light's slot sets it too. Only the server changes it; anyone who may open the GUI may set it.
+- **Data:** `FloodlightBlockEntity.camo` (`CamoData`), part of the settings: saved, sent in the update tag, kept on the dropped item.
+- **Rendering:** the client wraps the models of the `CamoBlock`s (`client.camo.CamoModels`; Fabric `FabricCamoModel` through the Renderer API, NeoForge `NeoForgeCamoModel` through `ModelData`). With a disguise they emit the disguise's model (its own render layer, ambient occlusion and tint) and, of the light's own model, only the **lamp quads**: an extra front-face element in `models/block/floodlight.json` with `tintindex: 1` and the `#lamp` texture (`<light>_lamp[_on].png`, the ring and disc cut out of the front texture with the rest transparent). Without a disguise the overlay lies over the identical pixels of the front face, so the floodlights are in the cutout layer. Cut the lamp textures again if a front texture changes.
+- **Tint:** the lamp keeps the dye colour (`FloodlightTint`). Fabric bakes the disguise's tint into its quads; on NeoForge `FloodlightTint` forwards every tint index other than 1 to the disguise's colour.
+- Jade, the pick-block item and the break particles still show the real floodlight (the disguise is cosmetic, unlike OMT's hidden turrets).
 
 ---
 
@@ -643,13 +660,14 @@ Update this checklist as work progresses.
 - [x] Checked by hand in a NeoForge client: blocks, interaction, menus, tint, render types, debug renderer, tooltip
 - [x] Client: `OMLClient` + `ScreenRegistrar`; screens, colour handler, render types (model JSON), debug renderer, tooltip, disconnect hook wired in `OMLNeoForgeClient` (check by hand with `:1.21.1-neoforge:runClient`)
 - [x] Data on NeoForge: converted from the Fabric 1.21.1 datagen output at build time (`convertFabricData`, `datagen_from`); loading it on NeoForge is checked by the NeoForge GameTests (`RecipeGameTest`)
-- [x] GameTests on NeoForge: shared test classes (`OMLGameTests`, own empty structure, NeoForge annotations behind a condition), `TestTransfer`, loader-neutral test battery; all 48 run on NeoForge
+- [x] GameTests on NeoForge: shared test classes (`OMLGameTests`, own empty structure, NeoForge annotations behind a condition), `TestTransfer`, loader-neutral test battery; all 54 run on NeoForge
 - [x] Jade on NeoForge: `@WailaPlugin` on `OMLJadePlugin` (Fabric keeps the entrypoint); plugin load checked once in a NeoForge run; overlay itself: check by hand with `:1.21.1-neoforge:runClient`
 
 ### Later / optional (ask first)
 
 - [x] Jade tooltip (replaces WAILA: invert and mode; optional dependency, the user chose Jade only, no WTHIT); GameTests
 - [x] Light debug tool function (wireframe renderer; client only, check with `runClient`)
+- [x] Disguise for the electric, carbon and UV floodlights (taken over from OMT; disguise slot, lamp overlay, kept on the drop; §6.11); GameTests. Rendering not yet checked by hand in `runClient` (both loaders)
 
 ---
 

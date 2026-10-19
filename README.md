@@ -32,7 +32,10 @@ turns off when powered. After a light turns off, it waits 2 seconds before it ca
 | Sneak + right-click with a wrench | Picks the light up |
 | Right-click with dye | Tints the light in that colour; wool removes the tint |
 
-A light you break keeps its settings (mode, invert, colour, stored energy or burn time) on the item, and the tooltip
+The electric, carbon and UV floodlights can be **disguised**: click the disguise slot in their GUI with a full, opaque block (stone, planks, bricks...) and the light looks like that block, with only its lamp showing on the front.
+Click the slot with an empty hand to remove the disguise.
+
+A light you break keeps its settings (mode, invert, colour, disguise, stored energy or burn time) on the item, and the tooltip
 shows "Configured". The beam follows changes in the world. It stops at solid blocks and shines through glass and
 plants. When you build into a beam or remove a block from it, the beam adjusts.
 

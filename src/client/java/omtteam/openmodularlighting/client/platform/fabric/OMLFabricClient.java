@@ -9,6 +9,7 @@ import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.renderer.RenderType;
 import omtteam.openmodularlighting.client.OMLClient;
+import omtteam.openmodularlighting.client.camo.CamoModels;
 import omtteam.openmodularlighting.client.platform.ClientPlatform;
 import omtteam.openmodularlighting.client.platform.ClientPlatformServices;
 import omtteam.openmodularlighting.client.render.FloodlightTint;
@@ -32,6 +33,9 @@ public final class OMLFabricClient implements ClientModInitializer {
         // NeoForge reads these from "render_type" in the block models; Fabric ignores that field
         BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.UV_LIGHT, RenderType.cutout());
         BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.LIGHTPROOF_GLASS, RenderType.translucent());
+        // the lamp overlay of the floodlights (drawn alone over a disguise) is cut out
+        BlockRenderLayerMap.INSTANCE.putBlocks(RenderType.cutout(), CamoModels.camoBlocks());
+        FabricCamoModel.register();
         // light debug tool: wireframes around light blocks while it is held
         WorldRenderEvents.AFTER_ENTITIES.register(context -> LightBlockDebugRenderer.render(context.world(),
                 context.matrixStack(), context.consumers(), context.camera().getPosition()));

@@ -16,7 +16,8 @@
       "omtteam.openmodularlighting.gametest.CubeLightGameTest",
       "omtteam.openmodularlighting.gametest.UvFloodlightGameTest",
       "omtteam.openmodularlighting.gametest.GrowLightGameTest",
-      "omtteam.openmodularlighting.gametest.JadeTooltipGameTest"
+      "omtteam.openmodularlighting.gametest.JadeTooltipGameTest",
+      "omtteam.openmodularlighting.gametest.CamoGameTest"
     ]
   },
   "depends": {

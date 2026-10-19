@@ -1,11 +1,13 @@
 package omtteam.openmodularlighting.client.render;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.level.BlockAndTintGetter;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import omtteam.openmodularlighting.blockentity.FloodlightBlockEntity;
+import omtteam.openmodularlighting.client.camo.CamoModels;
 import omtteam.openmodularlighting.registry.ModBlocks;
 import org.jetbrains.annotations.Nullable;
 
@@ -20,11 +22,17 @@ public final class FloodlightTint {
     }
 
     /**
-     * The block colour of a light ({@code BlockColor}; the loaders register it for {@link #tintedBlocks()}).
+     * The block colour of a light ({@code BlockColor}; the loaders register it for {@link #tintedBlocks()}). On a
+     * disguised light, tinted quads other than the lamp belong to the disguise and get its colour (NeoForge; Fabric's
+     * camouflage model applies that colour itself).
      */
     public static int color(BlockState state, @Nullable BlockAndTintGetter level, @Nullable BlockPos pos, int tintIndex) {
         if (level == null || pos == null || !(level.getBlockEntity(pos) instanceof FloodlightBlockEntity light)) {
             return NO_TINT;
+        }
+        BlockState camo = light.getCamo();
+        if (camo != null && tintIndex != CamoModels.LAMP_TINT_INDEX) {
+            return Minecraft.getInstance().getBlockColors().getColor(camo, level, pos, tintIndex);
         }
         return tint(light.getColor(), brightness(state.getBlock()));
     }

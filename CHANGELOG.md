@@ -9,6 +9,10 @@ turns *Unreleased* into the release section; `chiseledPublish` uploads exactly t
 
 ## [Unreleased]
 
+### Added
+
+- Disguise for the electric, carbon and UV floodlights: put a full, opaque block into the new slot of the GUI and the light looks like that block, with only its lamp showing on the front; the disguise stays on the dropped light
+
 ## [1.0.0-beta.3] - 2026-10-19
 
 ### Added

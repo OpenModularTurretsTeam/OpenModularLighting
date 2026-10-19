@@ -42,10 +42,15 @@ neoForge {
 
     runs {
         // Run directory: versions/<v>/run (kept apart from the Fabric runs, whose worlds would not load here)
-        register("client") { client() }
+        // Without the test mod: it shortens the beam ranges to fit its test structures (OMLGameTestMod.TEST_RANGE)
+        register("client") {
+            client()
+            loadedMods = setOf(mods.getByName(modId))
+        }
         register("server") {
             server()
             programArgument("--nogui")
+            loadedMods = setOf(mods.getByName(modId))
         }
         // Headless in-world tests (no EULA needed); runs the GameTests of this mod's namespace and exits with the
         // number of failed tests, which fails the task

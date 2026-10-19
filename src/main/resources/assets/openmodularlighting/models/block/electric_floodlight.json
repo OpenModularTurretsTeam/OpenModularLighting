@@ -2,6 +2,7 @@
   "parent": "openmodularlighting:block/floodlight",
   "textures": {
     "front": "openmodularlighting:block/electric_floodlight_front",
+    "lamp": "openmodularlighting:block/electric_floodlight_lamp",
     "back": "openmodularlighting:block/electric_floodlight_back",
     "side": "openmodularlighting:block/electric_floodlight_side"
   }
