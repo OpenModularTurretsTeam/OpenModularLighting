@@ -14,16 +14,16 @@ val client: SourceSet = sourceSets.create("client") {
     runtimeClasspath += sourceSets.main.get().output
 }
 
-// PORTING IN PROGRESS: only these packages (or single files) compile on NeoForge so far. Each is added once it no
-// longer uses Fabric API or Team Reborn Energy directly; the filter goes away when everything compiles.
-val ported = listOf("core", "platform", "inventory", "compat/network", "compat/MenuCompat.java")
-sourceSets.main { java { ported.forEach { include("$packagePath/$it/**") } } }
+// PORTING IN PROGRESS: these main packages do not compile on NeoForge yet (Fabric datagen, the Jade plugin), and
+// client code is limited to client/platform until the client is ported. The filter goes away when everything compiles.
+val notPorted = listOf("datagen", "compat/jade")
+sourceSets.main { java { notPorted.forEach { exclude("$packagePath/$it/**") } } }
 client.java { include("$packagePath/client/platform/**") }
-sourceSets.test { java { include("$packagePath/core/**") } }
 
 neoForge {
     version = property("neoforge_version") as String
     addModdingDependenciesTo(client)
+    addModdingDependenciesTo(sourceSets.test.get()) // unit tests use game libraries (Gson), as on Loom
 
     mods {
         register(modId) {

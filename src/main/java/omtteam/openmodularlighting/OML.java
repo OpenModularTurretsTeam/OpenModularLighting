@@ -1,5 +1,6 @@
 package omtteam.openmodularlighting;
 
+import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import omtteam.openmodularlighting.compat.VersionCompat;
 import omtteam.openmodularlighting.config.OMLConfig;
@@ -9,12 +10,16 @@ import omtteam.openmodularlighting.registry.ModBlocks;
 import omtteam.openmodularlighting.registry.ModCreativeTabs;
 import omtteam.openmodularlighting.registry.ModItems;
 import omtteam.openmodularlighting.registry.ModMenus;
+import omtteam.openmodularlighting.registry.RegistrationStep;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.List;
+
 /**
  * Shared constants and start-up of Open Modular Lighting.
- * The loader entrypoints ({@code platform/<loader>/}) call {@link #init()} and wire their loader's events.
+ * The loader entrypoints ({@code platform/<loader>/}) call {@link #init()}, run the {@link #registrationSteps()} and
+ * wire their loader's events.
  */
 public final class OML {
     public static final String MOD_ID = "openmodularlighting";
@@ -31,16 +36,25 @@ public final class OML {
     }
 
     /**
-     * Loads the config and registers all content. Called once by the loader entrypoint.
+     * Loads the config and registers the packets. Both entrypoints call it first, before any registration (recipes and
+     * block properties come from the config; NeoForge accepts packets only until its payload registration event).
      */
     public static void init() {
         LOGGER.info("Initializing Open Modular Lighting");
         OMLPackets.init();
-        OMLConfig.init(); // before blocks: recipes and block properties come from the config
-        ModBlocks.init();
-        ModItems.init();
-        ModBlockEntities.init();
-        ModMenus.init();
-        ModCreativeTabs.init();
+        OMLConfig.init();
+    }
+
+    /**
+     * The registration steps in dependency order, each with the registry it fills. Fabric runs them in this order;
+     * NeoForge runs each in the {@code RegisterEvent} of its registry.
+     */
+    public static List<RegistrationStep> registrationSteps() {
+        return List.of(
+                new RegistrationStep(Registries.BLOCK, ModBlocks::init),
+                new RegistrationStep(Registries.ITEM, ModItems::init),
+                new RegistrationStep(Registries.BLOCK_ENTITY_TYPE, ModBlockEntities::init),
+                new RegistrationStep(Registries.MENU, ModMenus::init),
+                new RegistrationStep(Registries.CREATIVE_MODE_TAB, ModCreativeTabs::init));
     }
 }

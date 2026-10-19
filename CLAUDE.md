@@ -150,8 +150,9 @@ The rules for loader differences mirror those for version differences, with one 
 - **Small differences** inside a shared class use the loader constants: `//? if fabric {` / `//? if neoforge {` (set in `stonecutter.gradle.kts`).
   Keep them inside `compat/` and `platform/`, never in gameplay code.
 - `core/` stays loader-free (`verifyCoreIsolation` also forbids `net.neoforged`).
-- **Porting in progress:** `build.neoforge.gradle.kts` compiles only the packages (or single files) listed in `ported` (now `core`, `platform`, `inventory`, `compat/network` and `compat/MenuCompat.java`).
-  Add a package once it no longer uses Fabric API or Team Reborn Energy directly; remove the filter when everything compiles.
+- **Porting in progress:** `build.neoforge.gradle.kts` leaves out the main packages listed in `notPorted` (now `datagen` and `compat/jade`), and compiles only `client/platform` of the client code.
+  Remove a package from the list once it compiles on NeoForge; remove the filter when everything compiles.
+- **Start-up:** both entrypoints call `OML.init()` (config, packets) first. Fabric then runs `OML.registrationSteps()` in order; NeoForge runs each `RegistrationStep` in the `RegisterEvent` of its registry and throws at common setup if a step never ran. A new registry class gets a step in that list, not a call in an entrypoint.
 - `publish_enabled=false` in `versions/1.21.1-neoforge/gradle.properties` keeps the NeoForge node a dry run even with tokens; remove it only when the user wants NeoForge releases.
 
 ### Commands
@@ -249,7 +250,8 @@ Wrap each of these behind a helper where possible.
 | BlockEntity NBT + update tag | extend `compat.CompatBlockEntity`: override `readData` / `writeData` (+ optional `writeClientData`), call `syncToClient()` |
 | ItemStack NBT, slot lists | `VersionCompat.saveStack` / `loadStack`, `saveItems` / `loadItems` |
 | ItemStack extra data | `VersionCompat.hasCustomData` / `getCustomData` / `setCustomData` / `updateCustomData` |
-| Block interaction | implement `compat.InteractiveBlock#onUse` (Fabric `UseBlockCallback`, same in both versions; registered in `OML`) |
+| Block interaction | implement `compat.InteractiveBlock#onUse`; `InteractiveBlock.handleUse` is called by the loader's block-use event (Fabric `UseBlockCallback`, NeoForge `PlayerInteractEvent.RightClickBlock`; same in both versions) |
+| Creative tab builder | `VersionCompat.creativeTabBuilder()` (Fabric `FabricItemGroup`, NeoForge vanilla builder) |
 | Networking | `compat.network.NetworkCompat.registerC2S` / `registerS2C` / `sendToPlayer`; client: `client.compat.ClientNetworkCompat.registerHandler` / `sendToServer`. Packets are plain records with `write` / `read`, listed in `network.OMLPackets`. The facades forward to `platform.Network` / `client.platform.ClientNetwork` (Fabric: `PayloadTypeRegistry`; NeoForge: recorded and applied in `RegisterPayloadHandlersEvent`, optional channels, handlers on the main thread, S2C handlers dispatched from main to the handler the client registered; a packet without client handler is logged and dropped) |
 | Extended menus | `compat.MenuCompat.register` / `open` (passes the `BlockPos`; forwards to `platform.Menus`: Fabric extended screen handlers, NeoForge `IMenuTypeExtension` / `openMenu(provider, pos)`) |
 | Container screen background, vertices, tooltips | `client.compat.ClientCompat` |
@@ -278,8 +280,8 @@ Wrap each of these behind a helper where possible.
 ```text
 omtteam.openmodularlighting
 │
-├── OML                            shared start-up (init(): config, networking, registries; called by the loader
-│                                  entrypoint), constants (MOD_ID, LOGGER) + id(path) helper
+├── OML                            shared start-up: init() (config, packets) and registrationSteps() (registry.RegistrationStep:
+│                                  registry + call), both used by the loader entrypoints; constants (MOD_ID, LOGGER), id(path)
 │
 ├── core/                          ── pure Java, NO Minecraft imports (enforced by verifyCoreIsolation) ──
 │   ├── math/                      Pos (int x,y,z record), Facing (6 directions), Rotation (port of MathUtil.rotate)
@@ -331,7 +333,8 @@ omtteam.openmodularlighting
 │   │                              FabricBlockLookups (item + energy lookups), FabricItemStorages, FabricEnergyStorages (Team Reborn
 │   │                              adapters: SnapshotParticipant per EnergyStore, weak-keyed/-valued cache; cluster view),
 │   │                              Fabric… service implementations
-│   └── neoforge/                  OMLNeoForge (@Mod entrypoint; port in progress), NeoForge… service implementations;
+│   └── neoforge/                  OMLNeoForge (@Mod entrypoint: services, OML.init, steps per RegisterEvent, capabilities,
+│                                  events), NeoForgeBlockEnabledCondition, NeoForge… service implementations;
 │                                  FML constructs a mod's common @Mod class before its client one (OMLNeoForgeClient)
 └── datagen/                       recipe, loot table, block tag, model providers (runs per version)
 
@@ -368,7 +371,7 @@ Every former metadata variant is its own block. Record old → new IDs in `docs/
 Recipes (`datagen.OMLRecipeProvider`, ported from `oldmod/.../handler/RecipeHandler.java`): raw filament (glowstone, redstone, gold) smelts into glowing filament → light bulb → electric/UV/grow lights and fluorescent lights. Mantle + carbon dissolver + flint and steel → carbon lantern → carbon floodlight.
 
 - Iron, gold, redstone and glass panes use the common `c:` tags (`compat.CommonTags`); the other ingredients are the vanilla items of the 1.7.10 recipes.
-- **Config switches:** every recipe carries the resource condition `openmodularlighting:block_enabled` (`compat.BlockEnabledCondition`, a different API on each version) with the registry paths of the blocks that need it. It loads if any of them is enabled (`ConfigData.Blocks.isEnabled`). Datagen adds the condition to the recipe-unlock advancements too.
+- **Config switches:** every recipe carries the resource condition `openmodularlighting:block_enabled` (`compat.BlockEnabledCondition`; registered by `platform/fabric/FabricBlockEnabledCondition`, a different API on each version, and `platform/neoforge/NeoForgeBlockEnabledCondition`) with the registry paths of the blocks that need it. It loads if any of them is enabled (`ConfigData.Blocks.isEnabled`). Datagen adds the condition to the recipe-unlock advancements too.
 - Filament, glowing filament and light bulb are needed by electric floodlight, fluorescent lights, UV floodlight **and grow light**. 1.7.10 forgot the grow light, so with only the grow light enabled, bulbs could not be crafted.
 - Lightproof glass: shapeless, 1 black stained glass + 1 coal (`minecraft:coals`, so charcoal works too) → 1. It has no config switch, so its recipe carries no `block_enabled` condition (`Saver.saveAlways`).
 - Also: fluorescent lights (`" G "`, `"GBG"`, `"III"` → 2, plus the shapeless conversion between small and square), UV floodlight (floodlight frame with black stained glass), grow light (`"III"`, `"CBC"`, `"GGG"` with pink stained glass).
@@ -615,10 +618,10 @@ Update this checklist as work progresses.
 - [x] Service `Fuel` (`burnTime`, `remainder`)
 - [x] Services `Network` + `ClientNetwork` (`ClientPlatform` / `ClientPlatformServices`, NeoForge client entrypoint `OMLNeoForgeClient`)
 - [x] Service `Menus` (`createBlockMenuType`, `openBlockMenu`; `BlockPos` only)
-- [x] `core.energy.EnergyStore` + `EnergyAccess`; service `Energy` (`isBattery`, `dischargeItem`, `pushToBlock`); Fabric adapters + lookups in `platform/fabric`; NeoForge `NeoForgeEnergyHandler` (FE adapter, capability registration still to do)
-- [x] Item transfer: `inventory.ItemAccess`; Fabric `FabricItemStorages`, NeoForge `NeoForgeItemHandler` (capability registration still to do)
-- [ ] Registration through `RegisterEvent`
-- [ ] Networking, menus, block interaction, config sync, creative tab
+- [x] `core.energy.EnergyStore` + `EnergyAccess`; service `Energy` (`isBattery`, `dischargeItem`, `pushToBlock`); Fabric adapters + lookups in `platform/fabric`; NeoForge `NeoForgeEnergyHandler` (FE adapter)
+- [x] Item transfer: `inventory.ItemAccess`; Fabric `FabricItemStorages`, NeoForge `NeoForgeItemHandler`
+- [x] Registration: `OML.init()` + `OML.registrationSteps()` (NeoForge: per `RegisterEvent`, safety check at common setup); capabilities (items, energy); block use, config sync on join, recipe condition codec, creative tab builder, plain `c:` tags; all main code except `datagen` and `compat/jade` compiles on NeoForge, unit tests run there too
+- [ ] Check on NeoForge in a client: blocks, interaction, menus, energy/item capabilities (no NeoForge GameTests yet)
 - [ ] Client: screens, colour handlers, render types, debug renderer, tooltips
 - [ ] Datagen / recipe conditions (`neoforge:conditions`)
 - [ ] GameTests on NeoForge
