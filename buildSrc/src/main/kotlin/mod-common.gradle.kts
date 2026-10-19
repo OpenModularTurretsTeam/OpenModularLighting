@@ -110,7 +110,10 @@ tasks {
 
     jar {
         inputs.property("archivesName", base.archivesName)
-        from(rootProject.files("LICENSE", "LICENSE-ART", "LICENSE-DUAL")) {
+        // License files bundled into the jar: bundled_licenses (comma-separated), default all three
+        val licenses = (findProperty("bundled_licenses") as String? ?: "LICENSE,LICENSE-ART,LICENSE-DUAL")
+            .split(',').map { it.trim() }
+        from(rootProject.files(licenses)) {
             rename { "${it}_${base.archivesName.get()}" }
         }
     }
