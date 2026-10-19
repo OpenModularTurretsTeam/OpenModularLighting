@@ -12,11 +12,11 @@ It lights up large areas with invisible light blocks placed along a beam, so you
 
 | Block | What it does | Power |
 | --- | --- | --- |
-| **Electric Floodlight** | Casts a beam of light in the direction it faces. Three modes: **straight** (64 blocks), **narrow cone** (32 blocks) and **wide cone** (8 blocks). | Energy: 20 E/t straight, 40 E/t in the cone modes |
+| **Electric Floodlight** | Casts a beam of light in the direction it faces. Three modes: **straight** (64 blocks), **narrow cone** (32 blocks) and **wide cone** (8 blocks). | Energy: 10 E/t straight, 20 E/t in the cone modes |
 | **Non-electric Floodlight** | Like the electric floodlight, but burns furnace fuel instead. One coal lasts 300 s in straight mode and half as long in the cone modes. | Any furnace fuel (vanilla or modded) |
-| **UV Floodlight** | Casts a short beam (8 blocks) of dim UV light that hurts living things standing in it, 4 damage per second. | Energy: 80 E/t |
-| **Grow Light** | Lights the block below it and makes the crop two blocks below grow faster (about one growth step every 20 s). A black-light mode gives the growth without the light. | Energy: 40 E/t |
-| **Small / Square Fluorescent Light** | Cheap little panels that light up the 5 blocks next to them. The small one can be turned by 90°, and a shapeless recipe converts between the two. | Energy: 2 E/t |
+| **UV Floodlight** | Casts a short beam (8 blocks) of dim UV light that hurts living things standing in it, 4 damage per second. | Energy: 60 E/t |
+| **Grow Light** | Lights the block below it and makes the crop two blocks below grow faster (about one growth step every 20 s). A black-light mode gives the growth without the light. | Energy: 25 E/t |
+| **Small / Square Fluorescent Light** | Cheap little panels that light up the 5 blocks next to them. The small one can be turned by 90°, and a shapeless recipe converts between the two. | Energy: 1 E/t |
 | **Cube Light** | A full block that lights all 6 blocks around it. | Energy: 2 E/t, accepted from every side |
 
 All lights turn on with a **redstone signal**. The signal can be inverted, so that a light is on without redstone and
