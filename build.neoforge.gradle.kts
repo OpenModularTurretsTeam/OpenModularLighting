@@ -14,17 +14,14 @@ val client: SourceSet = sourceSets.create("client") {
     runtimeClasspath += sourceSets.main.get().output
 }
 
-// PORTING IN PROGRESS: these main packages do not compile on NeoForge yet (Fabric datagen, the Jade plugin).
-// The filter goes away when everything compiles.
-val notPorted = listOf("datagen", "compat/jade")
-sourceSets.main { java { notPorted.forEach { exclude("$packagePath/$it/**") } } }
+// Datagen is Fabric-only by design: NeoForge gets the converted Fabric output (convertFabricData below)
+sourceSets.main { java { exclude("$packagePath/datagen/**") } }
 
 // In-world tests (src/gametest): a separate test mod (openmodularlighting_gametest) that is never shipped, sharing
 // its test classes with Fabric. `check` runs them on a headless GameTest server.
 val gametest: SourceSet = sourceSets.create("gametest") {
     compileClasspath += sourceSets.main.get().output
     runtimeClasspath += sourceSets.main.get().output
-    java.exclude("**/JadeTooltipGameTest.java") // Jade on NeoForge is not set up yet
 }
 
 neoForge {
@@ -63,6 +60,8 @@ neoForge {
 // Dev-run-only dependencies, never in the published metadata (Loom's modLocalRuntime; same as the NeoForge MDK)
 val localRuntime: Configuration = configurations.create("localRuntime")
 configurations.runtimeClasspath { extendsFrom(localRuntime) }
+// Not on the GameTest server: Jade there sends its ping to the vanilla mock players of the tests, which NeoForge
+// refuses (no negotiated channels). The Jade plugin itself has no Jade-dependent logic to test (FloodlightTooltip).
 
 dependencies {
     // Jade plugin (compat/jade): optional, not bundled; present in dev runs to try it

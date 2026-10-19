@@ -21,7 +21,7 @@ import omtteam.openmodularlighting.registry.ModBlocks;
 import java.util.List;
 
 /**
- * The block info overlay content (1.7.10 WAILA: invert and mode). Fabric API loads the mod's en_us translations on
+ * The block info overlay content (1.7.10 WAILA: invert and mode). Both loaders load the mod's en_us translations on
  * the server too, so this also checks the lang file.
  */
 //? if neoforge {
