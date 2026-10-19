@@ -9,6 +9,10 @@ turns *Unreleased* into the release section; `chiseledPublish` uploads exactly t
 
 ## [Unreleased]
 
+### Changed
+
+- File names and the mod version name the loader (e.g. "+1.21.1-fabric"), in preparation for NeoForge builds
+
 ## [1.0.0-beta.2] - 2026-10-17
 
 ### Added

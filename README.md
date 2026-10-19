@@ -75,11 +75,11 @@ Gradle has to run on **Java 25 or newer**. The Java 17 and 21 toolchains for com
 if they are missing.
 
 ```bash
-./gradlew chiseledBuild          # build both versions (with unit tests and GameTests)
-./gradlew :1.21.1:runClient      # start a test client
+./gradlew chiseledBuild            # build both versions (with unit tests and GameTests)
+./gradlew :1.21.1-fabric:runClient # start a test client
 ```
 
-The jars end up in `versions/<minecraft version>/build/libs/`. See `CHANGELOG.md` for the changes.
+The jars end up in `versions/<minecraft version>-<loader>/build/libs/`. See `CHANGELOG.md` for the changes.
 
 ## License
 
