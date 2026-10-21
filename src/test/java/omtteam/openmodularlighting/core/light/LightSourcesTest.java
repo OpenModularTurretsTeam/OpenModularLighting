@@ -35,6 +35,7 @@ class LightSourcesTest {
         sources.add(A, true);
         sources.add(B, false);
         assertEquals(Effect.TURN_OFF, sources.remove(A));
+        assertFalse(sources.isEmpty());
         assertEquals(Effect.REMOVE, sources.remove(B));
         assertTrue(sources.isEmpty());
     }

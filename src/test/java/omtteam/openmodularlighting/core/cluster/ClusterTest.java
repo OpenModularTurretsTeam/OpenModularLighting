@@ -12,6 +12,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.junit.jupiter.api.Test;
 
 class ClusterTest {
@@ -171,6 +172,53 @@ class ClusterTest {
         Cluster.join(b);
         assertSame(a.cluster(), b.cluster());
         assertEquals(2, a.cluster().size());
+    }
+
+    @Test
+    void joiningAgainLeavesTheOldCluster() {
+        Node a = place(0, 0);
+        Node b = place(1, 0);
+        Cluster<Node> old = a.cluster();
+        grid.remove(key(0, 0)); // b no longer sees a
+        Cluster.join(b);
+        assertNotSame(old, b.cluster());
+        assertEquals(Set.of(a), old.members());
+        assertEquals(Set.of(b), b.cluster().members());
+    }
+
+    @Test
+    void mergingKeepsTheLargerClusterAndEmptiesTheOther() {
+        Node a = place(0, 0);
+        place(1, 0);
+        place(2, 0);
+        Cluster<Node> large = a.cluster();
+        Node d = place(4, 0);
+        Cluster<Node> single = d.cluster();
+        Node bridge = place(3, 0);
+        assertSame(large, a.cluster());
+        assertSame(large, d.cluster());
+        assertSame(large, bridge.cluster());
+        assertEquals(5, large.size());
+        assertEquals(0, single.size());
+    }
+
+    @Test
+    void aDirtyClusterMergedIntoACleanOneStillSplits() {
+        for (int x = 5; x <= 8; x++) place(x, 0);
+        Node d1 = place(10, 0);
+        Node d2 = place(11, 0);
+        Node d3 = place(12, 0);
+        remove(d2);
+        // the bridge first joins the dirty {d1, d3}, then that moves into the larger clean row 5..8
+        Node bridge = place(9, 0);
+        Cluster<Node> merged = bridge.cluster();
+        assertSame(merged, d3.cluster());
+        assertTrue(merged.isDirty());
+        merged.refresh();
+        assertSame(merged, d1.cluster());
+        assertNotSame(merged, d3.cluster());
+        assertEquals(6, merged.size());
+        assertEquals(1, d3.cluster().size());
     }
 
     @Test
