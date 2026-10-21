@@ -19,10 +19,7 @@ import omtteam.openmodularlighting.compat.CompatBlockEntity;
 import omtteam.openmodularlighting.compat.VersionCompat;
 import omtteam.openmodularlighting.config.OMLConfig;
 import omtteam.openmodularlighting.core.beam.BeamShape;
-import omtteam.openmodularlighting.core.light.BeamCaster;
 import omtteam.openmodularlighting.core.light.LightType;
-import omtteam.openmodularlighting.core.light.ShapeDiff;
-import omtteam.openmodularlighting.core.math.Pos;
 import omtteam.openmodularlighting.core.state.LightController;
 import omtteam.openmodularlighting.core.state.RecheckTimer;
 import omtteam.openmodularlighting.core.energy.EnergyAccess;
@@ -30,17 +27,10 @@ import omtteam.openmodularlighting.energy.ElectricPower;
 import omtteam.openmodularlighting.energy.LightPower;
 import omtteam.openmodularlighting.inventory.ItemAccess;
 import omtteam.openmodularlighting.registry.ModBlocks;
-import omtteam.openmodularlighting.world.LevelLightWorld;
-import omtteam.openmodularlighting.world.LightBlocks;
-import omtteam.openmodularlighting.world.Positions;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
-import java.util.Set;
 
 /**
  * Base of every light (1.7.10 {@code TileEntityMetaFloodlight}): invert, colour, one item slot with its
@@ -55,8 +45,6 @@ public abstract class FloodlightBlockEntity extends CompatBlockEntity implements
     private static final String ON = "on";
     private static final String TIMEOUT = "timeout";
     private static final String COLOR = "color";
-    private static final String SHAPE = "shape";
-    private static final String SHAPE_KEY = "shape_key";
 
     private final LightController controller = new LightController();
     /** Periodic re-cast (every ~20 s) for world changes that sent no block update. */
@@ -73,10 +61,7 @@ public abstract class FloodlightBlockEntity extends CompatBlockEntity implements
     private final ItemAccess itemAccess = ItemAccess.insertOnly(inventory);
 
     /** Light block positions of the current beam, in casting order. */
-    private List<BlockPos> shape = List.of();
-    private Set<BlockPos> shapeSet = Set.of();
-    /** What the shape was cast with ({@link #shapeKey()}); null if there is no cached shape (re-cast next tick). */
-    private int[] cachedShapeKey;
+    private final LightBeam beam = new LightBeam(this);
 
     protected FloodlightBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
         super(type, pos, state);
@@ -122,7 +107,7 @@ public abstract class FloodlightBlockEntity extends CompatBlockEntity implements
     public static void serverTick(Level level, BlockPos pos, BlockState state, FloodlightBlockEntity light) {
         light.beforePower(level);
         light.power().prepare(light.inventory);
-        if (!Arrays.equals(light.cachedShapeKey, light.shapeKey())) {
+        if (light.beam.needsRecast()) {
             light.controller.requestRecast(); // placed, loaded without cache, mode or config changed
         }
         if (light.recheck.tick(() -> level.random.nextLong())) {
@@ -131,10 +116,10 @@ public abstract class FloodlightBlockEntity extends CompatBlockEntity implements
         LightController.TickResult result = light.controller.tick(level.hasNeighborSignal(pos), light.power(),
                 light.timeoutTicks());
         if (result.recast()) {
-            light.recast(level);
+            light.beam.recast(level);
         }
         if (result.change() != LightController.Switch.NONE) {
-            light.switchLights(level, result.change() == LightController.Switch.ON);
+            light.beam.switchLights(level, result.change() == LightController.Switch.ON);
         }
         boolean on = light.controller.isOn();
         if (state.getValue(FloodlightBlock.LIT) != on) {
@@ -147,53 +132,17 @@ public abstract class FloodlightBlockEntity extends CompatBlockEntity implements
         }
     }
 
-    /** Casts the beam again and updates the light blocks that changed (diff against the cached shape). */
-    private void recast(Level level) {
-        List<Pos> cast = BeamCaster.cast(currentShape(), Positions.toPos(worldPosition), Positions.toFacing(facing()),
-                lightType(), new LevelLightWorld(level));
-        List<Pos> before = shape.stream().map(Positions::toPos).toList();
-        for (Pos removed : ShapeDiff.between(before, cast).removed()) {
-            LightBlocks.leave(level, Positions.toBlockPos(removed), lightBlock(), worldPosition);
-        }
-        // join every position (not only the added ones): repairs light blocks lost while unloaded, and is a no-op
-        // for positions that already have this source
-        List<BlockPos> joined = new ArrayList<>();
-        for (Pos pos : cast) {
-            BlockPos blockPos = Positions.toBlockPos(pos);
-            if (LightBlocks.join(level, blockPos, lightBlock(), worldPosition, controller.isOn())) {
-                joined.add(blockPos);
-            }
-        }
-        setShape(joined);
-        cachedShapeKey = shapeKey();
-    }
-
     /** The mode changed: re-cast at once (1.7.10 {@code changeMode}). */
     protected void shapeChanged() {
         if (level != null && !level.isClientSide()) {
-            recast(level);
+            beam.recast(level);
         }
         setChanged();
     }
 
-    private void switchLights(Level level, boolean on) {
-        for (BlockPos pos : shape) {
-            LightBlocks.setActive(level, pos, lightBlock(), worldPosition, on);
-        }
-    }
-
     /** The block was removed: leave all light blocks (removing those this light was the last source of). */
     public void removeLights(Level level) {
-        for (BlockPos pos : shape) {
-            LightBlocks.leave(level, pos, lightBlock(), worldPosition);
-        }
-        setShape(List.of());
-        cachedShapeKey = null;
-    }
-
-    private void setShape(List<BlockPos> positions) {
-        shape = List.copyOf(positions);
-        shapeSet = new HashSet<>(positions);
+        beam.removeLights(level);
     }
 
     public Direction facing() {
@@ -293,7 +242,7 @@ public abstract class FloodlightBlockEntity extends CompatBlockEntity implements
 
     /** The light block positions of the current beam. */
     public List<BlockPos> getShape() {
-        return shape;
+        return beam.positions();
     }
 
     // ---- LightSourceBlockEntity ----
@@ -305,7 +254,7 @@ public abstract class FloodlightBlockEntity extends CompatBlockEntity implements
 
     @Override
     public boolean coversLightAt(BlockPos pos) {
-        return shapeSet.contains(pos);
+        return beam.covers(pos);
     }
 
     @Override
@@ -351,10 +300,7 @@ public abstract class FloodlightBlockEntity extends CompatBlockEntity implements
         tag.putBoolean(ON, controller.isOn());
         tag.putInt(TIMEOUT, controller.timeout());
         VersionCompat.saveItems(tag, NonNullList.of(ItemStack.EMPTY, inventory.getItem(0)), registries);
-        if (cachedShapeKey != null) {
-            tag.putLongArray(SHAPE, shape.stream().mapToLong(BlockPos::asLong).toArray());
-            tag.putIntArray(SHAPE_KEY, cachedShapeKey);
-        }
+        beam.write(tag);
     }
 
     @Override
@@ -366,13 +312,7 @@ public abstract class FloodlightBlockEntity extends CompatBlockEntity implements
         NonNullList<ItemStack> items = NonNullList.withSize(1, ItemStack.EMPTY);
         VersionCompat.loadItems(tag, items, registries);
         inventory.setItem(0, items.get(0));
-        if (tag.contains(SHAPE_KEY)) {
-            setShape(Arrays.stream(tag.getLongArray(SHAPE)).mapToObj(BlockPos::of).toList());
-            cachedShapeKey = tag.getIntArray(SHAPE_KEY);
-        } else {
-            setShape(List.of());
-            cachedShapeKey = null;
-        }
+        beam.read(tag);
         if (oldColor != color || oldCamo != camo.get()) {
             remesh(); // tint and disguise come from the block entity (client only)
         }

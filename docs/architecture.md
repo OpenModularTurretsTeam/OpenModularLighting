@@ -76,8 +76,8 @@ Packages below `omtteam.openmodularlighting` (main):
 | `core.cluster` | `Cluster` and `ClusterNode`: connected groups with join, leave and split, generic enough to reuse for multiblocks |
 | `core.energy` | `EnergyStore` (the buffer) and `EnergyAccess` |
 | `core.formula` | `CarbonFuel`, `GrowChance`, `EnergyCost` |
-| `block` | `FloodlightBlock` (base of every light: `FACING`, `LIT`, interaction, drops) with its subclasses; `LightBlock` (base of the phantom and UV light blocks); `PanelShapes` |
-| `blockentity` | `FloodlightBlockEntity` (base of every light) and subclasses; `LightBlockEntity` (sources of a light block) with `PhantomLightBlockEntity` and `UvLightBlockEntity`; `LightSourceBlockEntity` |
+| `block` | `FloodlightBlock` (base of every light: `FACING`, `LIT`, drops) with its subclasses; `FloodlightInteraction` (right-click); `LightBlock` (base of the phantom and UV light blocks); `PanelShapes` |
+| `blockentity` | `FloodlightBlockEntity` (base of every light) and subclasses, `LightBeam` (its cached beam and the re-cast); `LightBlockEntity` (sources of a light block) with `PhantomLightBlockEntity` and `UvLightBlockEntity`; `LightSourceBlockEntity` |
 | `world` | `LightBlocks` (place, switch and remove light blocks), `LevelLightWorld`, `Positions` |
 | `energy` | `LightPower` with `ElectricPower` and `FuelPower`, `ClusterEnergy`, `Batteries` |
 | `inventory` | `ItemAccess`: the slot range and filters other blocks see (wrapped by the loader adapters) |
@@ -208,7 +208,7 @@ Each light keeps its own buffer; `ClusterEnergy` shows the whole cluster to the 
 ### A click on a light
 
 Right-click handling does not use vanilla's `use` methods, because they differ between 1.20.1 and 1.21.1.
-The loader's block-use event calls `InteractiveBlock.handleUse`, which calls `FloodlightBlock.onUse` on the server:
+The loader's block-use event calls `InteractiveBlock.handleUse`, which calls `FloodlightBlock.onUse`; that hands it to `FloodlightInteraction`, one method per action:
 
 - sneak with an empty hand: toggle invert; stick or wrench: `configure` (cycle the mode, turn the small fluorescent light); wrench plus sneak: dismantle; dye or wool: set the colour;
 - anything else opens the menu: `MenuCompat.open` → `platform.Menus` → `ElectricFloodlightMenu` or `CarbonFloodlightMenu`.
@@ -310,9 +310,9 @@ Things that make the code harder to work with than they should be.
 They are known, not hidden:
 
 - **One large package cycle.** `registry`, `block`, `blockentity`, `menu`, `config`, `compat`, `platform`, `network`, `energy` and `world` all depend on each other (registry ↔ blocks ↔ block entities, as in most Minecraft mods); `ArchitectureTest` keeps it from growing.
-- **13 PMD findings** above the complexity limits, mostly long branching methods (`FloodlightBlock`'s interaction, `BeamCaster`, `Cluster`, `ConfigWriter`, `LightBlockDebugRenderer`).
-- **`FloodlightBlockEntity` does a lot** (about 340 lines): ticking, the cached shape and the re-cast, settings, the colour, the slot and saving.
-  The cast and the shape cache would be the first candidates to move out.
+- **2 PMD findings**, both accepted: the coupling of `FloodlightBlock` (23; the types of the vanilla block methods it overrides) and of `FloodlightBlockEntity` (23).
+- **`FloodlightBlockEntity` does a lot** (about 320 lines): ticking, settings, the colour, the disguise, the slot and saving.
+  The beam (cast, diff and shape cache) is already in `LightBeam`; the slot would be the next candidate to move out.
 - **Phantom lights beside skipped positions.** Because of the thinning (`core.beam.Spacing`), a block change next to a position without a light block may reach no light block at all, so the beam notices it only at the periodic re-check (10 to 30 s).
 - **The client is untested** except by hand, since Fabric's client GameTests need Minecraft 1.21.4 or newer.
 - **Render layers are kept twice** (Fabric in code, NeoForge in the model JSON) and must be changed together.

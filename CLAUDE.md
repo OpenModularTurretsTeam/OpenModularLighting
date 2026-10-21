@@ -277,7 +277,7 @@ Wrap each of these behind a helper where possible.
 | Creative tab builder | `VersionCompat.creativeTabBuilder()` (Fabric `FabricItemGroup`, NeoForge vanilla builder) |
 | Networking | `compat.network.NetworkCompat.registerC2S` / `registerS2C` / `sendToPlayer`; client: `client.compat.ClientNetworkCompat.registerHandler` / `sendToServer`. Packets are plain records with `write` / `read`, listed in `network.OMLPackets`. The facades forward to `platform.Network` / `client.platform.ClientNetwork` (Fabric: `PayloadTypeRegistry`; NeoForge: recorded and applied in `RegisterPayloadHandlersEvent`, optional channels, handlers on the main thread, S2C handlers dispatched from main to the handler the client registered; a packet without client handler is logged and dropped) |
 | Extended menus | `compat.MenuCompat.register` / `open` (passes the `BlockPos`; forwards to `platform.Menus`: Fabric extended screen handlers, NeoForge `IMenuTypeExtension` / `openMenu(provider, pos)`) |
-| Container screen background, vertices | `client.compat.ClientCompat` |
+| Container screen background | `client.compat.ClientCompat` |
 | Client start-up (screens, tooltip lines) | `client.OMLClient` (`init`, `registerScreens(ScreenRegistrar)`, `appendTooltip`); tint `FloodlightTint.color` / `tintedBlocks`; debug wireframes `LightBlockDebugRenderer.render(level, poseStack, buffers, camera)`. The loader client entrypoints wire them to their events. |
 | Render layers | Fabric `BlockRenderLayerMap` in `OMLFabricClient`; NeoForge `"render_type"` in the block model JSON (Fabric ignores it). Keep both in sync. The floodlights (`CamoBlock`s) are cutout because of their lamp overlay (§6.11). |
 
@@ -325,12 +325,12 @@ omtteam.openmodularlighting
 │   │                              for the owner; taken over from OMT), EnergyAccess (what a block entity exposes)
 │   └── formula/                   CarbonFuel (burn time), GrowChance (tick interval), EnergyCost
 │
-├── block/                         FloodlightBlock (base of every light: FACING + LIT, interaction, drops; configure()
+├── block/                         FloodlightBlock (base of every light: FACING + LIT, drops; right-click in FloodlightInteraction; configure()
 │                                  for stick/wrench) → Electric…, Carbon…, UvFloodlightBlock, PanelLightBlock (thin, no
 │                                  collision, PanelShapes) → FluorescentLightBlock (small/square), GrowLightBlock;
 │                                  LightBlock (base of the light blocks: LIT, random-tick cleanup, re-cast requests,
 │                                  canReplace) → PhantomLightBlock, UvLightBlock
-├── blockentity/                   FloodlightBlockEntity (base: invert, colour, slot, power, cached beam) →
+├── blockentity/                   FloodlightBlockEntity (base: invert, colour, slot, power; LightBeam: cached beam, re-cast) →
 │                                  BeamFloodlightBE (BeamMode) → ElectricFloodlightBE, CarbonFloodlightBE;
 │                                  UvFloodlightBE, GrowLightBE (GrowMode, growth), FluorescentLightBE;
 │                                  LightSourceBlockEntity (interface of all lights); LightBlockEntity (sources,

@@ -23,8 +23,6 @@ import omtteam.openmodularlighting.camo.CamoRules;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.function.Predicate;
-
 /**
  * Floodlight GUI: the light's slot (battery or fuel) and the player inventory, laid out as in 1.7.10
  * ({@code ContainerElectricFloodlight}, 176 × 146). Values for the status line are synced as container data.
@@ -46,7 +44,6 @@ public abstract class FloodlightMenu extends AbstractContainerMenu {
     private final BlockPos pos;
     @Nullable
     private final FloodlightBlockEntity light;
-    private final Predicate<ItemStack> validItem;
     private final boolean camoSlot;
     private final boolean timeoutHint;
     /** What the disguise slot shows (filled by the server, synced to the client like any slot). */
@@ -54,12 +51,10 @@ public abstract class FloodlightMenu extends AbstractContainerMenu {
     protected final ContainerData data;
 
     protected FloodlightMenu(MenuType<?> type, int containerId, Inventory playerInventory, BlockPos pos,
-                             @Nullable FloodlightBlockEntity light, Container slotContainer, ContainerData data,
-                             Predicate<ItemStack> validItem) {
+                             @Nullable FloodlightBlockEntity light, Container slotContainer, ContainerData data) {
         super(type, containerId);
         this.pos = pos;
         this.light = light;
-        this.validItem = validItem;
         this.data = data;
         // the block at pos: the same on both sides, so both create the same slots
         Block block = playerInventory.player.level().getBlockState(pos).getBlock();
@@ -76,7 +71,7 @@ public abstract class FloodlightMenu extends AbstractContainerMenu {
         addSlot(new Slot(slotContainer, 0, 26, 22) {
             @Override
             public boolean mayPlace(ItemStack stack) {
-                return validItem.test(stack);
+                return isValidItem(stack);
             }
         });
         if (camoSlot) {
@@ -97,6 +92,9 @@ public abstract class FloodlightMenu extends AbstractContainerMenu {
         }
         addDataSlots(data);
     }
+
+    /** What the light's slot accepts (battery or fuel). */
+    protected abstract boolean isValidItem(ItemStack stack);
 
     /** Whether this light can be disguised: the GUI shows the disguise slot. */
     public boolean hasCamoSlot() {
@@ -142,11 +140,8 @@ public abstract class FloodlightMenu extends AbstractContainerMenu {
         ItemStack stack = slot.getItem();
         ItemStack original = stack.copy();
         if (index < LIGHT_SLOT) {
-            if (!validItem.test(stack)) {
-                // not for the light's slot: a block becomes the disguise (the stack stays where it is)
-                if (camoSlot && !player.level().isClientSide() && CamoRules.disguiseFor(stack) != null) {
-                    setDisguiseFrom(player, stack);
-                }
+            if (!isValidItem(stack)) {
+                quickSetDisguise(player, stack); // the stack stays where it is
                 return ItemStack.EMPTY;
             }
             if (!moveItemStackTo(stack, LIGHT_SLOT, LIGHT_SLOT + 1, false)) {
@@ -161,6 +156,13 @@ public abstract class FloodlightMenu extends AbstractContainerMenu {
             slot.setChanged();
         }
         return stack.getCount() == original.getCount() ? ItemStack.EMPTY : original;
+    }
+
+    /** Shift-click of a block that does not fit the light's slot: it becomes the disguise. */
+    private void quickSetDisguise(Player player, ItemStack stack) {
+        if (camoSlot && !player.level().isClientSide() && CamoRules.disguiseFor(stack) != null) {
+            setDisguiseFrom(player, stack);
+        }
     }
 
     @Override

@@ -4,14 +4,11 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.tags.ItemTags;
 import net.minecraft.world.Containers;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.DyeItem;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BaseEntityBlock;
@@ -31,13 +28,11 @@ import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.world.phys.BlockHitResult;
 import omtteam.openmodularlighting.blockentity.FloodlightBlockEntity;
-import omtteam.openmodularlighting.compat.CommonTags;
 import omtteam.openmodularlighting.compat.InteractiveBlock;
 import omtteam.openmodularlighting.compat.MenuCompat;
 import omtteam.openmodularlighting.compat.VersionCompat;
 import omtteam.openmodularlighting.energy.ElectricPower;
 import omtteam.openmodularlighting.menu.ElectricFloodlightMenu;
-import omtteam.openmodularlighting.registry.ModItems;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -116,52 +111,7 @@ public abstract class FloodlightBlock extends BaseEntityBlock implements Interac
         if (hand != InteractionHand.MAIN_HAND || !(level.getBlockEntity(pos) instanceof FloodlightBlockEntity light)) {
             return InteractionResult.PASS;
         }
-        ItemStack held = player.getMainHandItem();
-        boolean wrench = held.is(CommonTags.WRENCHES);
-        boolean server = !level.isClientSide();
-        InteractionResult handled = InteractionResult.sidedSuccess(level.isClientSide());
-        if (held.is(ModItems.LIGHT_DEBUG_TOOL) && !player.isShiftKeyDown()) {
-            ElectricPower power = light.electricPower();
-            if (server && power != null) power.store().generate(power.store().getCapacity());
-            return power != null ? handled : InteractionResult.PASS;
-        }
-        if (player.isShiftKeyDown()) {
-            if (held.isEmpty()) {
-                if (server) {
-                    light.toggleInverted();
-                    player.displayClientMessage(Component.translatable("gui.openmodularlighting.invert").append(": ")
-                            .append(Component.translatable(light.isInverted()
-                                    ? "gui.openmodularlighting.true" : "gui.openmodularlighting.false")), false);
-                    int wait = light.ticksUntilOn(level);
-                    if (wait > 0) {
-                        player.displayClientMessage(Component.translatable("gui.openmodularlighting.turns_on_in",
-                                FloodlightBlockEntity.seconds(wait)), false);
-                    }
-                }
-                return handled;
-            }
-            if (wrench) {
-                if (server) level.destroyBlock(pos, true, player); // dismantle
-                return handled;
-            }
-            return InteractionResult.PASS; // let the held item act (e.g. place a block)
-        }
-        if ((wrench || held.is(Items.STICK)) && hasConfiguration()) {
-            if (server) configure(level, pos, state, player, light);
-            return handled;
-        }
-        if (held.getItem() instanceof DyeItem dye) {
-            if (server) light.setColor(dye.getDyeColor().getId());
-            return handled;
-        }
-        if (held.is(ItemTags.WOOL)) {
-            if (server) light.setColor(FloodlightBlockEntity.NO_COLOR);
-            return handled;
-        }
-        if (server && player instanceof ServerPlayer serverPlayer) {
-            openMenu(serverPlayer, light);
-        }
-        return handled;
+        return FloodlightInteraction.use(this, state, level, pos, player, light);
     }
 
     /** Whether {@link #configure} does something (otherwise a stick or wrench opens the GUI). */

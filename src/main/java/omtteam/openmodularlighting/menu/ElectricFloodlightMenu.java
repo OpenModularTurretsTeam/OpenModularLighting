@@ -5,6 +5,7 @@ import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.inventory.SimpleContainerData;
+import net.minecraft.world.item.ItemStack;
 import omtteam.openmodularlighting.blockentity.FloodlightBlockEntity;
 import omtteam.openmodularlighting.energy.Batteries;
 import omtteam.openmodularlighting.energy.ElectricPower;
@@ -20,7 +21,12 @@ public class ElectricFloodlightMenu extends FloodlightMenu {
     private ElectricFloodlightMenu(int containerId, Inventory playerInventory, BlockPos pos,
                                    FloodlightBlockEntity light, SimpleContainer slot,
                                    ContainerData data) {
-        super(ModMenus.ELECTRIC_FLOODLIGHT, containerId, playerInventory, pos, light, slot, data, Batteries::isBattery);
+        super(ModMenus.ELECTRIC_FLOODLIGHT, containerId, playerInventory, pos, light, slot, data);
+    }
+
+    @Override
+    protected boolean isValidItem(ItemStack stack) {
+        return Batteries.isBattery(stack);
     }
 
     /** Client side. Uses its own container; the server keeps it in sync. */
