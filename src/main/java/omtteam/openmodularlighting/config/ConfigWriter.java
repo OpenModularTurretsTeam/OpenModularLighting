@@ -34,27 +34,36 @@ final class ConfigWriter {
         Field[] fields = ConfigRanges.fields(config.getClass());
         for (int i = 0; i < fields.length; i++) {
             Field field = fields[i];
-            try {
-                Object value = field.get(config);
-                Object def = field.get(defaults);
-                boolean section = ConfigRanges.isSection(field.getType());
-                if (i > 0 && (section || hasComment(field))) out.append('\n');
-                comments(out, field, section ? null : def, indent);
-                out.append(indent).append(VALUE.toJson(ConfigRanges.keyOf(field))).append(": ");
-                if (section) {
-                    writeObject(out, value, def, depth + 1);
-                } else if (value instanceof List<?> list) {
-                    writeList(out, list, indent);
-                } else {
-                    out.append(VALUE.toJson(value));
-                }
-                if (i < fields.length - 1) out.append(',');
-                out.append('\n');
-            } catch (IllegalAccessException e) {
-                throw new IllegalStateException(e);
-            }
+            Object value = get(field, config);
+            Object def = get(field, defaults);
+            boolean section = ConfigRanges.isSection(field.getType());
+            if (i > 0 && (section || hasComment(field))) out.append('\n');
+            comments(out, field, section ? null : def, indent);
+            out.append(indent).append(VALUE.toJson(ConfigRanges.keyOf(field))).append(": ");
+            writeValue(out, value, def, section, indent, depth);
+            if (i < fields.length - 1) out.append(',');
+            out.append('\n');
         }
         out.append(INDENT.repeat(depth)).append('}');
+    }
+
+    private static void writeValue(StringBuilder out, Object value, Object def, boolean section, String indent,
+                                   int depth) {
+        if (section) {
+            writeObject(out, value, def, depth + 1);
+        } else if (value instanceof List<?> list) {
+            writeList(out, list, indent);
+        } else {
+            out.append(VALUE.toJson(value));
+        }
+    }
+
+    private static Object get(Field field, Object owner) {
+        try {
+            return field.get(owner);
+        } catch (IllegalAccessException e) {
+            throw new IllegalStateException(e);
+        }
     }
 
     private static void writeList(StringBuilder out, List<?> list, String indent) {

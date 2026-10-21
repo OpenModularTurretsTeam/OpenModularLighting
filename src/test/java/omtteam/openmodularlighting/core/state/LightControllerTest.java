@@ -70,7 +70,9 @@ class LightControllerTest {
     @Test
     void invertedLightsRunWithoutRedstone() {
         LightController light = new LightController();
+        assertFalse(light.isInverted());
         light.toggleInverted();
+        assertTrue(light.isInverted());
         Buffer buffer = new Buffer(100, 1);
         assertEquals(Switch.ON, light.tick(false, buffer, TIMEOUT).change());
         assertEquals(Switch.OFF, light.tick(true, buffer, TIMEOUT).change());
@@ -117,6 +119,7 @@ class LightControllerTest {
         assertTrue(timer.needsFuel());
         assertFalse(timer.refuel(0));
         assertTrue(timer.refuel(2));
+        assertFalse(timer.needsFuel());
         LightController light = new LightController();
         assertEquals(Switch.ON, light.tick(true, timer, TIMEOUT).change());
         light.tick(true, timer, TIMEOUT);

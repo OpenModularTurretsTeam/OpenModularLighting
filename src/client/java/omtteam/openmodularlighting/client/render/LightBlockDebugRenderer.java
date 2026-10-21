@@ -57,13 +57,18 @@ public final class LightBlockDebugRenderer {
         int centerZ = SectionPos.blockToSectionCoord(camera.z);
         for (int chunkX = centerX - CHUNK_RANGE; chunkX <= centerX + CHUNK_RANGE; chunkX++) {
             for (int chunkZ = centerZ - CHUNK_RANGE; chunkZ <= centerZ + CHUNK_RANGE; chunkZ++) {
-                if (!level.hasChunk(chunkX, chunkZ)) continue;
-                for (BlockEntity blockEntity : level.getChunk(chunkX, chunkZ).getBlockEntities().values()) {
-                    if (blockEntity instanceof LightBlockEntity light
-                            && light.getBlockPos().closerToCenterThan(camera, RANGE)) {
-                        drawBox(poseStack, lines, camera, light);
-                    }
-                }
+                drawChunk(level, chunkX, chunkZ, poseStack, lines, camera);
+            }
+        }
+    }
+
+    /** The light blocks of one loaded chunk within {@link #RANGE}. */
+    private static void drawChunk(ClientLevel level, int chunkX, int chunkZ, PoseStack poseStack, VertexConsumer lines,
+                                  Vec3 camera) {
+        if (!level.hasChunk(chunkX, chunkZ)) return;
+        for (BlockEntity blockEntity : level.getChunk(chunkX, chunkZ).getBlockEntities().values()) {
+            if (blockEntity instanceof LightBlockEntity light && light.getBlockPos().closerToCenterThan(camera, RANGE)) {
+                drawBox(poseStack, lines, camera, light);
             }
         }
     }

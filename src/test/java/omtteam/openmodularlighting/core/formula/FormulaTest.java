@@ -55,6 +55,13 @@ class FormulaTest {
     }
 
     @Test
+    void nextGrowTickIsNowPlusTheDelayAndSaturates() {
+        long delay = GrowChance.nextDelay(1, new Random(4));
+        assertEquals(1000 + delay, GrowChance.nextGrowTick(1000, 1, new Random(4)));
+        assertEquals(Long.MAX_VALUE, GrowChance.nextGrowTick(Long.MAX_VALUE - 5, 1, new Random(4)));
+    }
+
+    @Test
     void zeroChanceNeverGrows() {
         RandomGenerator random = new Random(3);
         assertEquals(Long.MAX_VALUE, GrowChance.nextDelay(0, random));

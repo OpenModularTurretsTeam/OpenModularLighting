@@ -2,6 +2,7 @@ package omtteam.openmodularlighting.core.light;
 
 import omtteam.openmodularlighting.core.beam.BeamShape;
 import omtteam.openmodularlighting.core.beam.Ray;
+import omtteam.openmodularlighting.core.beam.Spacing;
 import omtteam.openmodularlighting.core.math.Facing;
 import omtteam.openmodularlighting.core.math.Pos;
 import omtteam.openmodularlighting.core.math.Rotation;
@@ -34,11 +35,8 @@ public final class BeamCaster {
         int[] blockedAt = new int[rays.size()];
         for (int r = 0; r < rays.size(); r++) {
             Ray ray = rays.get(r);
-            if (ray.hasParent()) {
-                int parentBlockedAt = blockedAt[ray.parent()];
-                if (parentBlockedAt != 0 && parentBlockedAt < ray.parentBlockedBefore()) {
-                    continue;
-                }
+            if (skipped(ray, blockedAt)) {
+                continue;
             }
             List<Pos> steps = ray.steps();
             for (int s = 0; s < steps.size(); s++) {
@@ -48,12 +46,24 @@ public final class BeamCaster {
                     blockedAt[r] = s + 1;
                     break;
                 }
-                if (step == LightType.Step.LIGHT && shape.spacing().emitsAt(steps.get(s).x(), steps.get(s).y() == 0 && steps.get(s).z() == 0)) {
+                if (step == LightType.Step.LIGHT && emits(shape.spacing(), steps.get(s))) {
                     lit.add(pos);
                 }
             }
         }
         return List.copyOf(lit);
+    }
+
+    /** The 1.7.10 cone rule: an inner ray is skipped if its outer ray was blocked before it got far enough. */
+    private static boolean skipped(Ray ray, int[] blockedAt) {
+        if (!ray.hasParent()) return false;
+        int parentBlockedAt = blockedAt[ray.parent()];
+        return parentBlockedAt != 0 && parentBlockedAt < ray.parentBlockedBefore();
+    }
+
+    /** Whether the step at {@code offset} (beam space) gets a light; the centre line is where y and z are 0. */
+    private static boolean emits(Spacing spacing, Pos offset) {
+        return spacing.emitsAt(offset.x(), offset.y() == 0 && offset.z() == 0);
     }
 
     private static boolean frontAborts(BeamShape.FrontRule rule, Cell front, LightType type) {

@@ -1,6 +1,7 @@
 package omtteam.openmodularlighting.core.light;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import omtteam.openmodularlighting.core.math.Pos;
@@ -29,5 +30,7 @@ class ShapeDiffTest {
     void fromAndToNothing() {
         assertEquals(List.of(p(1)), ShapeDiff.between(List.of(), List.of(p(1))).added());
         assertEquals(List.of(p(1)), ShapeDiff.between(List.of(p(1)), List.of()).removed());
+        assertFalse(ShapeDiff.between(List.of(), List.of(p(1))).isEmpty());
+        assertFalse(ShapeDiff.between(List.of(p(1)), List.of()).isEmpty());
     }
 }

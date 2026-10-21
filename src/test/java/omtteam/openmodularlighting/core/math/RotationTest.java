@@ -52,5 +52,7 @@ class RotationTest {
             assertEquals(facing, Facing.byOrdinal(facing.ordinal()));
         }
         assertEquals(Facing.SOUTH, Facing.byOrdinal(42));
+        assertEquals(Facing.SOUTH, Facing.byOrdinal(Facing.values().length));
+        assertEquals(Facing.SOUTH, Facing.byOrdinal(-1));
     }
 }

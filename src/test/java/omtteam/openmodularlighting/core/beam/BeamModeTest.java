@@ -21,8 +21,11 @@ class BeamModeTest {
         assertEquals(BeamMode.NARROW_CONE, BeamMode.byOrdinal(1));
         assertEquals(BeamMode.WIDE_CONE, BeamMode.byOrdinal(2));
         assertEquals(BeamMode.STRAIGHT, BeamMode.byOrdinal(-1));
+        assertEquals(BeamMode.STRAIGHT, BeamMode.byOrdinal(3));
+        assertEquals(GrowMode.LIGHTING, GrowMode.byOrdinal(0));
         assertEquals(GrowMode.BLACK_LIGHT, GrowMode.byOrdinal(1));
-        assertEquals(GrowMode.LIGHTING, GrowMode.byOrdinal(7));
+        assertEquals(GrowMode.LIGHTING, GrowMode.byOrdinal(2));
+        assertEquals(GrowMode.LIGHTING, GrowMode.byOrdinal(-1));
     }
 
     @Test

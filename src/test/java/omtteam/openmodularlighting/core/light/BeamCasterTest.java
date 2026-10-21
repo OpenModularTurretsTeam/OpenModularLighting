@@ -136,6 +136,11 @@ class BeamCasterTest {
         assertTrue(Spacing.CONE.emitsAt(1, true) && !Spacing.CONE.emitsAt(2, true) && Spacing.CONE.emitsAt(3, true));
         assertTrue(!Spacing.CONE.emitsAt(1, false) && Spacing.CONE.emitsAt(2, false) && !Spacing.CONE.emitsAt(3, false));
         assertThrows(IllegalArgumentException.class, () -> new Spacing(0, 0, 0));
+        // the smallest step is allowed; a step of 3 tells distance - phase apart from distance + phase
+        assertTrue(new Spacing(1, 0, 0).emitsAt(5, false));
+        Spacing third = new Spacing(3, 1, 2);
+        assertTrue(third.emitsAt(4, false) && !third.emitsAt(2, false) && !third.emitsAt(3, false));
+        assertTrue(third.emitsAt(5, true) && !third.emitsAt(1, true) && !third.emitsAt(4, true));
     }
 
     // ---- Shapes ----
@@ -237,5 +242,18 @@ class BeamCasterTest {
         Ray first = Ray.of(List.of(new Pos(1, 0, 0)));
         Ray child = new Ray(List.of(new Pos(2, 0, 0)), 1, 1);
         assertThrows(IllegalArgumentException.class, () -> new BeamShape(List.of(child, first), BeamShape.FrontRule.NONE));
+        Ray ownParent = new Ray(List.of(new Pos(2, 0, 0)), 1, 1);
+        assertThrows(IllegalArgumentException.class, () -> new BeamShape(List.of(first, ownParent), BeamShape.FrontRule.NONE));
+        Ray firstAsParent = new Ray(List.of(new Pos(2, 0, 0)), 0, 1);
+        assertEquals(2, new BeamShape(List.of(first, firstAsParent), BeamShape.FrontRule.NONE).rays().size());
+    }
+
+    @Test
+    void cubeLightsAllSixNeighboursForEveryFacing() {
+        Set<Pos> neighbours = new HashSet<>();
+        for (Facing facing : Facing.values()) neighbours.add(Pos.ORIGIN.offset(facing, 1));
+        for (Facing facing : Facing.values()) {
+            assertEquals(neighbours, castSet(BeamShape.cube(), Pos.ORIGIN, facing, TestWorld.open()), facing.name());
+        }
     }
 }

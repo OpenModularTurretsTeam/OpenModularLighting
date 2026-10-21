@@ -90,19 +90,7 @@ public final class Cluster<N extends ClusterNode<N>> {
         while (!unvisited.isEmpty()) {
             N start = unvisited.iterator().next();
             unvisited.remove(start);
-            List<N> part = new ArrayList<>();
-            Deque<N> queue = new ArrayDeque<>();
-            queue.add(start);
-            while (!queue.isEmpty()) {
-                N node = queue.poll();
-                part.add(node);
-                for (N neighbour : node.neighbours()) {
-                    if (unvisited.remove(neighbour)) {
-                        queue.add(neighbour);
-                    }
-                }
-            }
-            parts.add(part);
+            parts.add(connectedPart(start, unvisited));
         }
         if (parts.size() <= 1) return;
         members.clear();
@@ -114,5 +102,22 @@ public final class Cluster<N extends ClusterNode<N>> {
                 node.setCluster(split);
             }
         }
+    }
+
+    /** Flood fill from {@code start} over the members in {@code unvisited}; removes what it reaches from there. */
+    private static <N extends ClusterNode<N>> List<N> connectedPart(N start, Set<N> unvisited) {
+        List<N> part = new ArrayList<>();
+        Deque<N> queue = new ArrayDeque<>();
+        queue.add(start);
+        while (!queue.isEmpty()) {
+            N node = queue.poll();
+            part.add(node);
+            for (N neighbour : node.neighbours()) {
+                if (unvisited.remove(neighbour)) {
+                    queue.add(neighbour);
+                }
+            }
+        }
+        return part;
     }
 }
