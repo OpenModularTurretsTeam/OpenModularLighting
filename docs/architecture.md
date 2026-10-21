@@ -34,9 +34,9 @@ An arrow means "may use".
 The other directions are forbidden:
 
 - **core** uses only Java and itself: no Minecraft, loader or other OML packages.
-  The `verifyCoreIsolation` task (part of `check`) fails the build if a file under `core/` imports `net.minecraft`, `net.fabricmc`, `net.neoforged`, `com.mojang`, `team.reborn` or a non-core OML package.
+  The `verifyCoreIsolation` task (part of `check`) fails the build if a file under `core/` imports `net.minecraft`, `net.fabricmc`, `net.neoforged`, `com.mojang`, `team.reborn` or a non-core OML package, and `ArchitectureTest.coreDependsOnlyOnCoreAndJava` checks the same on the compiled classes.
 - **main** code never uses **client** code: the client classes do not exist on a dedicated server.
-  This is not checked by a rule yet; the split source sets make it a compile error on every node (the `client` source set sees `main`, not the other way round).
+  The split source sets make it a compile error on every node (the `client` source set sees `main`, not the other way round), and `ArchitectureTest.mainCodeNeverDependsOnClientCode` checks it on the compiled classes.
 
 ### How core talks to the game
 
@@ -52,6 +52,7 @@ This is the only place where the two meet, and the reason the core can be tested
 
 Positions in core are the `Pos` record and directions the `Facing` enum (same ordinal order as `Direction`); `world.Positions` converts both ways.
 The block entities own one core object each and forward to it: `FloodlightBlockEntity` → `LightController`, `LightBlockEntity` → `LightSources`, `PanelLightBlockEntity` → `Cluster`.
+A light's beam is the game-layer class `blockentity.LightBeam`, which calls `BeamCaster` and `ShapeDiff` and keeps the cached shape.
 
 ## Where things live
 
@@ -61,7 +62,7 @@ Source sets (Loom split source sets on Fabric, the same split built by hand on N
 | --- | --- | --- |
 | `src/main` | everything that runs on both sides, including `fabric.mod.json` and `neoforge.mods.toml` (templated) | yes |
 | `src/client` | screens, tint, disguise models, debug renderer, client networking | yes, client only |
-| `src/test` | JUnit tests of the core and the config | no |
+| `src/test` | JUnit tests of the core and the config, and the architecture rules (`ArchitectureTest`) | no |
 | `src/gametest` | in-world GameTests as a separate test mod (own mod id), shared by both loaders | no |
 
 Packages below `omtteam.openmodularlighting` (main):
@@ -81,9 +82,9 @@ Packages below `omtteam.openmodularlighting` (main):
 | `world` | `LightBlocks` (place, switch and remove light blocks), `LevelLightWorld`, `Positions` |
 | `energy` | `LightPower` with `ElectricPower` and `FuelPower`, `ClusterEnergy`, `Batteries` |
 | `inventory` | `ItemAccess`: the slot range and filters other blocks see (wrapped by the loader adapters) |
-| `item`, `menu` | crafting items and the light debug tool; the container menus (with the disguise slot) and `LongContainerData` |
+| `menu` | the container menus (with the disguise slot) and `LongContainerData` |
 | `camo` | disguise of the floodlights: `CamoBlock` (marker of the lights that can be disguised), `CamoRules` (which blocks are valid), `CamoData` (the disguise and its NBT) |
-| `registry` | `ModBlocks`, `ModItems`, `ModBlockEntities`, `ModMenus`, `ModCreativeTabs`, `ModDamageTypes`, `RegistrationStep` |
+| `registry` | `ModBlocks`, `ModItems` (the crafting items and the light debug tool are plain `Item`s; what the tool does is in `FloodlightInteraction` and `client.render.LightBlockDebugRenderer`), `ModBlockEntities`, `ModMenus`, `ModCreativeTabs`, `ModDamageTypes`, `RegistrationStep` |
 | `network` | `OMLPackets` (all packet types) and `ConfigSyncPacket` |
 | `config` | the JSON config: `ConfigData` (fields), `@Comment`, `@Range`, `ConfigWriter`, `ConfigRanges`, `ConfigValidator`, `OMLConfig` (load, save, sync) |
 | `compat` | every 1.20.1 / 1.21.1 difference (`VersionCompat`, `CompatBlockEntity`, `InteractiveBlock`, `MenuCompat`, `network/`), `CommonTags`, the recipe condition, and the optional Jade plugin (`compat/jade`) |
@@ -147,16 +148,16 @@ Render layers are the one thing kept twice: `BlockRenderLayerMap` on Fabric, `"r
 
 1. `beforePower`: panel lights keep their cluster up to date and pull energy from it.
 2. `power().prepare`: charge from the battery slot, or burn the next fuel item.
-3. A re-cast is flagged if the shape key (mode, ranges) differs from the one the cached shape was cast with, or if the periodic `RecheckTimer` fires (every 10 to 30 s).
+3. A re-cast is flagged if the shape key (mode, ranges) differs from the one the cached shape was cast with (`LightBeam.needsRecast`), or if the periodic `RecheckTimer` fires (every 10 to 30 s).
 4. `LightController.tick(redstone, power, timeout)` returns a `TickResult`: re-cast or not, switch on, off or neither, and whether the light ran (and paid) this tick.
-5. A re-cast runs first (`recast`), then the switch (`switchLights`), then the light's own `LIT` is set.
+5. A re-cast runs first (`LightBeam.recast`), then the switch (`LightBeam.switchLights`), then the light's own `LIT` is set.
 6. `afterTick` is the hook of subclasses (the grow light's growth ticks).
 
 The state machine itself, with the timeout against flicker, is `core.state.LightController`; it knows nothing about blocks.
 
 ### Casting a beam
 
-`FloodlightBlockEntity.recast`:
+`LightBeam.recast`, called from the tick and at once from `FloodlightBlockEntity.shapeChanged` (mode change); the beam reads the shape, facing, light type and on/off state from its light:
 
 1. `BeamCaster.cast(shape, origin, facing, lightType, new LevelLightWorld(level))` walks every ray of the shape and returns the positions that should hold a light block.
    A ray stops at an opaque or unloaded cell, passes through transparent ones without a position, and the cone rules (the inner ray is skipped if its outer ray was blocked early) live here.
@@ -271,47 +272,69 @@ The NeoForge build converts the Fabric 1.21.1 output at build time, so nothing N
 
 | Rule | Checked by |
 | --- | --- |
-| core uses only Java and core | the `verifyCoreIsolation` task, and `ArchitectureTest` on the compiled classes |
-| main code never uses client code | `ArchitectureTest` (ArchUnit, `src/test/.../architecture`; Fabric nodes only) |
-| no new or larger package cycles | `ArchitectureTest` against its `KNOWN_CYCLES` list |
-| core rules behave as specified | unit tests in `src/test` (they run on the NeoForge node too) |
+| core uses only Java and core | `ArchitectureTest.coreDependsOnlyOnCoreAndJava` and the `verifyCoreIsolation` task |
+| main code never uses client code | `ArchitectureTest.mainCodeNeverDependsOnClientCode` |
+| no new package cycles, and the known ones only shrink | `ArchitectureTest.noNewPackageCycles` (list `KNOWN_CYCLES`) |
+| core rules and the config behave as specified | unit tests in `src/test` (they run on the NeoForge node too) |
 | the beam shapes still equal the reference loops (with thinning) | `BeamCasterTest` against `Legacy1710Beams` |
 | lights, light blocks, energy, items, recipes and Jade work in a real world | GameTests in `src/gametest`: Fabric `runGameTest`, NeoForge `runGameTestServer` |
 | formatting (tabs, trailing whitespace, final newline) | `spotlessCheck` |
 | the changelog has a section for the version being published | `publishMods` |
 
+`ArchitectureTest` (ArchUnit, `src/test/.../architecture`) reads the compiled main and client classes, so it runs on the Fabric nodes only.
 The client (screens, models, tint, tooltips) is not covered by any test; check it by hand with `runClient`.
 
-`KNOWN_CYCLES` is a ratchet: a new cycle, or a package joining one, fails the test, and so does a cycle that shrank until the list is updated.
+`KNOWN_CYCLES` is a ratchet: a new cycle, or a package joining one, fails the test, and so does a cycle that shrank or disappeared until the list is updated.
+When the test fails it prints the cycle, the class dependencies inside it (fewest first, the cheapest to cut) and the updated list.
 Never add to it without asking the user.
 
-## Code quality reports
+## Measuring code quality
 
-These measure the code but do not fail the build:
+These tools measure the code but do not fail the build:
 
 | Tool | Command | Output |
 | --- | --- | --- |
-| PMD: complexity, size, nesting, coupling (rules in `gradle/pmd/ruleset.xml`) | `./gradlew :1.21.1-fabric:pmdMain :1.21.1-fabric:pmdClient` (also part of `check`) | `versions/1.21.1-fabric/build/reports/pmd/main.html`, `client.html` |
-| Test coverage of `core` (JaCoCo, unit and game tests) | part of `check`, which prints a summary per package | `versions/1.21.1-fabric/build/reports/jacoco/test/html/index.html` |
-| Mutation testing of `core` (PIT) | `./gradlew :1.21.1-fabric:pitest` | `versions/1.21.1-fabric/build/reports/pitest/index.html` |
+| PMD: complexity, size, nesting, parameters, coupling (rules in `gradle/pmd/ruleset.xml`, the same as OpenModularTurrets') | `./gradlew :1.21.1-fabric:pmdMain :1.21.1-fabric:pmdClient` (also part of `check`) | `versions/1.21.1-fabric/build/reports/pmd/main.html`, `client.html` (and `.xml`) |
+| Test coverage of `core` (JaCoCo, from the unit tests and the GameTests) | part of `check`, which prints the line coverage per package | `versions/1.21.1-fabric/build/reports/jacoco/test/html/index.html` |
+| Mutation testing of `core` (PIT, with the unit tests) | `./gradlew :1.21.1-fabric:pitest` (on demand, not part of `check`) | `versions/1.21.1-fabric/build/reports/pitest/index.html` (and `mutations.xml`) |
+
+They run on the active Fabric node only (all nodes share the source); code in `platform/neoforge` is covered by the NeoForge GameTests, not by coverage or mutation testing.
+The tool versions are in `gradle.properties` (`pmd_version`, `jacoco_version`, `pitest_version`, `archunit_version`).
 
 PMD reports only for now; it does not fail the build.
 Once the limits are agreed, switching off `isIgnoreFailures` in `build.fabric.gradle.kts` makes new code above them fail.
-These tools run on the active Fabric node only (all nodes share the source); code in `platform/neoforge` is covered by the NeoForge game tests, not by coverage or mutation testing.
+A method is reported from a cyclomatic or cognitive complexity of 15, an NPath complexity of 200, 60 statements, 8 parameters or ifs nested three deep; a class from 500 statements or when it uses more than 20 other types.
 
 Coverage says which lines the tests run; mutation testing says whether they check the results.
-PIT plants small mistakes in core (a flipped condition, `<` instead of `<=`, a removed call) and runs the unit tests against each one.
-A mistake no test notices ("survived") marks behaviour the tests do not pin down, often an edge case.
-Not every survivor is a gap: where `>` and `>=` behave the same for every possible value, the change cannot be noticed.
+PIT plants small mistakes in core (a flipped condition, `<` instead of `<=`, a removed call, a changed return value) and runs the unit tests against each one.
+A mistake no test notices ("survived") marks behaviour the tests do not pin down, often an edge case: a boundary value, the `false` case of a getter, a method no test calls.
+Not every survivor is a gap: where `>` and `>=` behave the same for every possible value (an "equivalent mutant"), the change cannot be noticed, and the code should not be bent to make it noticeable.
+A mutant that makes the tests loop forever counts as detected ("timed out").
+
+When a tool reports something:
+
+- **A PIT survivor:** add the missing assertion to the unit test of that class; if it is equivalent, leave it and say why.
+- **A PMD finding:** propose a fix (usually extracting a method or a small class) and let the user decide, or accept it with a reason under "Known weak spots".
+  Coupling counts the types of fields, parameters, local variables and return types, so overriding vanilla methods alone can push a block class above 20.
+- **A new package cycle:** cut the cheapest dependency the test prints, rather than extending `KNOWN_CYCLES`.
+
+State on 2026-10-21:
+
+| Measure | Value |
+| --- | --- |
+| Line coverage of `core` | 100 % |
+| PIT | 272 of 277 mutations detected (98 %); the 5 survivors are equivalent (`BeamMode` / `GrowMode.byOrdinal` lower bound, the tie-break in `Cluster.merge`, `Cluster.refresh` with one part, the saturation check in `GrowChance.nextGrowTick`) |
+| PMD | 2 findings, both accepted (see below) |
+| Package cycles | 1 (see below) |
 
 ## Known weak spots
 
 Things that make the code harder to work with than they should be.
-They are known, not hidden:
+They are known and measured, not hidden:
 
-- **One large package cycle.** `registry`, `block`, `blockentity`, `menu`, `config`, `compat`, `platform`, `network`, `energy` and `world` all depend on each other (registry ↔ blocks ↔ block entities, as in most Minecraft mods); `ArchitectureTest` keeps it from growing.
+- **One large package cycle.** The root package (`OML`), `block`, `blockentity`, `compat`, `compat.network`, `config`, `energy`, `menu`, `network`, `platform`, `registry` and `world` all depend on each other (registry ↔ blocks ↔ block entities, as in most Minecraft mods, plus the platform facades); `noNewPackageCycles` keeps it from growing.
 - **2 PMD findings**, both accepted: the coupling of `FloodlightBlock` (23; the types of the vanilla block methods it overrides) and of `FloodlightBlockEntity` (23).
-- **`FloodlightBlockEntity` does a lot** (about 320 lines): ticking, settings, the colour, the disguise, the slot and saving.
+- **`FloodlightBlockEntity` does a lot** (about 330 lines): ticking, settings, the colour, the disguise, the slot and saving.
   The beam (cast, diff and shape cache) is already in `LightBeam`; the slot would be the next candidate to move out.
 - **Phantom lights beside skipped positions.** Because of the thinning (`core.beam.Spacing`), a block change next to a position without a light block may reach no light block at all, so the beam notices it only at the periodic re-check (10 to 30 s).
 - **The client is untested** except by hand, since Fabric's client GameTests need Minecraft 1.21.4 or newer.
