@@ -335,13 +335,12 @@ omtteam.openmodularlighting
 │                                  UvFloodlightBE, GrowLightBE (GrowMode, growth), FluorescentLightBE;
 │                                  LightSourceBlockEntity (interface of all lights); LightBlockEntity (sources,
 │                                  save/load) → PhantomLightBE, UvLightBE (damage)
-├── item/                          crafting items (filament, bulb, mantle …), LightDebugToolItem
 ├── menu/                          FloodlightMenu (+ disguise slot on CamoBlocks) → ElectricFloodlightMenu, CarbonFloodlightMenu;
 │                                  LongContainerData (syncs longs as two shorts)
 ├── camo/                          disguise (§6.11): CamoBlock (marker), CamoRules (valid disguises), CamoData (state + NBT)
 ├── inventory/                     ItemAccess (container slot range + insert/extract filters as other blocks see them;
 │                                  loader adapters in platform/<loader>)
-├── registry/                      ModBlocks, ModItems, ModBlockEntities (+ lights() for the loader lookups), ModMenus, ModCreativeTabs
+├── registry/                      ModBlocks, ModItems (crafting items and the light debug tool are plain Items), ModBlockEntities (+ lights() for the loader lookups), ModMenus, ModCreativeTabs
 ├── energy/                        ElectricPower (EnergyStore of a light), ClusterEnergy (pull + insert-only View),
 │                                  Batteries (battery-slot check and discharge via platform.Energy)
 ├── world/                         LightBlocks (join / leave / setActive on light blocks, applies LightSources
