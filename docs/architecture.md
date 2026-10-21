@@ -271,7 +271,9 @@ The NeoForge build converts the Fabric 1.21.1 output at build time, so nothing N
 
 | Rule | Checked by |
 | --- | --- |
-| core uses only Java and core | the `verifyCoreIsolation` task |
+| core uses only Java and core | the `verifyCoreIsolation` task, and `ArchitectureTest` on the compiled classes |
+| main code never uses client code | `ArchitectureTest` (ArchUnit, `src/test/.../architecture`; Fabric nodes only) |
+| no new or larger package cycles | `ArchitectureTest` against its `KNOWN_CYCLES` list |
 | core rules behave as specified | unit tests in `src/test` (they run on the NeoForge node too) |
 | the beam shapes still equal the reference loops (with thinning) | `BeamCasterTest` against `Legacy1710Beams` |
 | lights, light blocks, energy, items, recipes and Jade work in a real world | GameTests in `src/gametest`: Fabric `runGameTest`, NeoForge `runGameTestServer` |
@@ -280,12 +282,35 @@ The NeoForge build converts the Fabric 1.21.1 output at build time, so nothing N
 
 The client (screens, models, tint, tooltips) is not covered by any test; check it by hand with `runClient`.
 
+`KNOWN_CYCLES` is a ratchet: a new cycle, or a package joining one, fails the test, and so does a cycle that shrank until the list is updated.
+Never add to it without asking the user.
+
+## Code quality reports
+
+These measure the code but do not fail the build:
+
+| Tool | Command | Output |
+| --- | --- | --- |
+| PMD: complexity, size, nesting, coupling (rules in `gradle/pmd/ruleset.xml`) | `./gradlew :1.21.1-fabric:pmdMain :1.21.1-fabric:pmdClient` (also part of `check`) | `versions/1.21.1-fabric/build/reports/pmd/main.html`, `client.html` |
+| Test coverage of `core` (JaCoCo, unit and game tests) | part of `check`, which prints a summary per package | `versions/1.21.1-fabric/build/reports/jacoco/test/html/index.html` |
+| Mutation testing of `core` (PIT) | `./gradlew :1.21.1-fabric:pitest` | `versions/1.21.1-fabric/build/reports/pitest/index.html` |
+
+PMD reports only for now; it does not fail the build.
+Once the limits are agreed, switching off `isIgnoreFailures` in `build.fabric.gradle.kts` makes new code above them fail.
+These tools run on the active Fabric node only (all nodes share the source); code in `platform/neoforge` is covered by the NeoForge game tests, not by coverage or mutation testing.
+
+Coverage says which lines the tests run; mutation testing says whether they check the results.
+PIT plants small mistakes in core (a flipped condition, `<` instead of `<=`, a removed call) and runs the unit tests against each one.
+A mistake no test notices ("survived") marks behaviour the tests do not pin down, often an edge case.
+Not every survivor is a gap: where `>` and `>=` behave the same for every possible value, the change cannot be noticed.
+
 ## Known weak spots
 
 Things that make the code harder to work with than they should be.
 They are known, not hidden:
 
-- **No architecture test beyond the core.** Nothing checks that `main` stays free of `client`, or watches for package cycles; the packages `block`, `blockentity`, `world`, `energy` and `registry` do depend on each other (registry ↔ blocks ↔ block entities, as in most Minecraft mods).
+- **One large package cycle.** `registry`, `block`, `blockentity`, `menu`, `config`, `compat`, `platform`, `network`, `energy` and `world` all depend on each other (registry ↔ blocks ↔ block entities, as in most Minecraft mods); `ArchitectureTest` keeps it from growing.
+- **13 PMD findings** above the complexity limits, mostly long branching methods (`FloodlightBlock`'s interaction, `BeamCaster`, `Cluster`, `ConfigWriter`, `LightBlockDebugRenderer`).
 - **`FloodlightBlockEntity` does a lot** (about 340 lines): ticking, the cached shape and the re-cast, settings, the colour, the slot and saving.
   The cast and the shape cache would be the first candidates to move out.
 - **Phantom lights beside skipped positions.** Because of the thinning (`core.beam.Spacing`), a block change next to a position without a light block may reach no light block at all, so the beam notices it only at the periodic re-check (10 to 30 s).
