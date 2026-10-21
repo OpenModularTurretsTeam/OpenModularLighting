@@ -6,7 +6,9 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.Slot;
+import omtteam.openmodularlighting.blockentity.FloodlightBlockEntity;
 import omtteam.openmodularlighting.client.compat.ClientCompat;
+import omtteam.openmodularlighting.config.OMLConfig;
 import omtteam.openmodularlighting.menu.FloodlightMenu;
 
 /**
@@ -19,6 +21,10 @@ public abstract class FloodlightScreen<M extends FloodlightMenu> extends Abstrac
     private static final int SLOT_V = 21;
     private static final int SLOT_SIZE = 18;
     private static final int CAMO_HINT_WIDTH = 160;
+    /** The "?" in the top right corner that explains the timeout. */
+    private static final String HINT = "?";
+    private static final int HINT_X = 164;
+    private static final int HINT_Y = 6;
 
     private final ResourceLocation texture;
 
@@ -42,6 +48,18 @@ public abstract class FloodlightScreen<M extends FloodlightMenu> extends Abstrac
             graphics.renderTooltip(font, font.split(Component.translatable("tooltip.openmodularlighting.camo_slot"),
                     CAMO_HINT_WIDTH), mouseX, mouseY);
         }
+        if (isOverTimeoutHint(mouseX, mouseY)) {
+            String seconds = FloodlightBlockEntity.seconds(OMLConfig.get().general.timeoutFloodlights);
+            graphics.renderTooltip(font, font.split(Component.translatable("tooltip.openmodularlighting.timeout_hint",
+                    seconds), CAMO_HINT_WIDTH), mouseX, mouseY);
+        }
+    }
+
+    private boolean isOverTimeoutHint(int mouseX, int mouseY) {
+        int x = mouseX - leftPos;
+        int y = mouseY - topPos;
+        return menu.hasTimeoutHint() && x >= HINT_X - 1 && x < HINT_X + font.width(HINT) + 1
+                && y >= HINT_Y - 1 && y < HINT_Y + font.lineHeight;
     }
 
     @Override
@@ -60,6 +78,11 @@ public abstract class FloodlightScreen<M extends FloodlightMenu> extends Abstrac
             Component label = Component.translatable("gui.openmodularlighting.disguise");
             graphics.drawString(font, label, FloodlightMenu.CAMO_X - 5 - font.width(label), FloodlightMenu.CAMO_Y + 4,
                     0x404040, false);
+        }
+        if (menu.hasTimeoutHint()) {
+            // renderLabels gets screen coordinates for the mouse, like render
+            int color = isOverTimeoutHint(mouseX, mouseY) ? 0xFFFFFF : 0x404040;
+            graphics.drawString(font, HINT, HINT_X, HINT_Y, color, false);
         }
     }
 }

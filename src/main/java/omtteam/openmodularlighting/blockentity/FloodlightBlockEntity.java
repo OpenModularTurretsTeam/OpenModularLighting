@@ -39,6 +39,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 /**
@@ -214,6 +215,20 @@ public abstract class FloodlightBlockEntity extends CompatBlockEntity implements
     public void toggleInverted() {
         controller.toggleInverted();
         setChanged();
+    }
+
+    /**
+     * Ticks until the light turns on, if it would turn on now but still waits for the timeout after turning off;
+     * 0 otherwise.
+     */
+    public int ticksUntilOn(Level level) {
+        boolean active = level.hasNeighborSignal(worldPosition) ^ controller.isInverted();
+        return active && !controller.isOn() && power().canRun() ? controller.timeout() : 0;
+    }
+
+    /** Ticks as seconds for messages: "2" for 40 ticks, "1.5" for 30. */
+    public static String seconds(int ticks) {
+        return ticks % 20 == 0 ? String.valueOf(ticks / 20) : String.format(Locale.ROOT, "%.1f", ticks / 20.0);
     }
 
     public int getColor() {

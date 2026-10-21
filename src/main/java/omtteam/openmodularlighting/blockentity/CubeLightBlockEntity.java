@@ -12,7 +12,7 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * Cube light: a full block that lights the 6 blocks around it. Takes energy from every side and shares it with the
- * cube lights that touch it on any face.
+ * cube lights that touch it on any face. Like the UV floodlight it has no timeout after turning off.
  */
 public class CubeLightBlockEntity extends PanelLightBlockEntity {
     private static final int[] SHAPE_KEY = {0};
@@ -47,5 +47,10 @@ public class CubeLightBlockEntity extends PanelLightBlockEntity {
     @Override
     protected int[] shapeKey() {
         return SHAPE_KEY;
+    }
+
+    @Override
+    protected int timeoutTicks() {
+        return 0;
     }
 }

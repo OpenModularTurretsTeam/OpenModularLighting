@@ -132,6 +132,11 @@ public abstract class FloodlightBlock extends BaseEntityBlock implements Interac
                     player.displayClientMessage(Component.translatable("gui.openmodularlighting.invert").append(": ")
                             .append(Component.translatable(light.isInverted()
                                     ? "gui.openmodularlighting.true" : "gui.openmodularlighting.false")), false);
+                    int wait = light.ticksUntilOn(level);
+                    if (wait > 0) {
+                        player.displayClientMessage(Component.translatable("gui.openmodularlighting.turns_on_in",
+                                FloodlightBlockEntity.seconds(wait)), false);
+                    }
                 }
                 return handled;
             }

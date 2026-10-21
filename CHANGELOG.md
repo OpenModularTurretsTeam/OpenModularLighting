@@ -12,6 +12,13 @@ turns *Unreleased* into the release section; `chiseledPublish` uploads exactly t
 ### Added
 
 - Disguise for the electric, carbon and UV floodlights: put a full, opaque block into the new slot of the GUI and the light looks like that block, with only its lamp showing on the front; the disguise stays on the dropped light
+- A "?" in the electric and carbon floodlight GUIs explains the delay before a light can turn back on
+- Toggling invert on a light that is still in that delay tells you in chat how many seconds until it turns on
+
+### Changed
+
+- Cube and fluorescent lights turn back on at once, without the 2-second timeout after turning off
+- The config file now has a version: config files from older versions get the new default energy use and grow chance, unless the value was changed by hand
 
 ## [1.0.0-beta.3] - 2026-10-19
 

@@ -10,7 +10,8 @@ import omtteam.openmodularlighting.registry.ModBlockEntities;
 
 /**
  * Small and square fluorescent lights (1.7.10 {@code TileEntitySmallFloodlight}): light the block in front and the 4
- * blocks beside them; {@code energyUsageSmallFloodlight} per tick, energy only from the back.
+ * blocks beside them; {@code energyUsageSmallFloodlight} per tick, energy only from the back. No timeout after
+ * turning off.
  */
 public class FluorescentLightBlockEntity extends PanelLightBlockEntity {
     private static final int[] SHAPE_KEY = {0};
@@ -35,5 +36,10 @@ public class FluorescentLightBlockEntity extends PanelLightBlockEntity {
     @Override
     protected int[] shapeKey() {
         return SHAPE_KEY;
+    }
+
+    @Override
+    protected int timeoutTicks() {
+        return 0;
     }
 }

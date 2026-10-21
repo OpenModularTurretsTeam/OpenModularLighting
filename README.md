@@ -4,7 +4,7 @@ Floodlights for **Fabric** (Minecraft 1.20.1 and 1.21.1) and **NeoForge** (Minec
 Open Modular Lighting is a port of the Forge 1.7.10 mod *FloodLights* by Keridos.
 It lights up large areas with invisible light blocks placed along a beam, so you can light a cave, a farm or a base without placing torches everywhere.
 
-> Status: alpha. Expect bugs, and back up your worlds.
+> Status: beta. Expect bugs, and back up your worlds.
 
 ## Features
 
@@ -15,7 +15,7 @@ It lights up large areas with invisible light blocks placed along a beam, so you
 | **Electric Floodlight** | Casts a beam of light in the direction it faces. Three modes: **straight** (64 blocks), **narrow cone** (32 blocks) and **wide cone** (8 blocks). | Energy: 10 E/t straight, 20 E/t in the cone modes |
 | **Non-electric Floodlight** | Like the electric floodlight, but burns furnace fuel instead. One coal lasts 300 s in straight mode and half as long in the cone modes. | Any furnace fuel (vanilla or modded) |
 | **UV Floodlight** | Casts a short beam (8 blocks) of dim UV light that hurts living things standing in it, 4 damage per second. | Energy: 60 E/t |
-| **Grow Light** | Lights the block below it and makes the crop two blocks below grow faster (about one growth step every 20 s). A black-light mode gives the growth without the light. | Energy: 25 E/t |
+| **Grow Light** | Lights the block below it and makes the crop two blocks below grow faster (about one growth step every 10 s). A black-light mode gives the growth without the light. | Energy: 25 E/t |
 | **Small / Square Fluorescent Light** | Cheap little panels that light up the 5 blocks next to them. The small one can be turned by 90°, and a shapeless recipe converts between the two. | Energy: 1 E/t |
 | **Cube Light** | A full block that lights all 6 blocks around it. | Energy: 2 E/t, accepted from every side |
 

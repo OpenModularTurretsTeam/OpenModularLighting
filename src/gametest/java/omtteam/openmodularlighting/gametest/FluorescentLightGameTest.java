@@ -51,6 +51,27 @@ public class FluorescentLightGameTest implements OMLGameTests {
     }
 
     @GameTest(template = EMPTY_STRUCTURE)
+    public void turnsBackOnWithoutTimeout(GameTestHelper helper) {
+        FloodlightBlockEntity light = place(helper, ModBlocks.SQUARE_FLUORESCENT_LIGHT, Direction.UP);
+        light.electricPower().store().setAmountUnchecked(ElectricPower.CAPACITY);
+        BlockPos pos = helper.absolutePos(LIGHT);
+        helper.setBlock(LIGHT.below(), Blocks.REDSTONE_BLOCK); // behind the light
+        helper.runAfterDelay(3, () -> {
+            helper.assertTrue(light.isLightOn(), "on");
+            helper.setBlock(LIGHT.below(), Blocks.AIR);
+        });
+        helper.runAfterDelay(5, () -> {
+            helper.assertTrue(!light.isLightOn(), "off");
+            helper.setBlock(LIGHT.below(), Blocks.REDSTONE_BLOCK);
+        });
+        helper.runAfterDelay(7, () -> {
+            helper.assertTrue(light.isLightOn(), "on again without waiting for a timeout");
+            remove(helper, pos);
+            helper.succeed();
+        });
+    }
+
+    @GameTest(template = EMPTY_STRUCTURE)
     public void acceptsEnergyOnlyFromTheBack(GameTestHelper helper) {
         place(helper, ModBlocks.SQUARE_FLUORESCENT_LIGHT, Direction.UP);
         ServerLevel level = helper.getLevel();
