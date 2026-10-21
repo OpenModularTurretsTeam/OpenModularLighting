@@ -34,6 +34,8 @@
   "gui.openmodularlighting.disguise": "Disguise",
   "gui.openmodularlighting.camo_invalid": "Only full, opaque blocks can be used as a disguise.",
   "tooltip.openmodularlighting.camo_slot": "Click with a full, opaque block to disguise the light; click with an empty hand to remove the disguise.",
+  "tooltip.openmodularlighting.timeout_hint": "After turning off, the light waits %s seconds before it can turn on again. Every switch updates the light level of all blocks in its beam, so the delay keeps fast switching from causing lag.",
+  "gui.openmodularlighting.turns_on_in": "The light will turn on in %s seconds.",
   "death.attack.openmodularlighting.uv_light": "%1$s was burned by UV light",
   "config.jade.plugin_openmodularlighting.light": "Open Modular Lighting: lights"
 }

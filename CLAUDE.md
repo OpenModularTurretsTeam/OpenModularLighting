@@ -388,7 +388,7 @@ Every former metadata variant is its own block. Record old → new IDs in `docs/
 | `growLight` | `grow_light` | modes: normal lighting / black light (no light, growth only); always placed facing down; energy only from the back |
 | `smallElectricFloodlightMetaBlock` meta 0 | `small_fluorescent_light` | lights 5 neighbours; 6 px strip, `rotated` blockstate; energy only from the back |
 | `smallElectricFloodlightMetaBlock` meta 1 | `square_fluorescent_light` | same, full square, not rotatable; shapeless recipes convert between the two |
-| – (new) | `cube_light` | full block, lights its 6 neighbours (`BeamShape.cube`); energy from every side, shared with touching cube lights; `energyUsageCubeLight` (2), enabled with the fluorescent switch |
+| – (new) | `cube_light` | full block, lights its 6 neighbours (`BeamShape.cube`); energy from every side, shared with touching cube lights; `energyUsageCubeLight`, enabled with the fluorescent switch |
 | `tilePhantomLight` | `phantom_light` | invisible, no collision, replaceable; `LIT` → light level 15, else 0 (§6.3) |
 | `tileUVLight` | `uv_light` | `LIT` → light level 4 and damages living entities, else 0 and harmless; visibility configurable |
 | items: `rawFilament`, `glowingFilament`, `electricIncandescentLightBulb`, `carbonDissolver`, `carbonLantern`, `mantle`, `lightDebugTool` | `raw_filament`, `glowing_filament`, `light_bulb`, `carbon_dissolver`, `carbon_lantern`, `mantle`, `light_debug_tool` | crafting items; while the debug tool is held, light blocks get wireframes (phantom yellow, UV magenta, dimmer while unlit), as with the 1.7.10 `TileEntityPhantomLightRenderer` |
@@ -441,13 +441,13 @@ Beam shapes (defined along +X, then rotated to the facing):
 
 | Shape | Range | Pattern |
 | --- | --- | --- |
-| Straight | `rangeStraight` (64) | single ray along the facing |
-| Narrow cone | `rangeCone` (32) | 8 outer rays spreading `i/2` sideways (orthogonal + diagonal), plus 8 inner rays from distance 8 spreading `i/4`. An inner ray is skipped if its outer ray was blocked before distance 8. Aborts if the block in front is blocked. |
-| Wide cone | `rangeCone / 4` | 8 outer rays spreading `i` sideways, plus 8 inner rays from distance 4 spreading `i/2`. Aborts if the block in front is opaque. |
+| Straight | `rangeStraightFloodlight` | single ray along the facing |
+| Narrow cone | `rangeConeFloodlight` | 8 outer rays spreading `i/2` sideways (orthogonal + diagonal), plus 8 inner rays from distance 8 spreading `i/4`. An inner ray is skipped if its outer ray was blocked before distance 8. Aborts if the block in front is blocked. |
+| Wide cone | `rangeConeFloodlight / 4` | 8 outer rays spreading `i` sideways, plus 8 inner rays from distance 4 spreading `i/2`. Aborts if the block in front is opaque. |
 | Fluorescent | 1 | front + the 4 sideways neighbours |
 | Cube light | 1 | all 6 neighbours |
 | Grow light | 1 | front block only (only in "normal lighting" mode) |
-| UV | `rangeUV` (8) | straight ray of `uv_light`. Replaces phantom lights it meets (their sources are flagged for a re-cast). |
+| UV | `rangeUVFloodlight` | straight ray of `uv_light`. Replaces phantom lights it meets (their sources are flagged for a re-cast). |
 
 **Thinning (`core.beam.Spacing`).** To save phantom lights, `BeamMode.shape` leaves out light blocks at some distances along the facing direction (beam-space x). The rays are still followed over every block, so walls stop them exactly as without thinning. Straight: lights at 1, 3, 5, … (the second block is the first one skipped). Both cones start at the first block and keep their full geometry. Their centre line is thinned like the straight beam (1, 3, 5, …); the rest of the cone is offset by one from it and skips the odd distances (2, 4, 6, …). Fluorescent, grow and UV beams are not thinned. `BeamCasterTest` compares against the reference loops (`Legacy1710Beams`) filtered by the same spacing. Consequence: a block change next to a skipped position may have no phantom light beside it, so the light then notices only at its periodic re-check (§6.3).
 
@@ -460,7 +460,8 @@ Implemented by `core.state.LightController#tick`; `main` refuels / charges first
 Every tick on the server:
 
 1. If a re-cast is flagged (by a light block, a mode/config change or the periodic re-check): re-cast diff-based (§6.3). This happens on or off, because the phantom lights exist in both states, and is not delayed by the timeout (a re-cast does not switch anything).
-2. If `timeout > 0`: decrement and return. The timeout (`timeoutFloodlights`, 40 ticks) starts when a light turns off, to stop flickering. The UV floodlight has no timeout.
+2. If `timeout > 0`: decrement and return. The timeout (`timeoutFloodlights`) starts when a light turns off, to stop flickering. The UV floodlight, the cube light and the fluorescent lights have no timeout.
+   The electric and carbon floodlight GUIs explain it with a "?" hover (`FloodlightMenu.hasTimeoutHint`), and toggling invert during it tells the player when the light turns on (`FloodlightBlockEntity.ticksUntilOn`).
 3. `active = redstonePowered XOR inverted`.
 4. If active **and** it can pay this tick's cost: on the first active tick switch the cached phantom lights on and set the floodlight's own `LIT` blockstate, then pay the cost. Remember `wasActive`.
 5. Otherwise, if `wasActive`: switch the cached phantom lights off, clear `LIT`, start the timeout.
@@ -473,7 +474,7 @@ The timeout still applies: toggling `LIT` is much cheaper than placing blocks, b
 - Electric lights have an internal buffer of **50 000 E** (`core.energy.EnergyStore`; exposed as `EnergyAccess` through Team Reborn Energy on Fabric and FE on NeoForge, 1 E = 1 FE; accepting on all sides; fluorescent and grow lights only on the back face, opposite the facing). Up to the whole buffer can be inserted per tick. **Nothing can be extracted**, so cables cannot drain lights.
 - **Panel lights share energy** (`blockentity.PanelLightBlockEntity`, `energy.ClusterEnergy`; cube lights use the same base but accept energy on every side and cluster only with cube lights on any of their 6 faces): fluorescent and grow lights (any mix) that touch on their sides and face the same way form a `core.cluster.Cluster` (in memory, not saved; joins on the first tick, leaves in `setRemoved`, splits in `refresh()` once per tick). Each light keeps its own buffer. The back-face storage shows the whole cluster: inserting fills the emptiest light first, nothing can be extracted. A light that cannot pay its next tick takes energy from the fullest others (each gives at most half).
 - The battery slot accepts any item with extractable energy in the loader's energy API (`energy.Batteries` → `platform.Energy`), and is discharged into the buffer each tick while the buffer has room.
-- Cost per tick: `energyUsage` (20) for straight, ×2 for cones; fluorescent 2; UV 80; grow light 40.
+- Cost per tick: `energyUsage` for straight, ×2 for cones; `energyUsageSmallFloodlight` (fluorescent), `energyUsageCubeLight`, `energyUsageUVFloodlight`, `energyUsageGrowLight`.
 - The carbon floodlight burns one furnace fuel item when `timeRemaining` reaches 0:
   `timeRemaining += carbonTime × burnTime / 1600 × 20` (coal = `carbonTime` seconds of straight light). The mode does not matter when refuelling; instead every tick the light runs uses up 1 (straight) or 2 (both cones, `CarbonFuel.drain`) of it, so cones burn fuel twice as fast. The GUI shows the time left in the current mode (`CarbonFuel.runTicks`). Refuelling happens even while the light is off.
   If the formula gives 0 ticks (tiny burn time, or `carbonTime = 0`), the item is **not** consumed (`FuelTimer.refuel` returns false).
@@ -484,7 +485,7 @@ The timeout still applies: toggling `LIT` is much cheaper than placing blocks, b
 
 | Action | Effect |
 | --- | --- |
-| Sneak + right-click, empty hand | toggle redstone invert (chat message "Inverted: true/false") |
+| Sneak + right-click, empty hand | toggle redstone invert (chat message "Inverted: true/false"; if the light now waits for its timeout, also "The light will turn on in x seconds") |
 | Right-click with a stick or wrench | floodlights and grow light: cycle the mode (chat message "Mode: …"); small fluorescent light: turn it by 90°; square fluorescent and UV floodlight: nothing to set, the GUI opens |
 | Sneak + right-click with a wrench | break the block and drop it |
 | Right-click with dye | set render colour (dye index); right-click with white wool resets it (colour 16 = no tint) |
@@ -509,15 +510,15 @@ The client needs `color` and `camo` (and later `rotationState`) for rendering: s
 ### 6.8 Grow light
 
 - Target = the block two in front. It grows only if the block in front is air or a phantom light (phantom lights count as air) and the target is a `BonemealableBlock` that `isValidBonemealTarget` (`VersionCompat`). Call `performBonemeal` on it. Growth only happens on ticks the light runs (and pays), also in black-light mode.
-- The next grow tick is random: `nextGrowTick = now + rand(20 / chance) + 0.5 × 20 / chance` (`chanceGrowLight` = 0.05, so 1 growth per ~20 s on average). With `chanceGrowLight = 0` the crop never grows.
+- The next grow tick is random: `nextGrowTick = now + rand(20 / chance) + 0.5 × 20 / chance` (one growth per `1 / chanceGrowLight` seconds on average). With `chanceGrowLight = 0` the crop never grows.
 
 ### 6.9 UV light damage
 
 UV light blocks follow the same model as phantom lights (§6.3): they stay while their UV floodlight exists, and `LIT` switches them on and off (light level 4 ↔ 0).
 The UV beam takes over phantom lights in its way (`LightBlock#canReplace`); the floodlights re-cast and pass the UV light block without light. A UV light block removes itself with neighbour updates (`removalFlags`), so those floodlights re-cast and fill the gap again.
 Rendering: only while lit and if `uvLightRendered` is on (`getRenderShape`), cutout render layer, faces between UV light blocks hidden.
-Once per second each **lit** `uv_light` block damages every `LivingEntity` in its 1×1×1 box by `damageUVFloodlight` (4.0). Use a custom damage type `openmodularlighting:uv_light` (datagen). The old mod used cactus damage.
-Unlike phantom lights, UV light BEs have to tick for the damage. They do nothing (no entity query) while unlit, and once per second while lit. There are at most `rangeUVFloodlight` (default 8, max 32) per UV floodlight.
+Once per second each **lit** `uv_light` block damages every `LivingEntity` in its 1×1×1 box by `damageUVFloodlight`. Use a custom damage type `openmodularlighting:uv_light` (datagen). The old mod used cactus damage.
+Unlike phantom lights, UV light BEs have to tick for the damage. They do nothing (no entity query) while unlit, and once per second while lit. There are at most `rangeUVFloodlight` per UV floodlight.
 
 ### 6.10 Config
 
@@ -526,25 +527,29 @@ Unlike phantom lights, UV light BEs have to tick for the damage. They do nothing
 - Fields are documented with `@Comment` and range-checked with `@Range` (package `config`). `ConfigWriter` writes them as `//` comments (JSONC) above each key, together with the default, and `ConfigRanges` clamps on load. Add both annotations to every new config field.
 - Server-authoritative values that clients need (e.g. for tooltips) are synced on join.
 - Read values with `OMLConfig.get()` (for example `OMLConfig.get().general.rangeStraightFloodlight`). Never cache them: on a client connected to a server, `get()` returns the server's config, and after disconnecting it returns the local one again.
+- **Versioning** (as in OpenModularTurrets): the file records `configVersion`; files without it are version 1. On load, `ConfigMigration` replaces values that still equal an old default with the new one, then saves the file with the current version, so it runs once per file and values an owner chose stay.
+  **When you change a default, raise `CURRENT_VERSION` and add a step** (with a test in `ConfigMigrationTest`).
 - New fields go into `ConfigData` (sections `blocks` and `general`). Only `int`, `double`, `boolean` and `List<String>` are supported. Unknown keys are removed and wrong types reset to the default on load.
 
-Fields with default and range:
+Fields (defaults and ranges are only in `ConfigData`, in `@Range` and the field initialisers; do not repeat them in docs):
 
-| Field | Default | Range | Meaning |
-| --- | --- | --- | --- |
-| `electricFloodlightEnabled`, `smallElectricFloodlightEnabled`, `carbonFloodlightEnabled`, `uvFloodlightEnabled`, `growLightEnabled` | true | – | enable block (recipes) |
-| `energyUsage` | 20 | 0–1000 | E/t electric floodlight (×2 for cones) |
-| `energyUsageSmallFloodlight` | 2 | 0–100 | E/t fluorescent lights |
-| `energyUsageUVFloodlight` | 80 | 0–800 | E/t UV floodlight |
-| `energyUsageGrowLight` | 40 | 0–800 | E/t grow light |
-| `carbonTime` | 300 | 0–1000 | seconds one coal lasts (straight) |
-| `rangeStraightFloodlight` | 64 | 1–128 | straight beam range |
-| `rangeConeFloodlight` | 32 | 1–64 | cone range (wide cone = ¼) |
-| `rangeUVFloodlight` | 8 | 1–32 | UV beam range |
-| `chanceGrowLight` | 0.05 | 0–1 | growth chance per second |
-| `timeoutFloodlights` | 40 | 1–240 | ticks before a light can turn on again |
-| `damageUVFloodlight` | 4.0 | 1–16 | UV damage per second |
-| `uvLightRendered` | true | – | client: show UV light blocks |
+| Field | Meaning |
+| --- | --- |
+| `electricFloodlightEnabled`, `smallElectricFloodlightEnabled`, `carbonFloodlightEnabled`, `uvFloodlightEnabled`, `growLightEnabled` | enable block (recipes) |
+| `configVersion` | layout version of the file, for `ConfigMigration`; not meant to be edited |
+| `energyUsage` | E/t electric floodlight (×2 for cones) |
+| `energyUsageSmallFloodlight` | E/t fluorescent lights |
+| `energyUsageCubeLight` | E/t cube light |
+| `energyUsageUVFloodlight` | E/t UV floodlight |
+| `energyUsageGrowLight` | E/t grow light |
+| `carbonTime` | seconds one coal lasts (straight) |
+| `rangeStraightFloodlight` | straight beam range |
+| `rangeConeFloodlight` | cone range (wide cone = ¼) |
+| `rangeUVFloodlight` | UV beam range |
+| `chanceGrowLight` | growth chance per second |
+| `timeoutFloodlights` | ticks before a light can turn on again |
+| `damageUVFloodlight` | UV damage per second |
+| `uvLightRendered` | client: show UV light blocks |
 
 `IGWNotifierEnabled` is dropped.
 

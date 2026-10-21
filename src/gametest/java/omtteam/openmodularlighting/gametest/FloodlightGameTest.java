@@ -78,6 +78,29 @@ public class FloodlightGameTest implements OMLGameTests {
     }
 
     @GameTest(template = EMPTY_STRUCTURE)
+    public void waitsForTheTimeoutBeforeTurningBackOn(GameTestHelper helper) {
+        ElectricFloodlightBlockEntity light = placeElectric(helper);
+        light.getEnergyStore().setAmountUnchecked(ElectricFloodlightBlockEntity.CAPACITY);
+        BlockPos pos = helper.absolutePos(LIGHT);
+        helper.setBlock(REDSTONE, Blocks.REDSTONE_BLOCK);
+        helper.runAfterDelay(3, () -> helper.setBlock(REDSTONE, Blocks.AIR));
+        helper.runAfterDelay(5, () -> {
+            helper.assertTrue(!light.isLightOn(), "off");
+            helper.assertTrue(light.ticksUntilOn(helper.getLevel()) == 0, "no wait while it should stay off");
+            light.toggleInverted(); // what sneak-clicking does: it wants to turn on again during the timeout
+            int wait = light.ticksUntilOn(helper.getLevel());
+            helper.assertTrue(wait > 0, "waits for the timeout: " + wait);
+            helper.assertTrue(FloodlightBlockEntity.seconds(40).equals("2")
+                    && FloodlightBlockEntity.seconds(30).equals("1.5"), "seconds text");
+        });
+        helper.runAfterDelay(7, () -> {
+            helper.assertTrue(!light.isLightOn(), "still off during the timeout");
+            remove(helper, pos);
+            helper.succeed();
+        });
+    }
+
+    @GameTest(template = EMPTY_STRUCTURE)
     public void staysOffWithoutEnergy(GameTestHelper helper) {
         placeElectric(helper);
         BlockPos pos = helper.absolutePos(LIGHT);

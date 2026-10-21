@@ -12,8 +12,11 @@ import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
+import omtteam.openmodularlighting.block.CarbonFloodlightBlock;
+import omtteam.openmodularlighting.block.ElectricFloodlightBlock;
 import omtteam.openmodularlighting.blockentity.FloodlightBlockEntity;
 import omtteam.openmodularlighting.camo.CamoBlock;
 import omtteam.openmodularlighting.camo.CamoRules;
@@ -45,6 +48,7 @@ public abstract class FloodlightMenu extends AbstractContainerMenu {
     private final FloodlightBlockEntity light;
     private final Predicate<ItemStack> validItem;
     private final boolean camoSlot;
+    private final boolean timeoutHint;
     /** What the disguise slot shows (filled by the server, synced to the client like any slot). */
     private final SimpleContainer camoDisplay = new SimpleContainer(1);
     protected final ContainerData data;
@@ -58,7 +62,9 @@ public abstract class FloodlightMenu extends AbstractContainerMenu {
         this.validItem = validItem;
         this.data = data;
         // the block at pos: the same on both sides, so both create the same slots
-        this.camoSlot = playerInventory.player.level().getBlockState(pos).getBlock() instanceof CamoBlock;
+        Block block = playerInventory.player.level().getBlockState(pos).getBlock();
+        this.camoSlot = block instanceof CamoBlock;
+        this.timeoutHint = block instanceof ElectricFloodlightBlock || block instanceof CarbonFloodlightBlock;
         for (int y = 0; y < 3; y++) {
             for (int x = 0; x < 9; x++) {
                 addSlot(new Slot(playerInventory, 9 + x + y * 9, 8 + x * 18, 58 + y * 18));
@@ -95,6 +101,11 @@ public abstract class FloodlightMenu extends AbstractContainerMenu {
     /** Whether this light can be disguised: the GUI shows the disguise slot. */
     public boolean hasCamoSlot() {
         return camoSlot;
+    }
+
+    /** Whether the GUI explains the timeout after turning off (the electric and carbon floodlights). */
+    public boolean hasTimeoutHint() {
+        return timeoutHint;
     }
 
     @Override

@@ -51,6 +51,28 @@ public class CubeLightGameTest implements OMLGameTests {
     }
 
     @GameTest(template = EMPTY_STRUCTURE)
+    public void turnsBackOnWithoutTimeout(GameTestHelper helper) {
+        CubeLightBlockEntity light = place(helper, LIGHT);
+        light.electricPower().store().setAmountUnchecked(ElectricPower.CAPACITY);
+        BlockPos pos = helper.absolutePos(LIGHT);
+        BlockPos below = pos.below();
+        helper.setBlock(LIGHT.above(), Blocks.REDSTONE_BLOCK);
+        helper.runAfterDelay(3, () -> {
+            helper.assertTrue(lit(helper, below), "on");
+            helper.setBlock(LIGHT.above(), Blocks.AIR);
+        });
+        helper.runAfterDelay(5, () -> {
+            helper.assertTrue(!lit(helper, below), "off");
+            helper.setBlock(LIGHT.above(), Blocks.REDSTONE_BLOCK);
+        });
+        helper.runAfterDelay(7, () -> {
+            helper.assertTrue(lit(helper, below), "on again without waiting for a timeout");
+            remove(helper, pos);
+            helper.succeed();
+        });
+    }
+
+    @GameTest(template = EMPTY_STRUCTURE)
     public void acceptsEnergyFromEverySide(GameTestHelper helper) {
         place(helper, LIGHT);
         BlockPos pos = helper.absolutePos(LIGHT);
@@ -96,6 +118,11 @@ public class CubeLightGameTest implements OMLGameTests {
     private static CubeLightBlockEntity place(GameTestHelper helper, BlockPos relative) {
         helper.setBlock(relative, ModBlocks.CUBE_LIGHT.defaultBlockState());
         return (CubeLightBlockEntity) helper.getLevel().getBlockEntity(helper.absolutePos(relative));
+    }
+
+    private static boolean lit(GameTestHelper helper, BlockPos pos) {
+        BlockState state = helper.getLevel().getBlockState(pos);
+        return state.is(ModBlocks.PHANTOM_LIGHT) && state.getValue(LightBlock.LIT);
     }
 
     private static void remove(GameTestHelper helper, BlockPos pos) {
