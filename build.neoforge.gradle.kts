@@ -16,6 +16,8 @@ val client: SourceSet = sourceSets.create("client") {
 
 // Datagen is Fabric-only by design: NeoForge gets the converted Fabric output (convertFabricData below)
 sourceSets.main { java { exclude("$packagePath/datagen/**") } }
+// The architecture rules (ArchUnit) check the Fabric node's classes; the other unit tests run here too
+sourceSets.test { java { exclude("$packagePath/architecture/**") } }
 
 // In-world tests (src/gametest): a separate test mod (openmodularlighting_gametest) that is never shipped, sharing
 // its test classes with Fabric. `check` runs them on a headless GameTest server.

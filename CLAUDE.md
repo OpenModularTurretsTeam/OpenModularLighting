@@ -27,6 +27,7 @@ Core gameplay:
   Jade is not on the NeoForge GameTest server: there it sends a packet to the tests' vanilla mock players, which NeoForge refuses.
 - **NeoForge** 21.1.x (1.21.1 only), built with **ModDevGradle** (approved by the user; build-time only).
   On NeoForge, the Fabric-only APIs above are replaced by NeoForge's own (capabilities, events, payload registration); see §4 "Loaders".
+- Build and test tools only, never in the jar (approved by the user, as in OMT): **ArchUnit** (test dependency), **JaCoCo**, **PIT** (plain `JavaExec`, no Gradle plugin) and **PMD**; versions in `gradle.properties`.
 - Nothing else without asking the user first. No Architectury, no Cloth Config, no OMLib, no Kotlin.
 - Old optional integrations (IC2, BuildCraft/CoFH/EnderIO wrenches, EnderIO wireless charging, IGW, NEI, AgriCraft, Colored Light Core) are **not** ported unless the user asks. WAILA is replaced by the Jade plugin; WTHIT is not supported (the user chose Jade only).
 
@@ -45,6 +46,7 @@ Core gameplay:
 - Build system: Gradle 9.8 (Kotlin DSL) + **Stonecutter 0.9**, with Fabric Loom 1.18 (`net.fabricmc.fabric-loom-remap`, the variant for obfuscated MC versions) on the Fabric nodes and ModDevGradle 2.0 (`net.neoforged.moddev`) on the NeoForge node.
 - Shared build logic is the convention plugin `buildSrc/src/main/kotlin/mod-common.gradle.kts` (Java toolchain, metadata templating, JUnit, `verifyCoreIsolation`, licenses in the jar via `bundled_licenses` (default: all three), publishing).
   It is mod-independent (everything comes from `gradle.properties`) and identical to OMT's copy; change both together.
+  The quality tools (ArchUnit, JaCoCo, PIT, PMD) stay in `build.fabric.gradle.kts`, as in OMT.
   The loader plugins are not on the `buildSrc` classpath; they are applied by version in `stonecutter.gradle.kts` (`apply false`) and used by the loader scripts.
 - Formatting: **Spotless** (in `stonecutter.gradle.kts`). It is deliberately light: tabs → spaces, trailing whitespace, final newline. No full formatter and no import reordering, because those would break the Stonecutter conditional comments. Run `./gradlew spotlessApply` before committing.
 - The configure step prints "Stonecutter branch root: should not be a buildable project". This is expected (Spotless on the root project) and harmless.
@@ -69,7 +71,8 @@ Check exact latest patch versions of Loader, API, Loom and Stonecutter when sett
 ├── LICENSE                     # MIT, source code
 ├── LICENSE-ART                 # CC BY-NC-SA 4.0, art (textures, models, sounds)
 ├── LICENSE-DUAL                # which license covers what; all three are bundled into the jar
-├── build.fabric.gradle.kts     # Fabric nodes (Loom, Fabric API, datagen, GameTests)
+├── build.fabric.gradle.kts     # Fabric nodes (Loom, Fabric API, datagen, GameTests, ArchUnit/JaCoCo/PIT/PMD)
+├── gradle/pmd/ruleset.xml      # PMD rules (complexity and size, report only; same as OMT's)
 ├── build.neoforge.gradle.kts   # NeoForge nodes (ModDevGradle; temporary "ported packages" filter)
 ├── buildSrc/                   # mod-common convention plugin: build logic shared by all loaders
 ├── stonecutter.gradle.kts      # Stonecutter controller (active version, loader constants, chiseled tasks)
@@ -171,6 +174,7 @@ The rules for loader differences mirror those for version differences, with one 
 ./gradlew :1.21.1-fabric:runDatagen
 ./gradlew :1.21.1-neoforge:runClient              # NeoForge client (run dir versions/1.21.1-neoforge/run)
 ./gradlew :1.21.1-neoforge:runGameTestServer      # NeoForge GameTests (also part of check/build)
+./gradlew :1.21.1-fabric:pitest                   # mutation testing of core -> versions/1.21.1-fabric/build/reports/pitest/index.html
 ./gradlew chiseledPublish                         # upload all nodes to CurseForge/Modrinth (custom task)
 ./gradlew :1.21.1-fabric:publishMods              # upload one node
 ```
@@ -224,6 +228,12 @@ The game logic of the mod lives in the `core` package and is completely free of 
 
 `./gradlew check` runs `verifyCoreIsolation`, which fails if anything under `core/` imports `net.minecraft`, `net.fabricmc`,
 `com.mojang`, `team.reborn` or non-core mod packages. Tests live in `src/test/java` (JUnit, test-only dependency).
+
+Quality tools (taken over from OMT; details in `docs/architecture.md`, "Rules the build checks" and "Code quality reports"):
+`ArchitectureTest` (`src/test/.../architecture`, ArchUnit, Fabric nodes only) checks core isolation, that main never uses client code, and package cycles against its `KNOWN_CYCLES` list (a ratchet: update the list when a cycle shrinks; never add to it without asking the user).
+PMD (`gradle/pmd/ruleset.xml`, report only, active version) measures complexity and size: `versions/1.21.1-fabric/build/reports/pmd/`.
+JaCoCo records coverage in the unit tests and on the game test server; `check` prints the line coverage of `core` per package (active version only).
+PIT (`./gradlew :1.21.1-fabric:pitest`, on demand, not part of `check`) runs mutation testing on `core`; surviving mutations show behaviour the tests do not pin down.
 
 The core layer works through small interfaces that `main` implements: `LightWorld.cellAt(pos)` classifies a block as a `Cell` (air, phantom light, UV light, opaque, transparent, unloaded; see its Javadoc for the mapping from `BlockState`), and `PowerSource` pays a tick's cost. Positions in core are the `Pos` record, not `BlockPos`; `Facing` has the same ordinal order as `Direction`.
 
@@ -644,6 +654,7 @@ Update this checklist as work progresses.
 - [x] `fabric.mod.json` templating, split source sets, datagen per version
 - [x] `verifyCoreIsolation` task + JUnit setup
 - [x] Spotless
+- [x] Quality tools from OMT: ArchUnit architecture rules, PMD report, JaCoCo coverage of core, PIT mutation testing
 - [x] GameTests (`src/gametest`, headless server, part of `check`)
 - [x] `compat/` helpers (id, NBT save/load, item data, block entity base, block interaction, menus, networking, client rendering)
 - [x] Config system (incl. server → client sync on join; sync not yet tested with a real client/server pair)

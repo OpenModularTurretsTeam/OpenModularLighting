@@ -115,13 +115,14 @@ public class PhantomLightGameTest implements OMLGameTests {
         int ambient = level.getBrightness(LightLayer.BLOCK, light);
         helper.assertTrue(ambient < 15, "test area must not be fully lit already");
         LightBlocks.join(level, light, ModBlocks.PHANTOM_LIGHT, source, true);
-        helper.runAfterDelay(5, () -> {
-            helper.assertTrue(level.getBrightness(LightLayer.BLOCK, light) == 15, "lit first");
-            LightBlocks.setActive(level, light, ModBlocks.PHANTOM_LIGHT, source, false);
-        });
-        helper.runAfterDelay(6, () -> helper.succeedWhen(() -> helper.assertTrue(
-                level.getBrightness(LightLayer.BLOCK, light) == ambient, "back to the ambient light " + ambient
-                        + ", but block light is " + level.getBrightness(LightLayer.BLOCK, light))));
+        // the light engine runs off the server thread: wait for each level instead of checking after a fixed delay
+        helper.startSequence()
+                .thenWaitUntil(() -> helper.assertTrue(level.getBrightness(LightLayer.BLOCK, light) == 15, "lit first"))
+                .thenExecute(() -> LightBlocks.setActive(level, light, ModBlocks.PHANTOM_LIGHT, source, false))
+                .thenWaitUntil(() -> helper.assertTrue(level.getBrightness(LightLayer.BLOCK, light) == ambient,
+                        "back to the ambient light " + ambient + ", but block light is "
+                                + level.getBrightness(LightLayer.BLOCK, light)))
+                .thenSucceed();
     }
 
     // ---- Random-tick cleanup ----
