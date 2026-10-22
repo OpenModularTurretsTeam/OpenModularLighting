@@ -20,17 +20,21 @@ The Minecraft-facing code around it translates between the game and the core and
 flowchart TB
     client["client<br/>screens, tint, debug renderer, tooltips<br/><i>client only</i>"]
     game["game layer (main)<br/>blocks, block entities, items, menus, network,<br/>registry, config, world, energy"]
-    platform["platform/&lt;loader&gt;<br/>entrypoints, capabilities, events"]
     compat["compat<br/>1.20.1 / 1.21.1 differences"]
+    platform["platform<br/>service interfaces (Platform, Network, Menus, Energy, Fuel, LoaderInfo),<br/>implemented per loader in platform/&lt;loader&gt;"]
     core["core<br/>game rules, plain Java"]
     client --> game
     client --> compat
+    client --> platform
     game --> compat
+    game --> platform
     game --> core
-    platform --> game
+    compat --> platform
 ```
 
 An arrow means "may use".
+The game layer and `compat` reach the loader only through the service interfaces in `platform`; `platform/<loader>` implements them and installs them first thing in its entrypoint.
+The one exception to the arrows are the entrypoints in `platform/<loader>`: they start the mod and wire the game layer to the loader (registration steps, capabilities, events), so they reference game classes such as `ModBlockEntities`.
 The other directions are forbidden:
 
 - **core** uses only Java and itself: no Minecraft, loader or other OML packages.
