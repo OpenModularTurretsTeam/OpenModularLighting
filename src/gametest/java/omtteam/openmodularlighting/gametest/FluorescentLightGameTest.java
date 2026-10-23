@@ -3,7 +3,13 @@ package omtteam.openmodularlighting.gametest;
 //? if neoforge {
 /*import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
-import omtteam.openmodularlighting.OML;
+*///?}
+//? if forge {
+/*import net.minecraftforge.gametest.GameTestHolder;
+import net.minecraftforge.gametest.PrefixGameTestTemplate;
+*///?}
+//? if neoforge || forge {
+/*import omtteam.openmodularlighting.OML;
 *///?}
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -27,7 +33,7 @@ import omtteam.openmodularlighting.registry.ModBlocks;
  * Small and square fluorescent lights (CLAUDE.md §6.2, §6.3): 5 lit neighbours, energy only from the back, the panel
  * on the back face and the small light's rotation.
  */
-//? if neoforge {
+//? if neoforge || forge {
 /*@GameTestHolder(OML.MOD_ID)
 @PrefixGameTestTemplate(false)
 *///?}

@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to Open Modular Lighting (Fabric and NeoForge). The format follows
+All notable changes to Open Modular Lighting (Fabric, NeoForge and Forge). The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 Add every user-visible change as a one-line entry under **Unreleased** (sections: Added, Changed, Fixed, Removed),
@@ -8,6 +8,10 @@ by hand or with `./gradlew changelogEntry --type=added --entry="…"`. Before a 
 turns *Unreleased* into the release section; `chiseledPublish` uploads exactly that section.
 
 ## [Unreleased]
+
+### Added
+
+- Forge 1.20.1 build (not uploaded yet)
 
 ## [1.0.0-beta.4] - 2026-10-21
 

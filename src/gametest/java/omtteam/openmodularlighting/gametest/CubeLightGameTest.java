@@ -3,7 +3,13 @@ package omtteam.openmodularlighting.gametest;
 //? if neoforge {
 /*import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
-import omtteam.openmodularlighting.OML;
+*///?}
+//? if forge {
+/*import net.minecraftforge.gametest.GameTestHolder;
+import net.minecraftforge.gametest.PrefixGameTestTemplate;
+*///?}
+//? if neoforge || forge {
+/*import omtteam.openmodularlighting.OML;
 *///?}
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -26,7 +32,7 @@ import omtteam.openmodularlighting.energy.ElectricPower;
 import omtteam.openmodularlighting.registry.ModBlocks;
 
 /** Cube light: 6 lit neighbours, energy from every side, shared with touching cube lights. */
-//? if neoforge {
+//? if neoforge || forge {
 /*@GameTestHolder(OML.MOD_ID)
 @PrefixGameTestTemplate(false)
 *///?}
@@ -105,7 +111,7 @@ public class CubeLightGameTest implements OMLGameTests {
     public void debugToolChargesTheLight(GameTestHelper helper) {
         CubeLightBlockEntity light = place(helper, LIGHT);
         BlockPos pos = helper.absolutePos(LIGHT);
-        Player player = helper.makeMockServerPlayerInLevel();
+        Player player = OMLGameTests.mockPlayer(helper);
         player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(ModItems.LIGHT_DEBUG_TOOL));
         BlockState state = helper.getLevel().getBlockState(pos);
         ((InteractiveBlock) state.getBlock()).onUse(state, helper.getLevel(), pos, player, InteractionHand.MAIN_HAND,
