@@ -1,6 +1,7 @@
 package omtteam.openmodularlighting.blockentity;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
@@ -26,7 +27,9 @@ public class UvLightBlockEntity extends LightBlockEntity {
 
     public static void serverTick(Level level, BlockPos pos, BlockState state, UvLightBlockEntity light) {
         if (!state.getValue(LightBlock.LIT) || level.getGameTime() % DAMAGE_INTERVAL != DAMAGE_PHASE) return;
-        DamageSource source = level.damageSources().source(ModDamageTypes.UV_LIGHT);
+        // built from the damage type: DamageSources#source is private in vanilla 1.20.1 (Fabric API widens it, Forge does not)
+        DamageSource source = new DamageSource(level.registryAccess().registryOrThrow(Registries.DAMAGE_TYPE)
+                .getHolderOrThrow(ModDamageTypes.UV_LIGHT));
         float damage = (float) OMLConfig.get().general.damageUVFloodlight;
         for (LivingEntity entity : level.getEntitiesOfClass(LivingEntity.class, new AABB(pos))) {
             entity.hurt(source, damage);

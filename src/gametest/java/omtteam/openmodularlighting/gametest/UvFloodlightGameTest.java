@@ -3,7 +3,13 @@ package omtteam.openmodularlighting.gametest;
 //? if neoforge {
 /*import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
-import omtteam.openmodularlighting.OML;
+*///?}
+//? if forge {
+/*import net.minecraftforge.gametest.GameTestHolder;
+import net.minecraftforge.gametest.PrefixGameTestTemplate;
+*///?}
+//? if neoforge || forge {
+/*import omtteam.openmodularlighting.OML;
 *///?}
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -25,7 +31,7 @@ import omtteam.openmodularlighting.registry.ModBlocks;
  * UV floodlight and UV light block (CLAUDE.md §6.3, §6.9): a beam of UV light blocks that damage living entities only
  * while lit, take over phantom lights and give them back when removed.
  */
-//? if neoforge {
+//? if neoforge || forge {
 /*@GameTestHolder(OML.MOD_ID)
 @PrefixGameTestTemplate(false)
 *///?}

@@ -3,7 +3,13 @@ package omtteam.openmodularlighting.gametest;
 //? if neoforge {
 /*import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
-import omtteam.openmodularlighting.OML;
+*///?}
+//? if forge {
+/*import net.minecraftforge.gametest.GameTestHolder;
+import net.minecraftforge.gametest.PrefixGameTestTemplate;
+*///?}
+//? if neoforge || forge {
+/*import omtteam.openmodularlighting.OML;
 *///?}
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -35,7 +41,7 @@ import java.util.List;
  * the GUI, and that the disguise is saved, sent to clients and kept on the dropped item. The rendering itself is
  * client-only (check it with {@code runClient}).
  */
-//? if neoforge {
+//? if neoforge || forge {
 /*@GameTestHolder(OML.MOD_ID)
 @PrefixGameTestTemplate(false)
 *///?}
@@ -61,7 +67,7 @@ public class CamoGameTest implements OMLGameTests {
     @GameTest(template = EMPTY_STRUCTURE)
     public void disguiseSlotSetsAndRemovesTheDisguise(GameTestHelper helper) {
         FloodlightBlockEntity light = place(helper, ModBlocks.ELECTRIC_FLOODLIGHT);
-        Player player = helper.makeMockServerPlayerInLevel();
+        Player player = OMLGameTests.mockPlayer(helper);
         ElectricFloodlightMenu menu = ElectricFloodlightMenu.server(0, player.getInventory(), light, light.electricPower());
         helper.assertTrue(menu.hasCamoSlot(), "electric floodlight has the disguise slot");
 
@@ -87,7 +93,7 @@ public class CamoGameTest implements OMLGameTests {
     public void shiftClickSetsTheDisguiseUnlessTheBlockFitsTheLightsSlot(GameTestHelper helper) {
         helper.setBlock(LIGHT, ModBlocks.CARBON_FLOODLIGHT.defaultBlockState().setValue(FloodlightBlock.FACING, Direction.UP));
         CarbonFloodlightBlockEntity light = (CarbonFloodlightBlockEntity) helper.getLevel().getBlockEntity(helper.absolutePos(LIGHT));
-        Player player = helper.makeMockServerPlayerInLevel();
+        Player player = OMLGameTests.mockPlayer(helper);
         CarbonFloodlightMenu menu = CarbonFloodlightMenu.server(0, player.getInventory(), light);
 
         player.getInventory().setItem(9, new ItemStack(Items.STONE_BRICKS));
@@ -109,7 +115,7 @@ public class CamoGameTest implements OMLGameTests {
     public void panelLightsCannotBeDisguised(GameTestHelper helper) {
         helper.setBlock(LIGHT, ModBlocks.SQUARE_FLUORESCENT_LIGHT.defaultBlockState());
         FloodlightBlockEntity light = (FloodlightBlockEntity) helper.getLevel().getBlockEntity(helper.absolutePos(LIGHT));
-        Player player = helper.makeMockServerPlayerInLevel();
+        Player player = OMLGameTests.mockPlayer(helper);
         ElectricFloodlightMenu menu = ElectricFloodlightMenu.server(0, player.getInventory(), light, light.electricPower());
         helper.assertTrue(!menu.hasCamoSlot(), "no disguise slot");
         helper.assertTrue(menu.slots.size() == FloodlightMenu.CAMO_SLOT, "37 slots, got " + menu.slots.size());

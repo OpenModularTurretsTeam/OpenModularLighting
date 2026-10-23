@@ -38,7 +38,7 @@ The one exception to the arrows are the entrypoints in `platform/<loader>`: they
 The other directions are forbidden:
 
 - **core** uses only Java and itself: no Minecraft, loader or other OML packages.
-  The `verifyCoreIsolation` task (part of `check`) fails the build if a file under `core/` imports `net.minecraft`, `net.fabricmc`, `net.neoforged`, `com.mojang`, `team.reborn` or a non-core OML package, and `ArchitectureTest.coreDependsOnlyOnCoreAndJava` checks the same on the compiled classes.
+  The `verifyCoreIsolation` task (part of `check`) fails the build if a file under `core/` imports `net.minecraft`, `net.fabricmc`, `net.neoforged`, `net.minecraftforge`, `com.mojang`, `team.reborn` or a non-core OML package, and `ArchitectureTest.coreDependsOnlyOnCoreAndJava` checks the same on the compiled classes.
 - **main** code never uses **client** code: the client classes do not exist on a dedicated server.
   The split source sets make it a compile error on every node (the `client` source set sees `main`, not the other way round), and `ArchitectureTest.mainCodeNeverDependsOnClientCode` checks it on the compiled classes.
 
@@ -60,11 +60,11 @@ A light's beam is the game-layer class `blockentity.LightBeam`, which calls `Bea
 
 ## Where things live
 
-Source sets (Loom split source sets on Fabric, the same split built by hand on NeoForge, plus the two test sets):
+Source sets (Loom split source sets on Fabric, the same split built by hand on NeoForge and Forge, plus the two test sets):
 
 | Source set | Contents | Shipped |
 | --- | --- | --- |
-| `src/main` | everything that runs on both sides, including `fabric.mod.json` and `neoforge.mods.toml` (templated) | yes |
+| `src/main` | everything that runs on both sides, including `fabric.mod.json`, `neoforge.mods.toml` and `mods.toml` (Forge; all templated) | yes |
 | `src/client` | screens, tint, disguise models, debug renderer, client networking | yes, client only |
 | `src/test` | JUnit tests of the core and the config, and the architecture rules (`ArchitectureTest`) | no |
 | `src/gametest` | in-world GameTests as a separate test mod (own mod id), shared by both loaders | no |
@@ -92,7 +92,7 @@ Packages below `omtteam.openmodularlighting` (main):
 | `network` | `OMLPackets` (all packet types) and `ConfigSyncPacket` |
 | `config` | the JSON config: `ConfigData` (fields), `@Comment`, `@Range`, `ConfigWriter`, `ConfigRanges`, `ConfigValidator`, `OMLConfig` (load, save, sync) |
 | `compat` | every 1.20.1 / 1.21.1 difference (`VersionCompat`, `CompatBlockEntity`, `InteractiveBlock`, `MenuCompat`, `network/`), `CommonTags`, the recipe condition, and the optional Jade plugin (`compat/jade`) |
-| `platform` | the loader services shared code calls (`Platform` holding `PlatformServices`: `LoaderInfo`, `Fuel`, `Network`, `Menus`, `Energy`); `platform.fabric` and `platform.neoforge` hold the entrypoints and implementations and only compile for their loader |
+| `platform` | the loader services shared code calls (`Platform` holding `PlatformServices`: `LoaderInfo`, `Fuel`, `Network`, `Menus`, `Energy`); `platform.fabric`, `platform.neoforge` and `platform.forge` hold the entrypoints and implementations and only compile for their loader |
 | `datagen` | recipes, loot tables, tags, damage types (Fabric only, generated per version) |
 
 The block and block entity hierarchies mirror each other:
@@ -130,21 +130,21 @@ The upper tree in each half is the **lights** (they have a `FACING`, a GUI and a
 
 ### Startup
 
-The loader entrypoint (`OMLFabric`, `OMLNeoForge`) first installs the platform services, then calls `OML.init()`.
+The loader entrypoint (`OMLFabric`, `OMLNeoForge`, `OMLForge`) first installs the platform services, then calls `OML.init()`.
 The order matters:
 
 1. `OMLPackets.init()`: the packet types (NeoForge accepts them only until its payload registration event).
 2. `OMLConfig.init()`: blocks and recipes read the config, so it comes before any registration.
 
 Then the registrations of `OML.registrationSteps()`: blocks, items, block entities, menus, creative tab.
-Fabric runs them in this order; NeoForge runs each in the `RegisterEvent` of its registry and fails at common setup if one never ran.
+Fabric runs them in this order; NeoForge and Forge run each in the `RegisterEvent` of its registry and fail at common setup if one never ran.
 A new registry class gets a `RegistrationStep` in that list, not a call in an entrypoint.
 
-Last, the entrypoint wires its loader to the shared code: the item and energy access of the lights (`FabricBlockLookups`, NeoForge capabilities), block use (`InteractiveBlock.handleUse`), the config sync on join and the recipe condition.
+Last, the entrypoint wires its loader to the shared code: the item and energy access of the lights (`FabricBlockLookups`, NeoForge capabilities, Forge capabilities attached in `AttachCapabilitiesEvent` by `ForgeLightCapabilities`), block use (`InteractiveBlock.handleUse`), the config sync on join and the recipe condition.
 
-On the client, the loader client entrypoint (`OMLFabricClient`, `OMLNeoForgeClient`) installs the client platform services and calls `OMLClient.init()`.
-It then registers what `OMLClient` lists with its loader: screens, the dye tint, tooltips and the debug renderer, and wraps the models of the `CamoBlock`s in the loader's disguise model (`FabricCamoModel`, `NeoForgeCamoModel`).
-Render layers are the one thing kept twice: `BlockRenderLayerMap` on Fabric, `"render_type"` in the block model JSON on NeoForge.
+On the client, the loader client entrypoint (`OMLFabricClient`, `OMLNeoForgeClient`, `OMLForgeClient`; Forge 1.20.1 has no client-only `@Mod` classes, so `OMLForge` constructs it by name) installs the client platform services and calls `OMLClient.init()`.
+It then registers what `OMLClient` lists with its loader: screens, the dye tint, tooltips and the debug renderer, and wraps the models of the `CamoBlock`s in the loader's disguise model (`FabricCamoModel`, `NeoForgeCamoModel`, `ForgeCamoModel`).
+Render layers are the one thing kept twice: `BlockRenderLayerMap` on Fabric, `"render_type"` in the block model JSON on NeoForge and Forge.
 
 ### A light's tick (server)
 
@@ -199,9 +199,9 @@ The numbers are in `core.formula` (`EnergyCost`, `CarbonFuel`, `GrowChance`).
 
 Outside access goes through the loader:
 
-- Energy: `core.energy.EnergyAccess`, exposed as Team Reborn Energy on Fabric (`FabricEnergyStorages`) and as an FE capability on NeoForge (`NeoForgeEnergyHandler`).
+- Energy: `core.energy.EnergyAccess`, exposed as Team Reborn Energy on Fabric (`FabricEnergyStorages`) and as an FE capability on NeoForge (`NeoForgeEnergyHandler`) and Forge (`ForgeEnergyHandler`).
   Only inserting is possible; there is no extraction.
-- Items: `inventory.ItemAccess.insertOnly`, exposed as `ItemStorage.SIDED` on Fabric (`FabricItemStorages`) and as `IItemHandler` on NeoForge.
+- Items: `inventory.ItemAccess.insertOnly`, exposed as `ItemStorage.SIDED` on Fabric (`FabricItemStorages`) and as `IItemHandler` on NeoForge and Forge.
 - Battery slot and fuel values: `platform.Energy` and `platform.Fuel`.
 
 ### Shared energy of panel lights
@@ -238,7 +238,7 @@ The block entity returns it from `currentShape()` and puts everything it depends
 ### A light
 
 1. A block extending `FloodlightBlock` (or `PanelLightBlock`) and a block entity extending `FloodlightBlockEntity` (or `PanelLightBlockEntity`); the block entity chooses `power()`, `currentShape()` and `shapeKey()`.
-2. Register block, item and block entity in `ModBlocks`, `ModItems`, `ModBlockEntities`; add it to the lookups of both loaders if it has energy or item access (`FabricBlockLookups`, the capability registration in `OMLNeoForge`, both use `ModBlockEntities.lights()`).
+2. Register block, item and block entity in `ModBlocks`, `ModItems`, `ModBlockEntities`; add it to the lookups of both loaders if it has energy or item access (`FabricBlockLookups` and the capability registration in `OMLNeoForge` use `ModBlockEntities.lights()`; Forge attaches its capabilities to every `FloodlightBlockEntity`).
 3. Blockstate, model, lang entries (`en_us`, `de_de`, `ru_ru`), and the recipe, loot table and tags in `datagen`.
 4. A GameTest in `src/gametest` (and its entry in `src/gametest/resources/fabric.mod.json`), and an entry in `docs/id-mapping.md` if it replaces a block of the old mod.
 
@@ -254,8 +254,8 @@ A packet from the client must be validated on the server before it changes anyth
 
 ### A loader service
 
-If shared code needs something only a loader can do, define a small interface in `platform` (design it first, see `CLAUDE.md` section 7), add it to `PlatformServices` (every entrypoint then fails to compile until it supplies one) and implement it in `platform/fabric` and `platform/neoforge`.
-Whole loader-specific classes go into those packages; a small difference inside a shared class uses `//? if fabric {` / `//? if neoforge {`, but only in `compat/` and `platform/`.
+If shared code needs something only a loader can do, define a small interface in `platform` (design it first, see `CLAUDE.md` section 7), add it to `PlatformServices` (every entrypoint then fails to compile until it supplies one) and implement it in `platform/fabric`, `platform/neoforge` and `platform/forge`.
+Whole loader-specific classes go into those packages; a small difference inside a shared class uses `//? if fabric {` / `//? if neoforge {` / `//? if forge {` (or `neoforge || forge` where both share an API), but only in `compat/` and `platform/`.
 
 ### Code that differs between 1.20.1 and 1.21.1
 
@@ -268,7 +268,7 @@ The table of known differences is in `CLAUDE.md`, section 5.
 
 Never handwrite files under `data/`: add them to the providers in `datagen` and run `./gradlew :1.21.1-fabric:runDatagen :1.20.1-fabric:runDatagen`.
 The output is committed per version.
-The NeoForge build converts the Fabric 1.21.1 output at build time, so nothing NeoForge-specific is committed.
+The NeoForge build converts the Fabric 1.21.1 output and the Forge build the Fabric 1.20.1 output at build time (`convertFabricData` in `buildSrc`), so nothing loader-specific is committed.
 
 ## Rules the build checks
 
@@ -279,9 +279,9 @@ The NeoForge build converts the Fabric 1.21.1 output at build time, so nothing N
 | core uses only Java and core | `ArchitectureTest.coreDependsOnlyOnCoreAndJava` and the `verifyCoreIsolation` task |
 | main code never uses client code | `ArchitectureTest.mainCodeNeverDependsOnClientCode` |
 | no new package cycles, and the known ones only shrink | `ArchitectureTest.noNewPackageCycles` (list `KNOWN_CYCLES`) |
-| core rules and the config behave as specified | unit tests in `src/test` (they run on the NeoForge node too) |
+| core rules and the config behave as specified | unit tests in `src/test` (they run on the NeoForge and Forge nodes too) |
 | the beam shapes still equal the reference loops (with thinning) | `BeamCasterTest` against `Legacy1710Beams` |
-| lights, light blocks, energy, items, recipes and Jade work in a real world | GameTests in `src/gametest`: Fabric `runGameTest`, NeoForge `runGameTestServer` |
+| lights, light blocks, energy, items, recipes and Jade work in a real world | GameTests in `src/gametest`: Fabric `runGameTest`, NeoForge and Forge `runGameTestServer` |
 | formatting (tabs, trailing whitespace, final newline) | `spotlessCheck` |
 | the changelog has a section for the version being published | `publishMods` |
 
@@ -302,7 +302,7 @@ These tools measure the code but do not fail the build:
 | Test coverage of `core` (JaCoCo, from the unit tests and the GameTests) | part of `check`, which prints the line coverage per package | `versions/1.21.1-fabric/build/reports/jacoco/test/html/index.html` |
 | Mutation testing of `core` (PIT, with the unit tests) | `./gradlew :1.21.1-fabric:pitest` (on demand, not part of `check`) | `versions/1.21.1-fabric/build/reports/pitest/index.html` (and `mutations.xml`) |
 
-They run on the active Fabric node only (all nodes share the source); code in `platform/neoforge` is covered by the NeoForge GameTests, not by coverage or mutation testing.
+They run on the active Fabric node only (all nodes share the source); code in `platform/neoforge` and `platform/forge` is covered by their GameTests, not by coverage or mutation testing.
 The tool versions are in `gradle.properties` (`pmd_version`, `jacoco_version`, `pitest_version`, `archunit_version`).
 
 PMD reports only for now; it does not fail the build.
@@ -342,4 +342,4 @@ They are known and measured, not hidden:
   The beam (cast, diff and shape cache) is already in `LightBeam`; the slot would be the next candidate to move out.
 - **Phantom lights beside skipped positions.** Because of the thinning (`core.beam.Spacing`), a block change next to a position without a light block may reach no light block at all, so the beam notices it only at the periodic re-check (10 to 30 s).
 - **The client is untested** except by hand, since Fabric's client GameTests need Minecraft 1.21.4 or newer.
-- **Render layers are kept twice** (Fabric in code, NeoForge in the model JSON) and must be changed together.
+- **Render layers are kept twice** (Fabric in code, NeoForge and Forge in the model JSON) and must be changed together.

@@ -3,7 +3,13 @@ package omtteam.openmodularlighting.gametest;
 //? if neoforge {
 /*import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
-import omtteam.openmodularlighting.OML;
+*///?}
+//? if forge {
+/*import net.minecraftforge.gametest.GameTestHolder;
+import net.minecraftforge.gametest.PrefixGameTestTemplate;
+*///?}
+//? if neoforge || forge {
+/*import omtteam.openmodularlighting.OML;
 *///?}
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTest;
@@ -29,7 +35,7 @@ import omtteam.openmodularlighting.world.Positions;
  * In-world tests of the phantom light block (CLAUDE.md §6.3): persistent light blocks that are switched with
  * {@code LIT}, behave like air and clean up after themselves.
  */
-//? if neoforge {
+//? if neoforge || forge {
 /*@GameTestHolder(OML.MOD_ID)
 @PrefixGameTestTemplate(false)
 *///?}

@@ -3,7 +3,13 @@ package omtteam.openmodularlighting.gametest;
 //? if neoforge {
 /*import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
-import omtteam.openmodularlighting.OML;
+*///?}
+//? if forge {
+/*import net.minecraftforge.gametest.GameTestHolder;
+import net.minecraftforge.gametest.PrefixGameTestTemplate;
+*///?}
+//? if neoforge || forge {
+/*import omtteam.openmodularlighting.OML;
 *///?}
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTest;
@@ -20,7 +26,7 @@ import omtteam.openmodularlighting.registry.ModBlocks;
 /**
  * Grow light (CLAUDE.md §6.8): hangs facing down, lights the block below it and grows the crop two blocks below.
  */
-//? if neoforge {
+//? if neoforge || forge {
 /*@GameTestHolder(OML.MOD_ID)
 @PrefixGameTestTemplate(false)
 *///?}
@@ -54,8 +60,10 @@ public class GrowLightGameTest implements OMLGameTests {
 
     @GameTest(template = EMPTY_STRUCTURE)
     public void doesNotGrowThroughABlock(GameTestHelper helper) {
-        setUp(helper);
+        // the glass first: placed next to the wheat it would update it, and wheat in a test area that is not lit yet
+        // (Forge runs the first batch right at start-up) breaks
         helper.setBlock(LIGHT.below(), Blocks.GLASS);
+        setUp(helper);
         BlockPos pos = helper.absolutePos(LIGHT);
         helper.runAfterDelay(40, () -> {
             helper.assertTrue(helper.getBlockState(CROP).getValue(CropBlock.AGE) == 0, "wheat did not grow");

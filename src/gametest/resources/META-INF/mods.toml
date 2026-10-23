@@ -1,0 +1,16 @@
+# Test mod (src/gametest), never shipped: Forge counterpart of fabric.mod.json next to it
+modLoader = "javafml"
+loaderVersion = "[47,)"
+license = "MIT"
+
+[[mods]]
+modId = "openmodularlighting_gametest"
+version = "1.0.0"
+displayName = "Open Modular Lighting Game Tests"
+
+[[dependencies.openmodularlighting_gametest]]
+modId = "openmodularlighting"
+mandatory = true
+versionRange = "*"
+ordering = "AFTER"
+side = "BOTH"
