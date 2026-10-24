@@ -81,7 +81,7 @@ final class LightBeam {
         for (BlockPos pos : shape) {
             LightBlocks.leave(world, pos, light.lightBlock(), light.getPos());
         }
-        setShape(Collections.<BlockPos>emptyList());
+        setShape(Collections.emptyList());
         shapeKey = null;
     }
 
@@ -105,7 +105,7 @@ final class LightBeam {
             setShape(PosArrays.read(tag.getIntArray(SHAPE)));
             shapeKey = tag.getIntArray(SHAPE_KEY);
         } else {
-            setShape(Collections.<BlockPos>emptyList());
+            setShape(Collections.emptyList());
             shapeKey = null;
         }
     }

@@ -33,8 +33,8 @@ Core gameplay (the same as on the main branch):
 - **Forge 1.12.2** (14.23.5.x, chosen by RetroFuturaGradle) and **Forge Energy** (`CapabilityEnergy`, part of Forge; replaces Team Reborn Energy / NeoForge FE, 1 E = 1 FE).
 - **OMLib** (required, `required-after:omlib`): the shared library of the OpenModularTurretsTeam mods (`../OMLib` in the OMTTeam 1.12 workspace). Code it already has is used from there, not duplicated: the energy buffer (`core.energy`) and its wrench (`ItemMultiTool`, accepted by `CommonTags.isWrench`).
 - Build-time only: **RetroFuturaGradle** (`com.gtnewhorizons.retrofuturagradle`, the maintained 1.12.2 toolchain, from the GTNH maven), the mod publish plugin, Spotless, JUnit 5 (5.13: the last line that runs on Java 8).
-- Nothing else without asking the user first. No mixins, no Jabel, no CTM/TOP/HWYLA dependency.
-- Jade does not exist on 1.12.2. A The One Probe or HWYLA integration would be optional and is not done; ask the user first.
+- **Hwyla** (optional, compile-only; the mod from CurseMaven, maven.tehnut.info no longer serves it): the block info overlay instead of Jade, which does not exist on 1.12.2 (requested by the user on 2026-10-24). `compat.hwyla.OMLWailaPlugin` (`@WailaPlugin`, only loaded by Hwyla) registers `FloodlightWailaProvider`; the content is `FloodlightTooltip` (invert and mode, as the main branch's Jade tooltip), switchable in Hwyla's config (`option.openmodularlighting.light`).
+- Nothing else without asking the user first. No mixins, no Jabel, no CTM/TOP dependency. A The One Probe integration would be optional and is not done; ask the user first.
 
 ---
 
@@ -434,7 +434,7 @@ Update this checklist as work progresses.
 - [x] Build: RetroFuturaGradle 2.0, Java 8 toolchain, MCP `snapshot_20171212` (was `stable_39`), reobfuscated jar, Spotless, `verifyCoreIsolation`, changelog tasks, publishing (dry run: `publish_enabled=false`)
 - [x] `core/` and `config/` from the main branch, converted to Java 8; all unit tests pass (77; the energy tests are OMLib's)
 - [x] Depends on OMLib, built in the OMTTeam 1.12 workspace and run there with OMLib, OMT and OMPD (2026-10-24); `core.energy` and the wrench check use OMLib
-- [ ] Further OMLib reuse, decisions open (see the workspace `CLAUDE.md`, phase 7): OMLib's camouflage (`ICamoSupport`, camo menu, `CamoBakedModel`) instead of `camo/` and `client/camo/`, OMLib's `core.machine.MachineMode` instead of the invert toggle
+- [ ] Further OMLib reuse, decisions open (see the workspace `CLAUDE.md`, phase 7): OMLib's camouflage (`ICamoSupport`, camo menu, `CamoBakedModel`) instead of `camo/` and `client/camo/`; OMLib's `core.machine.MachineMode` instead of the invert toggle is postponed (decided by the user: not how the lights work on 1.20.1+)
 - [x] Blocks, block entities, registration, creative tab, interaction, drops with settings
 - [x] Phantom and UV light blocks (persistent, `LIT` toggle, random-tick cleanup, neighbour re-cast), light debug tool
 - [x] Forge Energy (insert only, cluster sharing of panel and cube lights), batteries, fuel, insert-only item capability
@@ -443,4 +443,5 @@ Update this checklist as work progresses.
 - [x] Assets adapted (blockstates, square panel textures, `.lang` files), recipes as JSON with the `block_enabled` condition, smelting in code
 - [x] Dev client starts with no model, texture or recipe errors (checked 2026-10-24)
 - [ ] Checked by hand in a world (`runClient`): placing, beams on/off, modes, GUIs, energy from a mod cable, carbon fuel, UV damage, grow light, disguise rendering, tint, debug tool, dropped items, joining a dedicated server (config sync)
-- [ ] Optional block info overlay (The One Probe or HWYLA instead of Jade): ask the user first
+- [x] Block info overlay with Hwyla instead of Jade (invert, mode; config switch); not checked in a client with Hwyla yet
+- [ ] The One Probe overlay: ask the user first

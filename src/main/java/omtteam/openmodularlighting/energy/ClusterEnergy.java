@@ -35,14 +35,14 @@ public final class ClusterEnergy {
     public static boolean pull(PanelLightBlockEntity light) {
         Cluster<PanelLightBlockEntity> cluster = light.cluster();
         ElectricPower own = light.buffer();
-        if (cluster == null || cluster.size() < 2 || own == null) return true;
+        if (cluster == null || cluster.size() < 2) return true;
         long cost = own.cost();
         long stored = own.store().getAmount();
         if (cost == 0 || stored >= cost) return true;
         long wanted = Math.min(own.store().getCapacity(), cost * PULL_TICKS) - stored;
         List<PanelLightBlockEntity> donors = new ArrayList<>(cluster.members());
         donors.remove(light);
-        donors.sort(Comparator.comparingLong((PanelLightBlockEntity donor) -> amount(donor)).reversed());
+        donors.sort(Comparator.comparingLong(ClusterEnergy::amount).reversed());
         long gained = 0;
         for (PanelLightBlockEntity donor : donors) {
             if (wanted <= 0) break;
@@ -57,8 +57,7 @@ public final class ClusterEnergy {
     }
 
     private static long amount(PanelLightBlockEntity light) {
-        ElectricPower buffer = light.buffer();
-        return buffer == null ? 0 : buffer.store().getAmount();
+        return light.buffer().store().getAmount();
     }
 
     /** Inserts into one light's store; the loader adapters pass their own (Fabric: inside a transaction). */

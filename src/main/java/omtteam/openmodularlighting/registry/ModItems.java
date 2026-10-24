@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * All items of the mod; registered in {@link Registration}. Block items use the block's id. The creative tab lists
@@ -64,7 +65,7 @@ public final class ModItems {
 
     private static ItemBlock blockItem(Block block) {
         ItemBlock item = new ItemBlock(block);
-        item.setRegistryName(block.getRegistryName());
+        item.setRegistryName(Objects.requireNonNull(block.getRegistryName()));
         block.setCreativeTab(ModCreativeTabs.MAIN);
         return item;
     }

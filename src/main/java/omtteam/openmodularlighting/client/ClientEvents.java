@@ -25,6 +25,8 @@ import omtteam.openmodularlighting.config.OMLConfig;
 import omtteam.openmodularlighting.registry.ModBlocks;
 import omtteam.openmodularlighting.registry.ModItems;
 
+import java.util.Objects;
+
 /**
  * The client events of the mod: models (item models, state mappers, the disguise wrapper), the dye tint, the
  * "Configured" tooltip, the light debug tool and the switch back to the local config after leaving a server.
@@ -38,7 +40,7 @@ public final class ClientEvents {
     public static void registerModels(ModelRegistryEvent event) {
         for (Item item : ModItems.ALL) {
             ModelLoader.setCustomModelResourceLocation(item, 0,
-                    new ModelResourceLocation(item.getRegistryName(), "inventory"));
+                    new ModelResourceLocation(Objects.requireNonNull(item.getRegistryName()), "inventory"));
         }
         // the cube light has no front: its blockstate file only has "lit"
         ModelLoader.setCustomStateMapper(ModBlocks.CUBE_LIGHT,
@@ -51,7 +53,9 @@ public final class ClientEvents {
         for (ModelResourceLocation id : event.getModelRegistry().getKeys()) {
             if (CamoModels.isCamoModel(id)) {
                 IBakedModel model = event.getModelRegistry().getObject(id);
-                event.getModelRegistry().putObject(id, new CamoModel(model));
+                if (model != null) {
+                    event.getModelRegistry().putObject(id, new CamoModel(model));
+                }
             }
         }
     }

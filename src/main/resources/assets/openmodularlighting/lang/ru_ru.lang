@@ -33,3 +33,4 @@ tooltip.openmodularlighting.camo_slot=Нажмите полным непрозр
 tooltip.openmodularlighting.timeout_hint=После выключения светильник ждёт %s с, прежде чем снова включиться. Каждое переключение обновляет освещение всех блоков луча, поэтому задержка защищает от лагов при частом переключении.
 gui.openmodularlighting.turns_on_in=Светильник включится через %s с.
 death.attack.openmodularlighting.uv_light=%1$s сгорел в ультрафиолете
+option.openmodularlighting.light=Open Modular Lighting: лампы

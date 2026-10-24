@@ -12,14 +12,10 @@ import java.util.Objects;
  * The rays of a light, in beam space (forward = +X). Ports of the 1.7.10 shapes in
  * {@code TileEntityMetaFloodlight}, {@code TileEntitySmallFloodlight}, {@code TileEntityGrowLight} and
  * {@code TileEntityUVLight}, including their integer division.
- *
- * @param rays      the rays; a ray's parent always comes before it
- * @param frontRule whether a blocked block directly in front cancels the whole beam
- * @param spacing   which distances get a light block (the rays are followed over all of them)
  */
 public final class BeamShape {
     /** No light at all (e.g. the grow light in black-light mode). */
-    public static final BeamShape NONE = new BeamShape(Collections.<Ray>emptyList(), FrontRule.NONE);
+    public static final BeamShape NONE = new BeamShape(Collections.emptyList(), FrontRule.NONE);
 
     /**
      * Sideways directions of the cone rays in 1.7.10 order ({@code j} = 0..7: +y, -y, +z, -z and the four diagonals),
@@ -47,6 +43,11 @@ public final class BeamShape {
     private final FrontRule frontRule;
     private final Spacing spacing;
 
+    /**
+     * @param rays      the rays; a ray's parent always comes before it
+     * @param frontRule whether a blocked block directly in front cancels the whole beam
+     * @param spacing   which distances get a light block (the rays are followed over all of them)
+     */
     public BeamShape(List<Ray> rays, FrontRule frontRule, Spacing spacing) {
         this.rays = Collections.unmodifiableList(new ArrayList<>(rays));
         this.frontRule = Objects.requireNonNull(frontRule);

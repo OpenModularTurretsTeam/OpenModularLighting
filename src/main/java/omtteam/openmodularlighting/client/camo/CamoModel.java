@@ -39,7 +39,7 @@ public final class CamoModel implements IBakedModel {
         boolean lampLayer = layer == null || layer == BlockRenderLayer.CUTOUT;
         IBlockState camo = camo(state);
         if (camo == null) {
-            return lampLayer ? original.getQuads(state, side, rand) : Collections.<BakedQuad>emptyList();
+            return lampLayer ? original.getQuads(state, side, rand) : Collections.emptyList();
         }
         List<BakedQuad> quads = new ArrayList<>();
         if (layer == null || camo.getBlock().canRenderInLayer(camo, layer)) {

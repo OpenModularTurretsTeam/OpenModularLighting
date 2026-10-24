@@ -2,6 +2,7 @@ package omtteam.openmodularlighting.config;
 
 import static omtteam.openmodularlighting.TestCollections.listOf;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.gson.Gson;
@@ -57,7 +58,7 @@ class ConfigWriterTest {
         assertEquals(42, back.number);
         assertEquals(0.75D, back.inner.chance);
         assertEquals(listOf("a", "b:c"), back.names);
-        assertTrue(!json.has("ignored"));
+        assertFalse(json.has("ignored"));
     }
 
     @Test

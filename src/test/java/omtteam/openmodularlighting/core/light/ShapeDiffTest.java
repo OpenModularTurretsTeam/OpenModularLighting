@@ -8,7 +8,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import omtteam.openmodularlighting.core.math.Pos;
 import org.junit.jupiter.api.Test;
 
-import java.util.List;
 
 class ShapeDiffTest {
     private static Pos p(int x) {

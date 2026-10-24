@@ -31,11 +31,6 @@ public final class FuelPower implements LightPower {
         return stack.isEmpty() ? 0 : Math.max(0, TileEntityFurnace.getItemBurnTime(stack));
     }
 
-    /** Stored burn time, in ticks of straight light. */
-    public int ticksRemaining() {
-        return timer.ticksRemaining();
-    }
-
     /** How long the light can run on the stored burn time in its current mode (shown in the GUI). */
     public int runTicks() {
         return CarbonFuel.runTicks(timer.ticksRemaining(), mode.get());

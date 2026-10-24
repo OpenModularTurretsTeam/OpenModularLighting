@@ -30,7 +30,6 @@ import omtteam.openmodularlighting.inventory.InsertOnlyItemHandler;
 import omtteam.openmodularlighting.registry.ModBlocks;
 import omtteam.openmodularlighting.world.LightBlocks;
 
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Locale;
@@ -57,7 +56,7 @@ public abstract class FloodlightBlockEntity extends CompatBlockEntity implements
     private final CamoData camo = new CamoData();
     protected final ItemStackHandler inventory = new ItemStackHandler(1) {
         @Override
-        public boolean isItemValid(int slot, @Nonnull ItemStack stack) {
+        public boolean isItemValid(int slot, ItemStack stack) {
             return isValidItem(stack);
         }
 

@@ -24,8 +24,4 @@ public final class Positions {
     public static Facing toFacing(EnumFacing direction) {
         return Facing.byOrdinal(direction.ordinal());
     }
-
-    public static EnumFacing toDirection(Facing facing) {
-        return EnumFacing.values()[facing.ordinal()];
-    }
 }

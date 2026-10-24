@@ -14,6 +14,7 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Base of the lights that share energy (fluorescent, grow and cube lights): electric, and energy shared with the lights
@@ -108,6 +109,6 @@ public abstract class PanelLightBlockEntity extends FloodlightBlockEntity implem
 
     /** This light's own buffer (panel lights are always electric). */
     public ElectricPower buffer() {
-        return electricPower();
+        return Objects.requireNonNull(electricPower(), "panel lights are electric");
     }
 }

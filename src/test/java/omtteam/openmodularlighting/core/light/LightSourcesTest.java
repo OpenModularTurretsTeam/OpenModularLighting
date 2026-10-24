@@ -13,7 +13,6 @@ import omtteam.openmodularlighting.core.math.Pos;
 import org.junit.jupiter.api.Test;
 
 import java.util.Map;
-import java.util.Set;
 
 class LightSourcesTest {
     private static final Pos A = new Pos(1, 2, 3);
