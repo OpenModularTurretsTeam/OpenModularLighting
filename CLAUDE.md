@@ -90,7 +90,7 @@ Check exact latest patch versions of Loader, API, Loom and Stonecutter when sett
 │   │   ├── gradle.properties   # minecraft_version, fabric_api, java_version=17 …
 │   │   └── src/main/generated/ # datagen output for 1.20.1 (committed; Forge converts it, datagen_from)
 │   ├── 1.20.1-forge/
-│   │   └── gradle.properties   # forge_version, forge_dependency, minecraft_dependency (Maven range), publish_enabled=false …
+│   │   └── gradle.properties   # forge_version, forge_dependency, minecraft_dependency (Maven range) …
 │   ├── 1.21.1-fabric/
 │   │   ├── gradle.properties   # minecraft_version, fabric_api, java_version=21 …
 │   │   └── src/main/generated/ # datagen output for 1.21.1 (committed)
@@ -166,7 +166,7 @@ The rules for loader differences mirror those for version differences, with one 
 - `core/` stays loader-free (`verifyCoreIsolation` also forbids `net.neoforged` and `net.minecraftforge`).
 - **Everything compiles on NeoForge and Forge except `datagen`,** which is Fabric-only by design (NeoForge gets the converted Fabric output, §5 "Resources strategy").
 - **Start-up:** both entrypoints call `OML.init()` (config, packets) first. Fabric then runs `OML.registrationSteps()` in order; NeoForge runs each `RegistrationStep` in the `RegisterEvent` of its registry and throws at common setup if a step never ran. A new registry class gets a step in that list, not a call in an entrypoint.
-- NeoForge is published like the Fabric nodes. The Forge node has `publish_enabled=false` until the user wants Forge releases. `publish_enabled=false` in a node's `gradle.properties` would make that node a dry run even with tokens (`mod-common`).
+- NeoForge and Forge are published like the Fabric nodes (Forge uploads `reobfJar`). `publish_enabled=false` in a node's `gradle.properties` would make that node a dry run even with tokens (`mod-common`).
 
 ### Forge 1.20.1
 
@@ -229,7 +229,7 @@ The node `1.20.1-forge` follows the NeoForge setup; these are the differences:
   /*@GameTestHolder(OML.MOD_ID)
   @PrefixGameTestTemplate(false)
   *///?}
-  public class FooGameTest implements OMLGameTests {
+  public class FooGameTest implements OMLGameTests
   ```
 
   Add a new test class to the `fabric-gametest` entrypoint in `src/gametest/resources/fabric.mod.json` as well (NeoForge finds it through `@GameTestHolder`).
@@ -734,7 +734,7 @@ Update this checklist as work progresses.
 
 ### Forge 1.20.1 (branch `forge-test`, to be taken over by OMT)
 
-- [x] Build: node `1.20.1-forge`, `build.forge.gradle.kts` (legacy ModDevGradle, `reobfJar`, remapped Jade), `forge` constant, `mods.toml` template (+ test mod), `mod-common` knows `forge`, `convertFabricData` moved to `buildSrc` (NeoForge and Forge), generated `pack.mcmeta`, publishing disabled (`publish_enabled=false`)
+- [x] Build: node `1.20.1-forge`, `build.forge.gradle.kts` (legacy ModDevGradle, `reobfJar`, remapped Jade), `forge` constant, `mods.toml` template (+ test mod), `mod-common` knows `forge`, `convertFabricData` moved to `buildSrc` (NeoForge and Forge), generated `pack.mcmeta`, publishing (enabled on 2026-10-24)
 - [x] `platform/forge`: `OMLForge`, all five services, `ForgeLightCapabilities` (items, energy), `ForgeBlockEnabledCondition`; client `OMLForgeClient`, `ForgeClientNetwork`, `ForgeCamoModel`
 - [x] GameTests on Forge: `OMLForgeGameTests`, `ForgeTestTransfer`, `ForgeTestBattery`; `OMLGameTests.mockPlayer`; all 57 pass
 - [ ] Checked by hand in a Forge client (`:1.20.1-forge:runClient`): screens, tint, camouflage rendering, debug renderer, Jade, joining a dedicated server (config sync over the event channels)

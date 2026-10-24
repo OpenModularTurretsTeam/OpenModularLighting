@@ -9,9 +9,11 @@ turns *Unreleased* into the release section; `chiseledPublish` uploads exactly t
 
 ## [Unreleased]
 
+## [1.0.0-beta.5] - 2026-10-24
+
 ### Added
 
-- Forge 1.20.1 build (not uploaded yet)
+- Forge 1.20.1 build
 
 ## [1.0.0-beta.4] - 2026-10-21
 

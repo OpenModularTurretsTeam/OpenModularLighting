@@ -67,13 +67,13 @@ Source sets (Loom split source sets on Fabric, the same split built by hand on N
 | `src/main` | everything that runs on both sides, including `fabric.mod.json`, `neoforge.mods.toml` and `mods.toml` (Forge; all templated) | yes |
 | `src/client` | screens, tint, disguise models, debug renderer, client networking | yes, client only |
 | `src/test` | JUnit tests of the core and the config, and the architecture rules (`ArchitectureTest`) | no |
-| `src/gametest` | in-world GameTests as a separate test mod (own mod id), shared by both loaders | no |
+| `src/gametest` | in-world GameTests as a separate test mod (own mod id), shared by all loaders | no |
 
 Packages below `omtteam.openmodularlighting` (main):
 
 | Package | Responsibility |
 | --- | --- |
-| `OML` | `MOD_ID`, `OML.id(path)`, `init()` and `registrationSteps()`, used by both entrypoints |
+| `OML` | `MOD_ID`, `OML.id(path)`, `init()` and `registrationSteps()`, used by every loader entrypoint |
 | `core.math` | `Pos`, `Facing`, `Rotation` (rotates the shapes to the facing) |
 | `core.beam` | `BeamShape` (the ray patterns), `BeamMode` and `GrowMode`, `Spacing` (the thinning of light blocks along a beam), `Ray` |
 | `core.light` | `BeamCaster` (walks the rays), `LightWorld` and `Cell`, `LightType`, `LightSources` (all and active sources of a light block), `ShapeDiff` |
@@ -238,7 +238,7 @@ The block entity returns it from `currentShape()` and puts everything it depends
 ### A light
 
 1. A block extending `FloodlightBlock` (or `PanelLightBlock`) and a block entity extending `FloodlightBlockEntity` (or `PanelLightBlockEntity`); the block entity chooses `power()`, `currentShape()` and `shapeKey()`.
-2. Register block, item and block entity in `ModBlocks`, `ModItems`, `ModBlockEntities`; add it to the lookups of both loaders if it has energy or item access (`FabricBlockLookups` and the capability registration in `OMLNeoForge` use `ModBlockEntities.lights()`; Forge attaches its capabilities to every `FloodlightBlockEntity`).
+2. Register block, item and block entity in `ModBlocks`, `ModItems`, `ModBlockEntities`; add it to the lookups of every loader if it has energy or item access (`FabricBlockLookups` and the capability registration in `OMLNeoForge` use `ModBlockEntities.lights()`; Forge attaches its capabilities to every `FloodlightBlockEntity`).
 3. Blockstate, model, lang entries (`en_us`, `de_de`, `ru_ru`), and the recipe, loot table and tags in `datagen`.
 4. A GameTest in `src/gametest` (and its entry in `src/gametest/resources/fabric.mod.json`), and an entry in `docs/id-mapping.md` if it replaces a block of the old mod.
 

@@ -1,6 +1,6 @@
 # Open Modular Lighting
 
-Floodlights for **Fabric** (Minecraft 1.20.1 and 1.21.1) and **NeoForge** (Minecraft 1.21.1).
+Floodlights for **Fabric** (Minecraft 1.20.1 and 1.21.1), **NeoForge** (Minecraft 1.21.1) and **Forge** (Minecraft 1.20.1).
 Open Modular Lighting is a port of the Forge 1.7.10 mod *FloodLights* by Keridos.
 It lights up large areas with invisible light blocks placed along a beam, so you can light a cave, a farm or a base without placing torches everywhere.
 
@@ -41,7 +41,7 @@ plants. When you build into a beam or remove a block from it, the beam adjusts.
 
 ### Power
 
-- Electric lights take energy from cables and generators of other tech mods: on Fabric through **Team Reborn Energy** (included in the mod, e.g. Tech Reborn), on NeoForge as **Forge Energy** (FE, 1 FE = 1 E).
+- Electric lights take energy from cables and generators of other tech mods: on Fabric through **Team Reborn Energy** (included in the mod, e.g. Tech Reborn), on NeoForge and Forge as **Forge Energy** (FE, 1 FE = 1 E).
   Each light stores 50 000 E.
   Fluorescent and grow lights only accept energy from the back, cube lights from every side.
 - Fluorescent and grow lights that touch and face the same way share their energy, and so do touching cube lights.
@@ -73,6 +73,7 @@ Jade is not required.
 
 - Fabric: Minecraft 1.20.1 (Java 17) or 1.21.1 (Java 21), with [Fabric Loader](https://fabricmc.net/) and [Fabric API](https://modrinth.com/mod/fabric-api)
 - NeoForge: Minecraft 1.21.1 (Java 21), with [NeoForge](https://neoforged.net/) 21.1
+- Forge: Minecraft 1.20.1 (Java 17), with [Forge](https://files.minecraftforge.net/) 47.4.28 or newer
 
 ## Building from source
 
@@ -83,6 +84,7 @@ if they are missing.
 ./gradlew chiseledBuild              # build all versions and loaders (with unit tests and GameTests)
 ./gradlew :1.21.1-fabric:runClient   # start a Fabric test client
 ./gradlew :1.21.1-neoforge:runClient # start a NeoForge test client
+./gradlew :1.20.1-forge:runClient    # start a Forge test client
 ```
 
 The jars end up in `versions/<minecraft version>-<loader>/build/libs/`. See `CHANGELOG.md` for the changes.
