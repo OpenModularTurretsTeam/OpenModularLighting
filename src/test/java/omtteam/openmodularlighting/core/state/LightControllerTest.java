@@ -38,7 +38,9 @@ class LightControllerTest {
         Buffer buffer = new Buffer(100, 20);
         assertEquals(new TickResult(false, Switch.NONE, false), light.tick(false, buffer, TIMEOUT));
         assertEquals(new TickResult(false, Switch.ON, true), light.tick(true, buffer, TIMEOUT));
-        assertEquals(new TickResult(false, Switch.NONE, true), light.tick(true, buffer, TIMEOUT));
+        TickResult paid = light.tick(true, buffer, TIMEOUT);
+        assertEquals(new TickResult(false, Switch.NONE, true), paid);
+        assertTrue(paid.running());
         assertTrue(light.isOn());
         assertEquals(60, buffer.energy);
     }

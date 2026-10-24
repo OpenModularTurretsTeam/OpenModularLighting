@@ -70,6 +70,8 @@ dependencies {
     // Unit tests for the core game logic and the config (test only, not shipped)
     testImplementation(platform("org.junit:junit-bom:${property("junit_version")}"))
     testImplementation("org.junit.jupiter:junit-jupiter")
+    // equals/hashCode contracts of the core value classes (3.x: the last line running on Java 8)
+    testImplementation("nl.jqno.equalsverifier:equalsverifier:${property("equalsverifier_version")}")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
@@ -162,6 +164,58 @@ tasks {
         from(files("LICENSE", "LICENSE-ART", "LICENSE-DUAL")) {
             rename { "${it}_${base.archivesName.get()}" }
         }
+    }
+}
+
+// ---- Mutation testing (PIT): ./gradlew pitest, on demand ----
+
+// Plants small mistakes in core (flipped conditions, changed boundaries, removed calls) and checks whether a unit test
+// fails, as gradle/mod-common.gradle does in the other mods. Report only, not part of check:
+// build/reports/pitest/index.html. PIT 1.17 is the last release that runs on Java 8.
+val pitest: Configuration by configurations.creating {
+    // resolved by the pitest task only; not offered to other projects
+    isCanBeConsumed = false
+}
+
+dependencies {
+    pitest("org.pitest:pitest-command-line:${property("pitest_version")}")
+    // without its JUnit Platform: the tests' own (testRuntime) is used, an older one breaks test discovery
+    pitest("org.pitest:pitest-junit5-plugin:${property("pitest_junit5_version")}") {
+        isTransitive = false
+    }
+}
+
+val toolchainVersion = javaVersion
+
+tasks.register<JavaExec>("pitest") {
+    group = "verification"
+    description = "Mutation testing of the core logic (report in build/reports/pitest)"
+    dependsOn("testClasses")
+    val reportDir = layout.buildDirectory.dir("reports/pitest")
+    outputs.dir(reportDir)
+    classpath = pitest + sourceSets.test.get().runtimeClasspath
+    mainClass.set("org.pitest.mutationtest.commandline.MutationCoverageReport")
+    // PIT 1.17 and the tests run on the Java 8 toolchain
+    javaLauncher.set(javaToolchains.launcherFor { languageVersion.set(JavaLanguageVersion.of(toolchainVersion)) })
+    val corePackage = "$basePackage.core"
+    val sourceDirs = sourceSets.main.get().java.srcDirs.joinToString(",")
+    doFirst {
+        args = listOf(
+            "--reportDir", reportDir.get().asFile.path,
+            "--targetClasses", "$corePackage.*",
+            "--targetTests", "$corePackage.*",
+            // the tests and their helpers share the core packages (fake world, 1.7.10 reference beams)
+            "--excludedClasses", "*Test,*Test$*,*.Fake*,*.TestWorld*,*.Legacy1710Beams*",
+            // boilerplate of the classes that stand in for records (Java 8); equals stays mutated
+            "--excludedMethods", "toString,hashCode",
+            "--sourceDirs", sourceDirs,
+            "--threads", Runtime.getRuntime().availableProcessors().toString(),
+            "--outputFormats", "HTML,XML",
+            "--timestampedReports=false",
+        )
+    }
+    doLast {
+        println("PIT report: ${reportDir.get().file("index.html").asFile.toURI()}")
     }
 }
 

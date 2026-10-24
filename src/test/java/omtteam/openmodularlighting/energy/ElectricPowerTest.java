@@ -25,6 +25,16 @@ class ElectricPowerTest {
     }
 
     @Test
+    void exactlyTheCostIsEnough() {
+        assertFalse(power.hasStored());
+        assertFalse(power.canRun());
+        power.store().generate(10);
+        assertTrue(power.canRun());
+        power.run();
+        assertFalse(power.hasStored());
+    }
+
+    @Test
     void theCostIsReadEveryTick() {
         power.store().generate(15);
         cost.set(20);

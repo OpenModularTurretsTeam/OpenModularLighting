@@ -8,6 +8,11 @@ import com.google.gson.Gson;
 import com.google.gson.JsonParser;
 import org.junit.jupiter.api.Test;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+
 class ConfigDataTest {
     @Test
     void defaultsAreInsideTheirRanges() {
@@ -28,18 +33,26 @@ class ConfigDataTest {
         assertTrue(validator.changed());
     }
 
-    @Test
-    void blockSwitchesByRegistryPath() {
+    /** The blocks that are disabled when only the switch {@code field} is off. */
+    private static Set<String> disabledBy(String field) throws ReflectiveOperationException {
         ConfigData.Blocks blocks = new ConfigData().blocks;
-        blocks.carbonFloodlightEnabled = false;
-        blocks.smallElectricFloodlightEnabled = false;
-        assertFalse(blocks.isEnabled("carbon_floodlight"));
-        assertFalse(blocks.isEnabled("small_fluorescent_light"));
-        assertFalse(blocks.isEnabled("square_fluorescent_light"));
-        assertTrue(blocks.isEnabled("electric_floodlight"));
-        assertTrue(blocks.isEnabled("uv_floodlight"));
-        assertTrue(blocks.isEnabled("grow_light"));
-        assertTrue(blocks.isEnabled("something_without_a_switch"));
+        ConfigData.Blocks.class.getField(field).setBoolean(blocks, false);
+        Set<String> disabled = new HashSet<>();
+        for (String block : new String[]{"electric_floodlight", "small_fluorescent_light", "square_fluorescent_light",
+                "cube_light", "carbon_floodlight", "uv_floodlight", "grow_light", "something_without_a_switch"}) {
+            if (!blocks.isEnabled(block)) disabled.add(block);
+        }
+        return disabled;
+    }
+
+    @Test
+    void blockSwitchesByRegistryPath() throws ReflectiveOperationException {
+        assertEquals(Collections.singleton("electric_floodlight"), disabledBy("electricFloodlightEnabled"));
+        assertEquals(new HashSet<>(Arrays.asList("small_fluorescent_light", "square_fluorescent_light", "cube_light")),
+                disabledBy("smallElectricFloodlightEnabled"));
+        assertEquals(Collections.singleton("carbon_floodlight"), disabledBy("carbonFloodlightEnabled"));
+        assertEquals(Collections.singleton("uv_floodlight"), disabledBy("uvFloodlightEnabled"));
+        assertEquals(Collections.singleton("grow_light"), disabledBy("growLightEnabled"));
     }
 
     @Test

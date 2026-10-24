@@ -32,7 +32,7 @@ Core gameplay (the same as on the main branch):
 
 - **Forge 1.12.2** (14.23.5.x, chosen by RetroFuturaGradle) and **Forge Energy** (`CapabilityEnergy`, part of Forge; replaces Team Reborn Energy / NeoForge FE, 1 E = 1 FE).
 - **OMLib** (required, `required-after:omlib`): the shared library of the OpenModularTurretsTeam mods (`../OMLib` in the OMTTeam 1.12 workspace). Code it already has is used from there, not duplicated: the energy buffer (`core.energy`) and its wrench (`ItemMultiTool`, accepted by `CommonTags.isWrench`).
-- Build-time only: **RetroFuturaGradle** (`com.gtnewhorizons.retrofuturagradle`, the maintained 1.12.2 toolchain, from the GTNH maven), the mod publish plugin, Spotless, JUnit 5 (5.13: the last line that runs on Java 8).
+- Build-time only: **RetroFuturaGradle** (`com.gtnewhorizons.retrofuturagradle`, the maintained 1.12.2 toolchain, from the GTNH maven), the mod publish plugin, Spotless, JUnit 5 (5.13: the last line that runs on Java 8), EqualsVerifier (3.x: the last line that runs on Java 8) and PIT (1.17, likewise).
 - **Hwyla** (optional, compile-only; the mod from CurseMaven, maven.tehnut.info no longer serves it): the block info overlay instead of Jade, which does not exist on 1.12.2 (requested by the user on 2026-10-24). `compat.hwyla.OMLWailaPlugin` (`@WailaPlugin`, only loaded by Hwyla) registers `FloodlightWailaProvider`; the content is `FloodlightTooltip` (invert and mode, as the main branch's Jade tooltip), switchable in Hwyla's config (`option.openmodularlighting.light`).
 - Nothing else without asking the user first. No mixins, no Jabel, no CTM/TOP dependency. A The One Probe integration would be optional and is not done; ask the user first.
 
@@ -112,7 +112,9 @@ export JAVA_HOME=/usr/lib/jvm/java-25-openjdk   # Gradle needs 17+
 The game logic lives in the `core` package and is free of Minecraft imports, exactly as on the main branch: beam shapes, rotation, light-source bookkeeping, the light state machine, formulas, clusters and the energy store, with unit tests.
 `./gradlew check` runs `verifyCoreIsolation`, which fails if anything under `core/` imports `net.minecraft`, `net.minecraftforge`, `com.mojang` or non-core mod packages.
 The original beam loops are kept in the test sources as a reference (`core/light/Legacy1710Beams`); `BeamCasterTest` checks `BeamCaster` against them.
-The main branch's ArchUnit, JaCoCo, PIT and PMD setup is not on this branch.
+`./gradlew pitest` (on demand, not part of `check`) runs PIT mutation testing of `core`, as `mod-common.gradle` does in the other mods; it skips the test helpers in the core packages (`TestWorld`, `Legacy1710Beams`). Report: `build/reports/pitest/index.html`.
+`core.EqualsContractTest` checks equals and hashCode of the core value classes with EqualsVerifier.
+The main branch's ArchUnit, JaCoCo and PMD setup is not on this branch.
 
 ---
 
