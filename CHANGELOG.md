@@ -9,6 +9,10 @@ turns *Unreleased* into the release section; `chiseledPublish` uploads exactly t
 
 ## [Unreleased]
 
+### Changed
+
+- Jar files are named `openmodularlighting-<version>-mc<minecraft version>-<loader>.jar` (`-mc` instead of the `+` before the Minecraft version)
+
 ## [1.0.0-beta.5] - 2026-10-24
 
 ### Added
