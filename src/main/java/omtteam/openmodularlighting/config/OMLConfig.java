@@ -65,7 +65,7 @@ public final class OMLConfig {
     public static void onPlayerJoin(PlayerEvent.PlayerLoggedInEvent event) {
         if (!(event.player instanceof EntityPlayerMP)) return;
         EntityPlayerMP player = (EntityPlayerMP) event.player;
-        MinecraftServer server = player.mcServer;
+        MinecraftServer server = player.server;
         // The singleplayer host already uses this config
         if (server != null && (server.isDedicatedServer() || !player.getName().equals(server.getServerOwner()))) {
             OMLNetwork.CHANNEL.sendTo(new ConfigSyncPacket(GSON.toJson(local)), player);

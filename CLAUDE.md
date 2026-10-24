@@ -45,14 +45,14 @@ Core gameplay (the same as on the main branch):
 | Java | 8 (Azul toolchain, auto-provisioned) |
 | Loader | Forge 14.23.5.2847 |
 | Gradle plugin | RetroFuturaGradle 2.0.x |
-| Mappings | MCP `snapshot_20171212` (names such as `TileEntity`, `IBlockState`, `EntityPlayer`, `World`), the same as OMLib and the OMTTeam 1.12 workspace: one dev run has one set of names |
+| Mappings | MCP `stable_39` (the final 1.12 names, such as `TileEntity`, `IBlockState`, `EntityPlayer`, `World`), the same as OMLib and the OMTTeam 1.12 workspace: one dev run has one set of names |
 
 - Gradle 9.8 (Kotlin DSL), one project: `build.gradle.kts`, `settings.gradle.kts`, `gradle.properties`. No Stonecutter, no `buildSrc`.
 - **Gradle itself must run on Java 17+** (Gradle 9). In the user's shell `JAVA_HOME` points to Java 8, so run Gradle with `JAVA_HOME=/usr/lib/jvm/java-25-openjdk` (or any JDK 17+); the compile and test toolchain is Java 8 regardless.
 - The decompiled Minecraft + Forge sources are in `build/rfg/minecraft-src/java` after `./gradlew setupDecompWorkspace`. Look up exact MCP names there instead of guessing.
 - **OMLib** comes from mavenLocal (`omtteam:omlib:1.12.2-<omlib_version>`, `omlib_version` in `gradle.properties`): run `./gradlew -b build.gradle publishToMavenLocal` in OMLib first. `OML.DEPENDENCIES` says `omlib@[0.0.0,)` in the sources (dev runs, where OMLib's version stays unreplaced); `replaceOmlibRange` compiles a copy of `OML.java` with `[<omlib_version>,<next major>.0.0-alpha)`.
 - **Workspace build:** in the OMTTeam 1.12 workspace (the folder above) this mod is also built by `gradle/workspace/OpenModularLighting.gradle` (ForgeGradle 3, Gradle 4.9) against the OMLib sources and runs with the other mods in `runenv`; that build ignores `build.gradle.kts` and sets up the tests and `verifyCoreIsolation` itself.
-- **RFG and the shared MCP cache:** RFG unpacks the MCP data (`joined.srg`, `joined.exc`, patches) into `~/.gradle/caches/minecraft/de/oceanlabs/mcp/mcp_<channel>/<version>` only if that folder does not exist yet. ForgeGradle 2 (OMLib, OMT, OMPD) creates `mcp_snapshot/20171212` with the CSVs only, and RFG then fails in `generateForgeSrgMappings` ("joined.srg doesn't exist"): copy `astyle.cfg`, `exceptor.json`, `joined.exc`, `joined.srg`, `static_methods.txt` and `patches/` from another RFG mapping folder (e.g. `mcp_stable/39`) into it; they do not depend on the mapping names.
+- **RFG and the shared MCP cache:** RFG unpacks the MCP data (`joined.srg`, `joined.exc`, patches) into `~/.gradle/caches/minecraft/de/oceanlabs/mcp/mcp_<channel>/<version>` only if that folder does not exist yet; a folder created by ForgeGradle 2 holds only the CSVs and makes `generateForgeSrgMappings` fail ("joined.srg doesn't exist"). `mcp_stable/39` was created by RFG itself, so this only matters when switching mappings: copy those files from an RFG mapping folder (they do not depend on the names).
 - Formatting: Spotless (tabs → spaces, trailing whitespace, final newline), as on the main branch. Run `./gradlew spotlessApply` before committing.
 - Language: Java only.
 
@@ -431,7 +431,7 @@ Update this checklist as work progresses.
 
 ### Forge 1.12.2 (branch `1.12`)
 
-- [x] Build: RetroFuturaGradle 2.0, Java 8 toolchain, MCP `snapshot_20171212` (was `stable_39`), reobfuscated jar, Spotless, `verifyCoreIsolation`, changelog tasks, publishing (dry run: `publish_enabled=false`)
+- [x] Build: RetroFuturaGradle 2.0, Java 8 toolchain, MCP `stable_39` (`snapshot_20171212` for a few hours on 2026-10-24, while the other mods still used it), reobfuscated jar, Spotless, `verifyCoreIsolation`, changelog tasks, publishing (dry run: `publish_enabled=false`)
 - [x] `core/` and `config/` from the main branch, converted to Java 8; all unit tests pass (77; the energy tests are OMLib's)
 - [x] Depends on OMLib, built in the OMTTeam 1.12 workspace and run there with OMLib, OMT and OMPD (2026-10-24); `core.energy` and the wrench check use OMLib
 - [ ] Further OMLib reuse, decisions open (see the workspace `CLAUDE.md`, phase 7): OMLib's camouflage (`ICamoSupport`, camo menu, `CamoBakedModel`) instead of `camo/` and `client/camo/`; OMLib's `core.machine.MachineMode` instead of the invert toggle is postponed (decided by the user: not how the lights work on 1.20.1+)

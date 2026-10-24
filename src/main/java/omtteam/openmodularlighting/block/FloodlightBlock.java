@@ -117,12 +117,12 @@ public abstract class FloodlightBlock extends Block {
     @Override
     public boolean canRenderInLayer(IBlockState state, BlockRenderLayer layer) {
         if (this instanceof CamoBlock) return layer != BlockRenderLayer.TRANSLUCENT;
-        return layer == getBlockLayer();
+        return layer == getRenderLayer();
     }
 
     @Override
     public IBlockState getStateFromMeta(int meta) {
-        return getDefaultState().withProperty(FACING, EnumFacing.getFront(meta & FACING_BITS))
+        return getDefaultState().withProperty(FACING, EnumFacing.byIndex(meta & FACING_BITS))
                 .withProperty(LIT, (meta & LIT_BIT) != 0);
     }
 
@@ -140,7 +140,7 @@ public abstract class FloodlightBlock extends Block {
 
     /** The lamp overlay of the floodlights has transparent pixels (CLAUDE.md §6.11). */
     @Override
-    public BlockRenderLayer getBlockLayer() {
+    public BlockRenderLayer getRenderLayer() {
         return BlockRenderLayer.CUTOUT;
     }
 

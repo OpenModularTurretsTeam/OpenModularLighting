@@ -151,7 +151,7 @@ public abstract class LightBlock extends Block {
 
     @Override
     @SuppressWarnings("deprecation")
-    public EnumPushReaction getMobilityFlag(IBlockState state) {
+    public EnumPushReaction getPushReaction(IBlockState state) {
         return EnumPushReaction.DESTROY;
     }
 

@@ -28,7 +28,7 @@ public class CubeLightBlock extends FloodlightBlock {
 
     /** No lamp overlay, so no cutout. */
     @Override
-    public BlockRenderLayer getBlockLayer() {
+    public BlockRenderLayer getRenderLayer() {
         return BlockRenderLayer.SOLID;
     }
 

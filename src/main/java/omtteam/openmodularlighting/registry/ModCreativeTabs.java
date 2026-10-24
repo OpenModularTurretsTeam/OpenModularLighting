@@ -10,7 +10,7 @@ import omtteam.openmodularlighting.OML;
 public final class ModCreativeTabs {
     public static final CreativeTabs MAIN = new CreativeTabs(OML.MOD_ID) {
         @Override
-        public ItemStack getTabIconItem() {
+        public ItemStack createIcon() {
             return new ItemStack(ModItems.ELECTRIC_FLOODLIGHT);
         }
     };

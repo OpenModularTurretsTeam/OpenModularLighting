@@ -23,8 +23,8 @@ public final class CamoModels {
 
     /** Whether the model with this id is a block model (not the item model) of a block that can be disguised. */
     public static boolean isCamoModel(ModelResourceLocation id) {
-        if (!id.getResourceDomain().equals(OML.MOD_ID) || INVENTORY.equals(id.getVariant())) return false;
-        Block block = ForgeRegistries.BLOCKS.getValue(OML.id(id.getResourcePath()));
+        if (!id.getNamespace().equals(OML.MOD_ID) || INVENTORY.equals(id.getVariant())) return false;
+        Block block = ForgeRegistries.BLOCKS.getValue(OML.id(id.getPath()));
         return block instanceof CamoBlock;
     }
 }
