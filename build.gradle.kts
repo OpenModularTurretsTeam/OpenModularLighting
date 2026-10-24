@@ -41,6 +41,10 @@ minecraft {
 }
 
 repositories {
+    // Hwyla from CurseForge (maven.tehnut.info no longer serves it)
+    maven("https://cursemaven.com/") {
+        content { includeGroup("curse.maven") }
+    }
     // OMLib from its publishToMavenLocal (omtteam:omlib:<minecraft_version>-<omlib_version>)
     mavenLocal {
         content { includeGroup("omtteam") }
@@ -50,6 +54,8 @@ repositories {
 dependencies {
     // OMLib, the shared library of the OpenModularTurretsTeam mods (its SRG jar, deobfuscated by RetroFuturaGradle)
     implementation(rfg.deobf("omtteam:omlib:$minecraftVersion-${property("omlib_version")}"))
+    // Hwyla block info overlay (optional at runtime: compat.hwyla is only loaded by Hwyla)
+    compileOnly(rfg.deobf("curse.maven:hwyla-253449:${property("hwyla_curse_file_id")}"))
 
     // Unit tests for the core game logic and the config (test only, not shipped)
     testImplementation(platform("org.junit:junit-bom:${property("junit_version")}"))

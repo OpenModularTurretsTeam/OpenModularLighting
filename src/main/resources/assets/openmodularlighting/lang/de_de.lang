@@ -34,3 +34,4 @@ tooltip.openmodularlighting.camo_slot=Mit einem vollen, undurchsichtigen Block a
 tooltip.openmodularlighting.timeout_hint=Nach dem Ausschalten wartet die Lampe %s Sekunden, bevor sie wieder angehen kann. Jedes Umschalten aktualisiert die Helligkeit aller Blöcke im Strahl; die Pause verhindert, dass schnelles Schalten Lag verursacht.
 gui.openmodularlighting.turns_on_in=Die Lampe geht in %s Sekunden an.
 death.attack.openmodularlighting.uv_light=%1$s wurde von UV-Licht verbrannt
+option.openmodularlighting.light=Open Modular Lighting: Lampen
