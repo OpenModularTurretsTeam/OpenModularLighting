@@ -1,0 +1,35 @@
+{
+  "conditions": [
+    {
+      "type": "openmodularlighting:block_enabled",
+      "blocks": [
+        "uv_floodlight"
+      ]
+    }
+  ],
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "CIC",
+    "IBG",
+    "CIC"
+  ],
+  "key": {
+    "B": {
+      "item": "openmodularlighting:light_bulb"
+    },
+    "C": {
+      "item": "minecraft:cobblestone"
+    },
+    "G": {
+      "item": "minecraft:stained_glass",
+      "data": 15
+    },
+    "I": {
+      "type": "forge:ore_dict",
+      "ore": "ingotIron"
+    }
+  },
+  "result": {
+    "item": "openmodularlighting:uv_floodlight"
+  }
+}

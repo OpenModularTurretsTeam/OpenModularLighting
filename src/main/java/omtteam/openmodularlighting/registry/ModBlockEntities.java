@@ -1,63 +1,39 @@
 package omtteam.openmodularlighting.registry;
 
-import net.minecraft.core.Registry;
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.tileentity.TileEntity;
+import net.minecraftforge.fml.common.registry.GameRegistry;
 import omtteam.openmodularlighting.OML;
 import omtteam.openmodularlighting.blockentity.CarbonFloodlightBlockEntity;
-import omtteam.openmodularlighting.blockentity.ElectricFloodlightBlockEntity;
-import omtteam.openmodularlighting.blockentity.FloodlightBlockEntity;
 import omtteam.openmodularlighting.blockentity.CubeLightBlockEntity;
+import omtteam.openmodularlighting.blockentity.ElectricFloodlightBlockEntity;
 import omtteam.openmodularlighting.blockentity.FluorescentLightBlockEntity;
 import omtteam.openmodularlighting.blockentity.GrowLightBlockEntity;
 import omtteam.openmodularlighting.blockentity.PhantomLightBlockEntity;
 import omtteam.openmodularlighting.blockentity.UvFloodlightBlockEntity;
 import omtteam.openmodularlighting.blockentity.UvLightBlockEntity;
 
-import java.util.List;
-
 /**
- * All block entity types of the mod. Their item and energy access is registered per loader ({@code platform/<loader>}).
+ * All block entity (tile entity) types of the mod, under the same ids as on the main branch. Their item and energy
+ * access are capabilities of the block entities themselves.
  */
 public final class ModBlockEntities {
-    public static final BlockEntityType<PhantomLightBlockEntity> PHANTOM_LIGHT =
-            register("phantom_light", PhantomLightBlockEntity::new, ModBlocks.PHANTOM_LIGHT);
-    public static final BlockEntityType<UvLightBlockEntity> UV_LIGHT =
-            register("uv_light", UvLightBlockEntity::new, ModBlocks.UV_LIGHT);
-
-    public static final BlockEntityType<ElectricFloodlightBlockEntity> ELECTRIC_FLOODLIGHT =
-            register("electric_floodlight", ElectricFloodlightBlockEntity::new, ModBlocks.ELECTRIC_FLOODLIGHT);
-    public static final BlockEntityType<CarbonFloodlightBlockEntity> CARBON_FLOODLIGHT =
-            register("carbon_floodlight", CarbonFloodlightBlockEntity::new, ModBlocks.CARBON_FLOODLIGHT);
-    public static final BlockEntityType<UvFloodlightBlockEntity> UV_FLOODLIGHT =
-            register("uv_floodlight", UvFloodlightBlockEntity::new, ModBlocks.UV_FLOODLIGHT);
-    /** Both fluorescent lights share one block entity type (1.7.10: one block with two metadata values). */
-    public static final BlockEntityType<FluorescentLightBlockEntity> FLUORESCENT_LIGHT = register("fluorescent_light",
-            FluorescentLightBlockEntity::new, ModBlocks.SMALL_FLUORESCENT_LIGHT, ModBlocks.SQUARE_FLUORESCENT_LIGHT);
-    public static final BlockEntityType<GrowLightBlockEntity> GROW_LIGHT =
-            register("grow_light", GrowLightBlockEntity::new, ModBlocks.GROW_LIGHT);
-
-    public static final BlockEntityType<CubeLightBlockEntity> CUBE_LIGHT =
-            register("cube_light", CubeLightBlockEntity::new, ModBlocks.CUBE_LIGHT);
-
     private ModBlockEntities() {
     }
 
-    private static <T extends BlockEntity> BlockEntityType<T> register(String name,
-                                                                       BlockEntityType.BlockEntitySupplier<T> factory,
-                                                                       Block... blocks) {
-        return Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, OML.id(name),
-                BlockEntityType.Builder.of(factory, blocks).build(null));
+    /** Registers all block entity classes; called from the block registry event. */
+    public static void register() {
+        register("phantom_light", PhantomLightBlockEntity.class);
+        register("uv_light", UvLightBlockEntity.class);
+        register("electric_floodlight", ElectricFloodlightBlockEntity.class);
+        register("carbon_floodlight", CarbonFloodlightBlockEntity.class);
+        register("uv_floodlight", UvFloodlightBlockEntity.class);
+        // both fluorescent lights share one block entity type (1.7.10: one block with two metadata values)
+        register("fluorescent_light", FluorescentLightBlockEntity.class);
+        register("grow_light", GrowLightBlockEntity.class);
+        register("cube_light", CubeLightBlockEntity.class);
     }
 
-    /** Loads the class, registering all block entity types. */
-    public static void init() {
-    }
-
-    /** The lights: block entities with an item slot and (if electric) energy. */
-    public static List<BlockEntityType<? extends FloodlightBlockEntity>> lights() {
-        return List.of(ELECTRIC_FLOODLIGHT, CARBON_FLOODLIGHT, UV_FLOODLIGHT, FLUORESCENT_LIGHT, GROW_LIGHT, CUBE_LIGHT);
+    private static void register(String name, Class<? extends TileEntity> type) {
+        GameRegistry.registerTileEntity(type, OML.id(name));
     }
 }

@@ -1,5 +1,6 @@
 package omtteam.openmodularlighting.core.cluster;
 
+import static omtteam.openmodularlighting.TestCollections.setOf;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
@@ -182,8 +183,8 @@ class ClusterTest {
         grid.remove(key(0, 0)); // b no longer sees a
         Cluster.join(b);
         assertNotSame(old, b.cluster());
-        assertEquals(Set.of(a), old.members());
-        assertEquals(Set.of(b), b.cluster().members());
+        assertEquals(setOf(a), old.members());
+        assertEquals(setOf(b), b.cluster().members());
     }
 
     @Test

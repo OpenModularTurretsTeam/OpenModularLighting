@@ -1,64 +1,54 @@
-# CLAUDE.md — Floodlights (Fabric, Multi-Version)
+# CLAUDE.md — Floodlights (Forge 1.12.2, branch `1.12.2`)
 
-This file guides Claude Code when working in this repository. Read it fully before making changes.
+This file guides Claude Code when working on this branch. Read it fully before making changes.
+This branch is the **Forge 1.12.2** port; the modern versions (Fabric 1.20.1/1.21.1, NeoForge 1.21.1, Forge 1.20.1, built with Stonecutter) live on the main branch `1.20.1+`, whose `CLAUDE.md` describes them.
 
 ---
 
 ## 1. Project Overview
 
-**Floodlights (FL)** is a mod being ported from Forge on MC 1.7.10 (`oldmod/`, package `de.keridos.floodlights`, mod ID `FloodLights`) to **Fabric**, targeting **1.20.1 and 1.21.1 from a single codebase** using **Stonecutter**.
-A **NeoForge 1.21.1** build is being added on the branch `neoforge-test` (see §4 "Loaders" and §9).
-A **Forge 1.20.1** build is being added on the branch `forge-test` (requested by the user on 2026-10-24, done here before OpenModularTurrets; see §4 "Forge 1.20.1" and §9).
-It is a test run for the same setup in OpenModularTurrets (`../OMT1.20.1+`), so keep the build logic and the `platform/` pattern mod-independent.
+**Floodlights (FL)** is a port of the Forge 1.7.10 mod *FloodLights* (`oldmod/`, package `de.keridos.floodlights`, mod ID `FloodLights`; gitignored, read it from the main checkout).
+This branch builds it for **Minecraft 1.12.2 on Forge** (requested by the user on 2026-10-24) and reuses the main branch's code: `core/` and `config/` are the same classes (converted to Java 8), and the Minecraft-facing code was rewritten for 1.12.2 with the same structure, names and behaviour.
 
-`oldmod/` is the **read-only reference** for the port. Never edit it and never build it. It is a source of ideas, values and assets, not a specification: the beam thinning, the persistent light blocks and other details differ on purpose. Do not copy its structure (static singletons, metadata, `ForgeDirection`, CoFH API).
+`oldmod/` is the **read-only reference**. Never edit it and never build it.
+It is a source of ideas, values and assets, not a specification: the beam thinning, the persistent light blocks and other details differ on purpose.
 
-Core gameplay:
+Core gameplay (the same as on the main branch):
 
-- **Floodlights** light large areas with invisible light blocks ("phantom lights") along a beam. The beam can be a straight line, a narrow cone or a wide cone. The phantom lights stay in place and are only switched on and off (see §6.3).
+- **Floodlights** light large areas with invisible light blocks ("phantom lights") along a beam: a straight line, a narrow cone or a wide cone. The phantom lights stay in place and are only switched on and off (see §6.3).
 - **Grow light**: lights the block in front and gives random growth ticks to a crop two blocks ahead.
 - **UV floodlight**: a short beam of UV light blocks that damages living entities standing in it.
-- **Fluorescent lights**: small, cheap lights that illuminate their 5 neighbouring blocks.
+- **Fluorescent lights** and the **cube light**: small, cheap lights that illuminate their neighbouring blocks.
+
+### Keeping the branches together
+
+- `core/` and `config/` (and their unit tests) should stay identical to the main branch except for Java 8 syntax (no records, switch expressions, `instanceof` patterns, `List.of`, `RandomGenerator`; core takes `java.util.Random`). When a change lands on one branch, port it to the other, and tell the user.
+- Gameplay changes on the main branch usually belong here too; the Minecraft-facing classes have the same names and packages, so the corresponding class is easy to find.
+- Never merge this branch into `1.20.1+` or the other way round: the build and most of `main` differ completely. Cherry-pick or port by hand.
 
 ### Allowed dependencies
 
-- Fabric Loader and **Fabric API**. Fabric API, including Transfer API, Networking, Rendering and Datagen, may be used freely.
-- **Team Reborn Energy** for power, as the de facto Fabric energy standard. Jar-in-jar it. It replaces the old RF (CoFH) and IC2 EU support.
-- **Jade** (approved by the user) as an **optional** integration only: `modCompileOnly` + `modLocalRuntime` from Modrinth's maven (`maven.modrinth:jade`, version per Minecraft version in `versions/<v>/gradle.properties`). Never bundled and never a hard dependency (`suggests` in `fabric.mod.json`, `type = "optional"` in `neoforge.mods.toml`; NeoForge: `compileOnly` + `localRuntime`). Only `compat/jade/OMLJadePlugin` and `FloodlightJadeProvider` may import `snownee.jade`; Jade loads them through the `jade` entrypoint (Fabric) or the `@WailaPlugin` annotation (NeoForge), so the mod runs without Jade.
-  Jade is not on the NeoForge GameTest server: there it sends a packet to the tests' vanilla mock players, which NeoForge refuses.
-- **NeoForge** 21.1.x (1.21.1 only), built with **ModDevGradle** (approved by the user; build-time only).
-  On NeoForge, the Fabric-only APIs above are replaced by NeoForge's own (capabilities, events, payload registration); see §4 "Loaders".
-- **Forge** 47.x (1.20.1 only), built with the legacy variant of ModDevGradle (`net.neoforged.moddev.legacyforge`, same artifact and version as `moddev`; build-time only), requested by the user.
-  On Forge, the Fabric-only APIs are replaced by Forge's own (capabilities, events, event network channels); see §4 "Forge 1.20.1".
-- Build and test tools only, never in the jar (approved by the user, as in OMT): **ArchUnit** (test dependency), **JaCoCo**, **PIT** (plain `JavaExec`, no Gradle plugin) and **PMD**; versions in `gradle.properties`.
-- Nothing else without asking the user first. No Architectury, no Cloth Config, no OMLib, no Kotlin.
-- Old optional integrations (IC2, BuildCraft/CoFH/EnderIO wrenches, EnderIO wireless charging, IGW, NEI, AgriCraft, Colored Light Core) are **not** ported unless the user asks. WAILA is replaced by the Jade plugin; WTHIT is not supported (the user chose Jade only).
+- **Forge 1.12.2** (14.23.5.x, chosen by RetroFuturaGradle) and **Forge Energy** (`CapabilityEnergy`, part of Forge; replaces Team Reborn Energy / NeoForge FE, 1 E = 1 FE).
+- Build-time only: **RetroFuturaGradle** (`com.gtnewhorizons.retrofuturagradle`, the maintained 1.12.2 toolchain, from the GTNH maven), the mod publish plugin, Spotless, JUnit 5 (5.13: the last line that runs on Java 8).
+- Nothing else without asking the user first. No mixins, no Jabel, no CTM/TOP/HWYLA dependency.
+- Jade does not exist on 1.12.2. A The One Probe or HWYLA integration would be optional and is not done; ask the user first.
 
 ---
 
 ## 2. Tech Stack
 
-| | 1.20.1 (Fabric) | 1.20.1 (Forge) | 1.21.1 (Fabric) | 1.21.1 (NeoForge) |
-| --- | --- | --- | --- | --- |
-| Java | 17 | 17 | 21 | 21 |
-| Loader | Fabric Loader 0.19.x | Forge 47.4.x | Fabric Loader 0.19.x | NeoForge 21.1.x |
-| API | Fabric API `0.92.x+1.20.1` | – | Fabric API `0.116.x+1.21.1` | – |
-| Gradle plugin | Loom 1.18 | ModDevGradle 2.0 (legacy) | Loom 1.18 | ModDevGradle 2.0 |
-| Mappings | Mojang official (+ Parchment optional) | Mojang official (jar reobfuscated to SRG) | Mojang official (+ Parchment optional) | Mojang official (NeoForge runtime names) |
+| | Forge 1.12.2 |
+| --- | --- |
+| Java | 8 (Azul toolchain, auto-provisioned) |
+| Loader | Forge 14.23.5.2847 |
+| Gradle plugin | RetroFuturaGradle 2.0.x |
+| Mappings | MCP `stable_39` (names such as `TileEntity`, `IBlockState`, `EntityPlayer`, `World`) |
 
-- Build system: Gradle 9.8 (Kotlin DSL) + **Stonecutter 0.9**, with Fabric Loom 1.18 (`net.fabricmc.fabric-loom-remap`, the variant for obfuscated MC versions) on the Fabric nodes and ModDevGradle 2.0 (`net.neoforged.moddev`) on the NeoForge node.
-- Shared build logic is the convention plugin `buildSrc/src/main/kotlin/mod-common.gradle.kts` (Java toolchain, metadata templating, JUnit, `verifyCoreIsolation`, licenses in the jar via `bundled_licenses` (default: all three), publishing).
-  It is mod-independent (everything comes from `gradle.properties`) and identical to OMT's copy; change both together.
-  The quality tools (ArchUnit, JaCoCo, PIT, PMD) stay in `build.fabric.gradle.kts`, as in OMT.
-  The loader plugins are not on the `buildSrc` classpath; they are applied by version in `stonecutter.gradle.kts` (`apply false`) and used by the loader scripts.
-- Formatting: **Spotless** (in `stonecutter.gradle.kts`). It is deliberately light: tabs → spaces, trailing whitespace, final newline. No full formatter and no import reordering, because those would break the Stonecutter conditional comments. Run `./gradlew spotlessApply` before committing.
-- The configure step prints "Stonecutter branch root: should not be a buildable project". This is expected (Spotless on the root project) and harmless.
-- **Gradle itself must run on Java 25+** (Loom 1.18 requirement). The compile toolchains (17 / 21) are resolved separately (foojay auto-provisions them if missing).
-- **Use Mojang mappings** (`loom.officialMojangMappings()`). All class and method names in code and in this doc are Mojmap names (`BlockEntity`, `ResourceLocation`, `AbstractContainerMenu`, and so on).
+- Gradle 9.8 (Kotlin DSL), one project: `build.gradle.kts`, `settings.gradle.kts`, `gradle.properties`. No Stonecutter, no `buildSrc`.
+- **Gradle itself must run on Java 17+** (Gradle 9). In the user's shell `JAVA_HOME` points to Java 8, so run Gradle with `JAVA_HOME=/usr/lib/jvm/java-25-openjdk` (or any JDK 17+); the compile and test toolchain is Java 8 regardless.
+- The decompiled Minecraft + Forge sources are in `build/rfg/minecraft-src/java` after `./gradlew setupDecompWorkspace`. Look up exact MCP names there instead of guessing.
+- Formatting: Spotless (tabs → spaces, trailing whitespace, final newline), as on the main branch. Run `./gradlew spotlessApply` before committing.
 - Language: Java only.
-- Toolchain: configure the Java toolchain per version (17 for 1.20.1, 21 for 1.21.1) in the shared build script. Use the version-specific `gradle.properties` to switch.
-
-Check exact latest patch versions of Loader, API, Loom and Stonecutter when setting up or bumping. Do not hard-code guesses into the build without verifying.
 
 ---
 
@@ -66,264 +56,91 @@ Check exact latest patch versions of Loader, API, Loom and Stonecutter when sett
 
 ```text
 .
-├── CLAUDE.md
-├── CHANGELOG.md
-├── README.md                   # player-facing overview; ends with the LICENSE-DUAL text
-├── CONTRIBUTING.md             # contributor guide (adapted from OpenModularTurrets)
-├── CLA.md                      # contributor licence agreement (same terms as OpenModularTurrets)
-├── LICENSE                     # MIT, source code
-├── LICENSE-ART                 # CC BY-NC-SA 4.0, art (textures, models, sounds)
-├── LICENSE-DUAL                # which license covers what; all three are bundled into the jar
-├── build.fabric.gradle.kts     # Fabric nodes (Loom, Fabric API, datagen, GameTests, ArchUnit/JaCoCo/PIT/PMD)
-├── gradle/pmd/ruleset.xml      # PMD rules (complexity and size, report only; same as OMT's)
-├── build.neoforge.gradle.kts   # NeoForge nodes (ModDevGradle)
-├── build.forge.gradle.kts      # Forge nodes (legacy ModDevGradle: reobfJar, remapped mod* dependencies, pack.mcmeta)
-├── buildSrc/                   # mod-common convention plugin: build logic shared by all loaders
-├── stonecutter.gradle.kts      # Stonecutter controller (active version, loader constants, chiseled tasks)
-├── settings.gradle.kts         # declares the Stonecutter nodes (<minecraft version>-<loader>)
-├── gradle.properties           # shared properties (mod_id, mod_version, maven_group …)
-├── docs/id-mapping.md          # 1.7.10 ID → new ID table
-├── docs/architecture.md        # overview of the code for developers (layers, flows, how to add things)
-├── oldmod/                     # 1.7.10 Forge source, reference only (do not edit)
-├── versions/
-│   ├── 1.20.1-fabric/
-│   │   ├── gradle.properties   # minecraft_version, fabric_api, java_version=17 …
-│   │   └── src/main/generated/ # datagen output for 1.20.1 (committed; Forge converts it, datagen_from)
-│   ├── 1.20.1-forge/
-│   │   └── gradle.properties   # forge_version, forge_dependency, minecraft_dependency (Maven range) …
-│   ├── 1.21.1-fabric/
-│   │   ├── gradle.properties   # minecraft_version, fabric_api, java_version=21 …
-│   │   └── src/main/generated/ # datagen output for 1.21.1 (committed)
-│   └── 1.21.1-neoforge/
-│       └── gradle.properties   # neoforge_version, minecraft_dependency (Maven range) …
+├── CLAUDE.md, CHANGELOG.md, README.md, CONTRIBUTING.md, CLA.md, LICENSE*   # as on the main branch
+├── build.gradle.kts            # RetroFuturaGradle, tests, verifyCoreIsolation, Spotless, changelog tasks, publishing
+├── settings.gradle.kts
+├── gradle.properties           # mod_id, mod_version, mapping version, publishing settings …
+├── docs/                       # id-mapping.md; architecture.md describes the main branch
 └── src/
-    ├── main/java/omtteam/openmodularlighting/...
-    ├── main/resources/         # SHARED assets + fabric.mod.json, META-INF/neoforge.mods.toml and META-INF/mods.toml (templated)
-    ├── client/java/omtteam/openmodularlighting/...   # client-only code (split source sets)
-    ├── test/java/omtteam/openmodularlighting/...      # JUnit tests (core/, config)
-    └── gametest/                                     # in-world GameTests: separate test mod, never shipped
+    ├── main/java/omtteam/openmodularlighting/...   # common and client code (one source set)
+    ├── main/resources/         # mcmod.info (templated) and assets/ (models, blockstates, lang, textures, recipes)
+    └── test/java/omtteam/openmodularlighting/...   # JUnit tests (core/, config)
 ```
 
 - **Mod ID:** `openmodularlighting`. **Base package:** `omtteam.openmodularlighting`.
-- Use Loom **split environment source sets** (`splitEnvironmentSourceSets()`). Client-only code (renderers, screens, models, client networking handlers) goes in `src/client/java`. Never reference client classes from `main`.
-  The NeoForge node keeps the same split: `build.neoforge.gradle.kts` creates a `client` source set that sees `main`, and the jar contains both.
-- `fabric.mod.json`, `META-INF/neoforge.mods.toml` and `META-INF/mods.toml` (Forge) are templated via `processResources` (`mod-common`); each jar only contains its own loader's file (also in the test mod).
-  Available keys: `${version}`, `${mod_id}`, `${mod_name}`, `${java_version}`, `${minecraft_dependency}`, `${loader_version}` (Fabric), `${neoforge_version}`, `${neoforge_loader_range}`, `${forge_dependency}`, `${forge_loader_range}`.
-- The mod version is `<mod_version>+<minecraft version>-<loader>` (e.g. `1.0.0-beta.2+1.21.1-fabric`), so the jars of both loaders can be told apart.
+- 1.12.2 has no split source sets. Client-only code lives in the `client` package and is reached only through the `@SidedProxy` (`CommonProxy` / `client.ClientProxy`). **Main code never references `client` classes.**
+- The mod version is `<mod_version>+1.12.2-forge`; `mcmod.info` is templated from `gradle.properties` (`${version}`, `${mod_id}`, `${mod_name}`, `${minecraft_version}`).
 
 ---
 
-## 4. Stonecutter
-
-### Setup (`settings.gradle.kts`)
-
-```kotlin
-plugins { id("dev.kikugie.stonecutter") version "0.9.8" }
-
-stonecutter {
-    create(rootProject) {
-        versions(
-            "1.20.1-fabric" to "1.20.1", "1.20.1-forge" to "1.20.1",
-            "1.21.1-fabric" to "1.21.1", "1.21.1-neoforge" to "1.21.1",
-        )
-        mapBuilds { _, node -> "build.${node.project.substringAfterLast('-')}.gradle.kts" }
-        vcsVersion = "1.21.1-fabric" // the version the committed source is written for
-    }
-}
-```
-
-The Stonecutter DSL changes between releases. If this does not match the installed version, check the Stonecutter docs and update both this file and the build.
-
-### Rules
-
-- **Committed source must always be in the `vcsVersion` (`1.21.1-fabric`) state.** Before committing, switch back if you switched to another node (`./gradlew "Reset active project"` or `"Set active project to 1.21.1-fabric"`).
-- Version-conditional code uses Stonecutter comments:
-
-  ```java
-  //? if >=1.21 {
-  ResourceLocation id = ResourceLocation.fromNamespaceAndPath(MOD_ID, path);
-  //?} else {
-  /*ResourceLocation id = new ResourceLocation(MOD_ID, path);
-  *///?}
-  ```
-
-  Inactive branches must be wrapped in `/* … */` exactly as Stonecutter expects. Prefer letting Stonecutter generate this by switching versions over hand-writing it.
-- **Minimize conditional blocks.** Hide version differences behind small helpers in `omtteam.openmodularlighting.compat.VersionCompat` (or similar) rather than sprinkling `//? if` across gameplay code. Gameplay logic (beam shapes, energy use, growth) should be version-agnostic.
-- Constants can be compared in conditions: `//? if >=1.21 {`, `//? if <1.21 {`, `//? if 1.20.1 {`.
-- Version-specific *properties* live in `versions/<v>/gradle.properties`. Read them in the build via `property("…")`.
-
-### Loaders
-
-Each Stonecutter node is `<minecraft version>-<loader>`; the loader picks the build script (`build.<loader>.gradle.kts`).
-The rules for loader differences mirror those for version differences, with one addition for whole classes:
-
-- **Whole loader-specific classes** go into a `platform/<loader>/` package (`platform/fabric/`, `platform/neoforge/`, `platform/forge/`, also under `client/` and the test mod).
-  `mod-common` leaves the other loaders' `platform/` packages out of the compilation, so these classes need no Stonecutter comments.
-  Examples: entrypoints, capability/API registration, event wiring.
-- Shared code reaches them through small interfaces in `platform/` (design them with the user, see §7 "Designing APIs").
-- **Small differences** inside a shared class use the loader constants: `//? if fabric {` / `//? if neoforge {` / `//? if forge {` (set in `stonecutter.gradle.kts`); `//? if neoforge || forge {` where both share an API (model data, GameTest annotations), with separate import blocks because the packages differ.
-  Keep them inside `compat/` and `platform/`, never in gameplay code.
-- `core/` stays loader-free (`verifyCoreIsolation` also forbids `net.neoforged` and `net.minecraftforge`).
-- **Everything compiles on NeoForge and Forge except `datagen`,** which is Fabric-only by design (NeoForge gets the converted Fabric output, §5 "Resources strategy").
-- **Start-up:** both entrypoints call `OML.init()` (config, packets) first. Fabric then runs `OML.registrationSteps()` in order; NeoForge runs each `RegistrationStep` in the `RegisterEvent` of its registry and throws at common setup if a step never ran. A new registry class gets a step in that list, not a call in an entrypoint.
-- NeoForge and Forge are published like the Fabric nodes (Forge uploads `reobfJar`). `publish_enabled=false` in a node's `gradle.properties` would make that node a dry run even with tokens (`mod-common`).
-
-### Forge 1.20.1
-
-The node `1.20.1-forge` follows the NeoForge setup; these are the differences:
-
-- **Build:** `build.forge.gradle.kts` uses `net.neoforged.moddev.legacyforge` (`legacyForge { version = forge_version }`).
-  Forge 1.20.1 runs on SRG names: the released jar is `reobfJar` (what `publishMods` uploads), and other mods (Jade) come through the remapping configurations (`modCompileOnly`, `localRuntime` via `obfuscation.createRemappingConfiguration`).
-- **Data:** `convertFabricData` (a function in `buildSrc`, shared with NeoForge) copies the 1.20.1 Fabric output with `"conditions"` (Forge 1.20.1 reads them on recipes and advancements). The node also generates `pack.mcmeta` (pack format 15) for the mod and the test mod: without one, Forge 1.20.1 loads neither's data.
-- **Entrypoints:** `OMLForge` (`@Mod`, mod bus from `FMLJavaModLoadingContext`); Forge 1.20.1 has no client-only `@Mod` classes, so it constructs `client.platform.forge.OMLForgeClient` by name on a client (main cannot see the client source set).
-- **Services:** `ForgeNetwork` uses one `EventNetworkChannel` per packet type (named by its id, missing remote accepted, decoded on the network thread, handled on the main thread; S2C handlers dispatched like on NeoForge). `ForgeMenus` uses `IForgeMenuType` / `NetworkHooks.openScreen`.
-- **Capabilities:** no registration event in 1.20.1; `OMLForge` attaches `ForgeLightCapabilities` to every `FloodlightBlockEntity` in `AttachCapabilitiesEvent`. It asks the light on every query (attached during construction; the exposed sides can change) and keeps a side's `LazyOptional` while the light returns the same access object.
-- **Recipe condition:** `ForgeBlockEnabledCondition` (`ICondition` + `IConditionSerializer`, registered with `CraftingHelper.register` in the recipe serializer `RegisterEvent`).
-- **Client:** screens are registered with `MenuScreens.register` in `FMLClientSetupEvent` (no screen event); `ForgeCamoModel` is `NeoForgeCamoModel` without the ambient occlusion override (Forge 1.20.1 does not pass model data there).
-- **GameTests:** `runGameTestServer` with `forge.enabledGameTestNamespaces`; the same annotations as NeoForge (`net.minecraftforge.gametest`). Vanilla 1.20.1's `makeMockServerPlayerInLevel` gives the connection no netty channel, which Forge's login handling needs: use `OMLGameTests.mockPlayer(helper)` instead (an `EmbeddedChannel` on Forge, as in vanilla 1.20.5+).
-- `DamageSources#source` is private in vanilla 1.20.1 (only Fabric API widens it): build a `DamageSource` from the damage type holder instead.
+## 4. Build
 
 ### Commands
 
 ```bash
-./gradlew "Set active project to 1.20.1-fabric"   # switch source to 1.20.1
-./gradlew "Set active project to 1.21.1-fabric"   # switch back (VCS state)
-./gradlew chiseledBuild                           # build ALL nodes (custom task in stonecutter.gradle.kts)
-./gradlew :1.20.1-fabric:build                    # build a single node
-./gradlew :1.21.1-fabric:runClient                # run client for a node
-./gradlew :1.21.1-fabric:runServer
-./gradlew spotlessApply                           # fix formatting (spotlessCheck verifies it)
-./gradlew :1.21.1-fabric:runGameTest              # in-world GameTests for one node (also part of check/build)
-./gradlew :1.20.1-fabric:runDatagen               # regenerate data for a node
-./gradlew :1.21.1-fabric:runDatagen
-./gradlew :1.21.1-neoforge:runClient              # NeoForge client (run dir versions/1.21.1-neoforge/run)
-./gradlew :1.21.1-neoforge:runGameTestServer      # NeoForge GameTests (also part of check/build)
-./gradlew :1.20.1-forge:runClient                 # Forge client (run dir versions/1.20.1-forge/run)
-./gradlew :1.20.1-forge:runGameTestServer         # Forge GameTests (also part of check/build)
-./gradlew :1.21.1-fabric:pitest                   # mutation testing of core -> versions/1.21.1-fabric/build/reports/pitest/index.html
-./gradlew chiseledPublish                         # upload all nodes to CurseForge/Modrinth (custom task)
-./gradlew :1.21.1-fabric:publishMods              # upload one node
+export JAVA_HOME=/usr/lib/jvm/java-25-openjdk   # Gradle needs 17+
+./gradlew build                  # compile, unit tests, verifyCoreIsolation, spotlessCheck, reobfuscated jar
+./gradlew setupDecompWorkspace   # decompiled MC + Forge sources in build/rfg/minecraft-src
+./gradlew runClient              # dev client (run dir run/)
+./gradlew runServer              # dev server; RetroFuturaGradle asks for the EULA: never accept it for the user
+./gradlew spotlessApply
+./gradlew publishMods            # CurseForge / Modrinth; a dry run while publish_enabled=false
 ```
+
+- The released jar is `build/libs/openmodularlighting-<version>.jar`, made by `reobfJar` (SRG names). `-dev.jar` is the deobfuscated one.
+- **Definition of done for any change:** `./gradlew build` succeeds (this includes the unit tests).
+- There are **no GameTests** on 1.12.2 (the framework does not exist). Check in-game behaviour by hand with `runClient` (single player needs no EULA), and say what was and was not checked.
+- The dedicated server checks the EULA before any mod loads, so it cannot be used for a smoke test without accepting the EULA. Do not accept it on the user's behalf.
 
 ### Publishing
 
-- Uses `me.modmuss50.mod-publish-plugin` (approved by the user), configured in `publishMods` in `buildSrc/src/main/kotlin/mod-common.gradle.kts` (the loader scripts only set the jar to upload).
-- Settings in `gradle.properties`: `release_type` (release/beta/alpha), `curseforge_project_id` and `modrinth_project_id`. An empty ID skips that site.
-  Both are set (CurseForge `268178`, Modrinth `4yAD8NG9`); ask the user before changing them.
-  The old 1.7.10 CurseForge page is `224728-floodlights`.
-- Tokens are never committed: environment variables `CURSEFORGE_TOKEN` / `MODRINTH_TOKEN`, or `curseforge_token` / `modrinth_token` in `~/.gradle/gradle.properties`. Without a token the upload is a dry run (output in `versions/<v>/build/publishMods/`).
-- **Changelog** (`CHANGELOG.md`, Keep a Changelog format): every user-visible change gets a one-line entry under `## [Unreleased]` (Added / Changed / Fixed / Removed), by hand or via `./gradlew changelogEntry --type=fixed --entry="…"`. Add the entry together with the change.
-- **Release steps:** set `mod_version` (e.g. `1.0.0-alpha.2`) and `release_type` → `./gradlew releaseChangelog` (moves Unreleased into `## [<mod_version>] - <date>`) → `./gradlew chiseledPublish`. Publishing uploads only that version's section and fails if it is missing.
-(Task names may differ slightly depending on Stonecutter's version. Use `./gradlew tasks` if unsure.)
-
-**Definition of done for any change:** `./gradlew chiseledBuild` succeeds for **all** nodes (this includes the JUnit tests and the GameTests), and the source is left in the `1.21.1-fabric` state.
-
-### GameTests (`src/gametest`)
-
-- In-world tests run on a headless GameTest server (Fabric `runGameTest`, NeoForge and Forge `runGameTestServer`; all part of `check`). It needs **no EULA**: the run directory gets `eula=false`, and that is fine. Do not accept the EULA on the user's behalf.
-- `src/gametest` is a separate test mod (`openmodularlighting_gametest`; Fabric: Loom's `fabricApi.configureTests` + `fabric.mod.json`, NeoForge: the `gametest` source set registered as a second mod + `META-INF/neoforge.mods.toml`). It is not in the release jar. It registers test-only content (`TestBlocks`, `TestBlockEntities`, `TestItems` through `OMLGameTestMod.registrationSteps()`), for example `TestLightSourceBlock`, a fake light source whose on/off state and shape the test sets directly.
-- **The test classes are shared by all loaders.** They implement `OMLGameTests` (not `FabricGameTest`) and use `@GameTest(template = EMPTY_STRUCTURE)`: our own 8 × 8 × 8 air structure (`src/gametest/resources/data/openmodularlighting/structure/empty.nbt`, a copy in `structures/` for 1.20.1). Every test class also carries the NeoForge / Forge annotations behind a condition (imported per loader):
-
-  ```java
-  //? if neoforge || forge {
-  /*@GameTestHolder(OML.MOD_ID)
-  @PrefixGameTestTemplate(false)
-  *///?}
-  public class FooGameTest implements OMLGameTests
-  ```
-
-  Add a new test class to the `fabric-gametest` entrypoint in `src/gametest/resources/fabric.mod.json` as well (NeoForge finds it through `@GameTestHolder`).
-- Loader-specific test code lives in `gametest/platform/<loader>`: the entrypoints (`OMLFabricGameTests`, `OMLNeoForgeGameTests`, `OMLForgeGameTests`), `TestTransfer` (energy and items through the loader's API, `OMLGameTestMod.transfer()`; use it to test the loader adapters) and the energy access of the test battery.
-- **No test class may sit in a main-mod package:** NeoForge loads the test mod as its own module, and two modules cannot share a package. Reach protected block entity methods through vanilla's public ones (`BlockEntityData.save` / `load` / `clientData`).
-- Tests in the same batch run side by side, and finished tests leave beacons (light 15) next to their structure. A test that checks for darkness needs its own `batch` and must compare against the light level measured before it starts.
-- The test mod must not load in normal dev runs: NeoForge's `client` and `server` runs set `loadedMods` to the main mod only (ModDevGradle loads every registered mod by default), and Loom's `runClient` never includes it. Otherwise its range override below applies in play.
-- 1.21 encloses every test structure in barriers. Light beams therefore have to stay inside the 8 × 8 × 8 structure: the test mod sets both beam ranges to `OMLGameTestMod.TEST_RANGE` (6) when the server starts. Entrypoints do not run in dependency order, so test setup that depends on the main mod (such as the config or `Platform` services) belongs in a server lifecycle event (`OMLGameTestMod.onServerStarting`), not in the entrypoint.
-- The test mod also has a test battery (`TestBatteryItem`, energy in the item's custom data; Team Reborn Energy on Fabric, an item capability on NeoForge).
-- The client (screens, models, tint, tooltips) is not covered: Fabric's client GameTests need Minecraft 1.21.4+. Check it by hand with `runClient`.
+- Same plugin, project IDs, token handling and changelog workflow as on the main branch (`CHANGELOG.md`, `./gradlew changelogEntry`, `./gradlew releaseChangelog`).
+- `publish_enabled=false` in `gradle.properties` keeps every upload a dry run until the user decides to release the 1.12.2 build. Ask before changing it.
+- Changelog entries of this branch describe 1.12.2 changes; the main branch has its own `CHANGELOG.md`.
 
 ### Core Game Logic Source
 
-The game logic of the mod lives in the `core` package and is completely free of Minecraft imports. It contains:
-
-1. **Beam shapes.** Pure functions that return the ordered list of offsets for a light, given facing, mode and range (see §6.3). Each beam is a separate ray so that it can stop at the first opaque block.
-2. **Rotation.** Shapes are defined along +X and rotated to the facing direction (port of `MathUtil.rotate`).
-3. **Light-source bookkeeping.** Per light block: all sources and the active ones, with add / remove / set active. It answers "lit?" (any active source) and "remove block?" (no sources). Plus the shape diff (old positions vs new positions → removed / added) used for mode changes and re-casts.
-4. **Light state machine.** Active/inactive, redstone + invert, timeout after turning off, "needs re-cast" flag, per-tick energy or fuel cost.
-5. **Formulas.** Carbon burn time, grow-tick interval, energy cost per mode.
-6. **Unit tests** for all of the above.
-
-`./gradlew check` runs `verifyCoreIsolation`, which fails if anything under `core/` imports `net.minecraft`, `net.fabricmc`,
-`com.mojang`, `team.reborn` or non-core mod packages. Tests live in `src/test/java` (JUnit, test-only dependency).
-
-Quality tools (taken over from OMT; details in `docs/architecture.md`, "Rules the build checks" and "Code quality reports"):
-`ArchitectureTest` (`src/test/.../architecture`, ArchUnit, Fabric nodes only) checks core isolation, that main never uses client code, and package cycles against its `KNOWN_CYCLES` list (a ratchet: update the list when a cycle shrinks; never add to it without asking the user).
-PMD (`gradle/pmd/ruleset.xml`, report only, active version) measures complexity and size: `versions/1.21.1-fabric/build/reports/pmd/`.
-JaCoCo records coverage in the unit tests and on the game test server; `check` prints the line coverage of `core` per package (active version only).
-PIT (`./gradlew :1.21.1-fabric:pitest`, on demand, not part of `check`) runs mutation testing on `core`; surviving mutations show behaviour the tests do not pin down.
-
-The core layer works through small interfaces that `main` implements: `LightWorld.cellAt(pos)` classifies a block as a `Cell` (air, phantom light, UV light, opaque, transparent, unloaded; see its Javadoc for the mapping from `BlockState`), and `PowerSource` pays a tick's cost. Positions in core are the `Pos` record, not `BlockPos`; `Facing` has the same ordinal order as `Direction`.
-
-The original beam loops are kept in the test sources as a reference (`core/light/Legacy1710Beams`). `BeamCasterTest` checks that `BeamCaster` produces their positions (filtered by the same `Spacing`) in random worlds, for every facing and many ranges. If you change a shape on purpose, change the reference too and say so.
+The game logic lives in the `core` package and is free of Minecraft imports, exactly as on the main branch: beam shapes, rotation, light-source bookkeeping, the light state machine, formulas, clusters and the energy store, with unit tests.
+`./gradlew check` runs `verifyCoreIsolation`, which fails if anything under `core/` imports `net.minecraft`, `net.minecraftforge`, `com.mojang` or non-core mod packages.
+The original beam loops are kept in the test sources as a reference (`core/light/Legacy1710Beams`); `BeamCasterTest` checks `BeamCaster` against them.
+The main branch's ArchUnit, JaCoCo, PIT and PMD setup is not on this branch.
 
 ---
 
-## 5. Known 1.20.1 vs 1.21.1 Differences
+## 5. 1.12.2 specifics
 
-Wrap each of these behind a helper where possible.
+Differences to the main branch, and the 1.12.2 pitfalls the code handles. Keep them in mind when porting a change.
 
-| Area | 1.20.1 | 1.21.1 |
-| --- | --- | --- |
-| `ResourceLocation` | `new ResourceLocation(ns, path)` | `ResourceLocation.fromNamespaceAndPath(ns, path)` → use an `OML.id(path)` helper |
-| BlockEntity NBT | `load(CompoundTag)`, `saveAdditional(CompoundTag)` | `loadAdditional(CompoundTag, HolderLookup.Provider)`, `saveAdditional(CompoundTag, HolderLookup.Provider)` |
-| BE update packet tag | `getUpdateTag()` | `getUpdateTag(HolderLookup.Provider)` |
-| ItemStack extra data | `stack.getTag()` / NBT | **Data Components** (register custom `DataComponentType`s, or `CUSTOM_DATA`) |
-| ItemStack NBT save | `stack.save(tag)` / `ItemStack.of(tag)` | `stack.save(provider)` / `ItemStack.parse(provider, tag)` (codecs) |
-| Block interaction | `Block#use(...)` → `InteractionResult` | `useWithoutItem(...)` and `useItemOn(...)` → `ItemInteractionResult` |
-| Block codecs | not required | `BaseEntityBlock` and others require `codec()` returning a `MapCodec` |
-| Networking | `ResourceLocation` channel + `FriendlyByteBuf` | `CustomPacketPayload` + `StreamCodec` + `PayloadTypeRegistry` |
-| Extended menus | `ExtendedScreenHandlerFactory` writing to a buf | `ExtendedScreenHandlerFactory<D>` with a `StreamCodec` for `D` |
-| Entity synced data | `defineSynchedData()` | `defineSynchedData(SynchedEntityData.Builder)` |
-| Tooltips | `appendHoverText(stack, Level, list, flag)` | `appendHoverText(stack, Item.TooltipContext, list, flag)` |
-| Screen background | `renderBackground(GuiGraphics)` | `renderBackground(GuiGraphics, mouseX, mouseY, partialTick)` |
-| VertexConsumer | `.vertex().color().uv()…endVertex()` | `.addVertex().setColor().setUv()…` (no `endVertex`) |
-| Data folders | `tags/blocks`, `tags/items`, `loot_tables`, `recipes`, `advancements` | `tags/block`, `tags/item`, `loot_table`, `recipe`, `advancement` |
-| Recipe JSON result | `"result": {"item": "...", "count": n}` | `"result": {"id": "...", "count": n}` |
-
-**Same in both** (no conditionals needed): `DamageTypes` / damage-type registry, `GuiGraphics`, `PoseStack`, the general Fabric Transfer API shape, and the `BlockEntityTicker` pattern.
-
-### Existing helpers (use these instead of writing new `//? if` blocks)
-
-| Difference | Helper |
+| Area | 1.12.2 |
 | --- | --- |
-| `ResourceLocation` | `OML.id(path)`, `VersionCompat.id(ns, path)` |
-| BlockEntity NBT + update tag | extend `compat.CompatBlockEntity`: override `readData` / `writeData` (+ optional `writeClientData`), call `syncToClient()`; data for the block model while meshing: override `renderData()` (Fabric render data, NeoForge `RENDER_DATA` model data), call `remesh()` on the client when it changed |
-| ItemStack NBT, slot lists | `VersionCompat.saveStack` / `loadStack`, `saveItems` / `loadItems` |
-| ItemStack extra data | `VersionCompat.hasCustomData` / `getCustomData` / `setCustomData` / `updateCustomData` |
-| Block interaction | implement `compat.InteractiveBlock#onUse`; `InteractiveBlock.handleUse` is called by the loader's block-use event (Fabric `UseBlockCallback`, NeoForge `PlayerInteractEvent.RightClickBlock`; same in both versions) |
-| Creative tab builder | `VersionCompat.creativeTabBuilder()` (Fabric `FabricItemGroup`, NeoForge vanilla builder) |
-| Networking | `compat.network.NetworkCompat.registerC2S` / `registerS2C` / `sendToPlayer`; client: `client.compat.ClientNetworkCompat.registerHandler` / `sendToServer`. Packets are plain records with `write` / `read`, listed in `network.OMLPackets`. The facades forward to `platform.Network` / `client.platform.ClientNetwork` (Fabric: `PayloadTypeRegistry`; NeoForge: recorded and applied in `RegisterPayloadHandlersEvent`, optional channels, handlers on the main thread, S2C handlers dispatched from main to the handler the client registered; a packet without client handler is logged and dropped) |
-| Extended menus | `compat.MenuCompat.register` / `open` (passes the `BlockPos`; forwards to `platform.Menus`: Fabric extended screen handlers, NeoForge `IMenuTypeExtension` / `openMenu(provider, pos)`) |
-| Container screen background | `client.compat.ClientCompat` |
-| Client start-up (screens, tooltip lines) | `client.OMLClient` (`init`, `registerScreens(ScreenRegistrar)`, `appendTooltip`); tint `FloodlightTint.color` / `tintedBlocks`; debug wireframes `LightBlockDebugRenderer.render(level, poseStack, buffers, camera)`. The loader client entrypoints wire them to their events. |
-| Render layers | Fabric `BlockRenderLayerMap` in `OMLFabricClient`; NeoForge `"render_type"` in the block model JSON (Fabric ignores it). Keep both in sync. The floodlights (`CamoBlock`s) are cutout because of their lamp overlay (§6.11). |
+| Registration | `Registration` handles `RegistryEvent.Register<Block/Item>` (fired after pre-init); block entity classes via `GameRegistry.registerTileEntity` in `ModBlockEntities`. Blocks and items are created statically in `ModBlocks` / `ModItems` (registry name + translation key there) |
+| Blockstate | metadata: facing index in bits 0–2, `LIT` in bit 3 (`FloodlightBlock`); light blocks: `LIT` only. The small fluorescent light's `ROTATED` does not fit and lives in its block entity (`getActualState`) |
+| Tile entities | `CompatBlockEntity` (`readData` / `writeData` / `writeClientData`, update packets, `syncToClient`, `remesh`). **It overrides `shouldRefresh`**: Forge otherwise recreates a mod tile entity on every state change, which would wipe a light whenever `LIT` switches |
+| Ticking | `ITickable` on the floodlights and the UV light; the phantom light's block entity does not tick (random ticks on the block) |
+| Block flags | `LightBlocks.FLAGS` = 2 \| 16 (clients, no observers, no neighbour notification); `UPDATE_ALL` = 3 for the UV light's removal |
+| Phantom light | `Material.AIR` (so `isAir` is true, as in 1.7.10): falling blocks, trees, pistons and explosions treat it as air. Random ticks still work (1.12 counts them per block). `LevelLightWorld` and `LightBlocks.join` check the light blocks **before** `isAir` |
+| UV light | a `MaterialTransparent` (replaceable, not air), `getRenderType` by `LIT` and `uvLightRendered` |
+| Lightproof glass | own `LightproofGlassBlock` (no tinted glass in 1.12): glass with light opacity 255 that drops itself |
+| Drops | `FloodlightBlock` keeps the block until `harvestBlock` (`removedByPlayer`), so `getDrops` can read the block entity; settings go into the item's `BlockEntityTag`, which vanilla loads on placement |
+| Interaction | `FloodlightInteraction` listens to `PlayerInteractEvent.RightClickBlock` (fires before the sneak check, also for wrenches that do not bypass sneaking) |
+| Wrenches, wool, dyes | no tags: `CommonTags.isWrench` (tool class `wrench` or ore dictionary `toolWrench`/`itemWrench`/`wrench`), ore dictionary `blockWool`, Forge `DyeUtils` |
+| Energy, items | capabilities on the block entities: `ForgeEnergyStorage` wraps the core `EnergyAccess` (insert only), `InsertOnlyItemHandler` wraps the slot's `ItemStackHandler`; batteries are items with extractable FE |
+| Fuel | `TileEntityFurnace.getItemBurnTime` and the item's container item |
+| Menus | `OMLGuiHandler` (`IGuiHandler`, ids `ELECTRIC` / `CARBON`); screens come from `ClientProxy.createScreen`. `FloodlightMenu` syncs long values as two 16-bit window properties |
+| Network | `OMLNetwork.CHANNEL` (`SimpleNetworkWrapper`); `ConfigSyncPacket` on login (`OMLConfig.onPlayerJoin`); back to the local config on `ClientDisconnectionFromServerEvent` |
+| Disguise | `CamoBlock.CAMO` is an unlisted property in the floodlights' `ExtendedBlockState`; `client.camo.CamoModel` wraps their blockstate models in `ModelBakeEvent` and returns quads per render layer (`MinecraftForgeClient.getRenderLayer()`); camo blocks render in every layer but translucent |
+| Damage | `UvLightBlockEntity.UV_LIGHT` (`DamageSource("openmodularlighting.uv_light")`) |
+| Config | Gson 2.2.4 ships with 1.12: `new JsonParser().parse(...)` (lenient, reads the `//` comments), no `keySet()`; config folder from `FMLPreInitializationEvent` |
+| NBT | position lists are flat `int` arrays (`PosArrays`): 1.12 cannot read long arrays back |
 
-### Resources strategy
+### Resources
 
-- **`assets/`** (textures, models, blockstates, lang, sounds): identical across versions. Keep them handwritten in shared `src/main/resources/assets/openmodularlighting/`.
-  - Textures can be reused from `oldmod/src/main/resources/assets/floodlights/textures/`. Rename them to snake_case.
-  - Lang: convert `oldmod/.../lang/*.lang` (en_US, de_DE, ru_RU) to `en_us.json`, `de_de.json` and `ru_ru.json` with the new keys.
-  - Connected textures of `lightproof_glass`: `assets/openmodularlighting/optifine/ctm/lightproof_glass/` holds a `ctm_compact` properties file (Continuity / OptiFine format, no dependency) and the 5 tiles `0.png`–`4.png`, cut from `textures/block/lightproof_glass.png` (32 × 32, 2 px frame): 0 unconnected, 1 fully connected, 2 up/down, 3 left/right, 4 only the frame corners. Cut them again if the base texture changes.
-  - The old IGW wiki text (`wiki/`) is not ported.
-- **`data/`** (recipes, loot tables, tags, advancements): folder names and JSON formats differ. **Generate them with Fabric Datagen.**
-  - Run datagen per version.
-  - Configure the output directory relative to the version project (`project.file("src/main/generated")` → `versions/<v>/src/main/generated`).
-  - Add that directory as a resource source dir.
-  - Commit the generated files.
-  - **NeoForge has no datagen of its own.** `build.neoforge.gradle.kts` (`convertFabricData`) copies the Fabric output of the node named by `datagen_from` (`1.21.1-fabric`) into the NeoForge resources at build time, turning `fabric:load_conditions` into `neoforge:conditions` (`condition` → `type`).
-    Only conditions in this mod's namespace convert (registered under the same id on both loaders); any other condition fails the build.
-    So regenerate the Fabric data and the NeoForge jar follows; nothing NeoForge-specific is committed.
-- Do not handwrite files into `data/` in shared resources.
-- Do not generate new images via AI, f.ex. for textures. If an image is needed, use a placeholder image and tell the user which images are missing.
+- `assets/` is the main branch's, adapted: blockstate `model` names are relative to `models/block/` (`"openmodularlighting:electric_floodlight"`); variant keys list every property; light blocks use `lit=…`, the glass `normal`; the cube light uses a state mapper that ignores `facing`.
+- Block textures must be square: the panel textures are 64 × 64 with a transparent lower half (the main branch's are 64 × 32), and the panel models use half the main branch's v coordinates.
+- A texture variable must not point to another variable of the same model (1.12 cannot resolve it): name the texture directly.
+- Lang files are `.lang` (`key=value`): blocks `tile.openmodularlighting.<id>.name`, items `item.openmodularlighting.<id>.name`, the rest as on the main branch.
+- **No datagen:** recipes are handwritten JSON in `assets/openmodularlighting/recipes/` (ore dictionary `ingotIron`, `ingotGold`, `dustRedstone`, `paneGlass`; metadata for stained glass and coal/charcoal). They carry the condition `openmodularlighting:block_enabled` (registered in `recipes/_factories.json`, class `compat.BlockEnabledCondition`); recipes load once at start-up from the local config. Smelting is code (`ModRecipes`). There are no recipe-unlock advancements and no loot tables (blocks drop through `getDrops`).
+- Do not generate new images via AI. If an image is needed, use a placeholder and tell the user which images are missing.
 
 ---
 
@@ -333,87 +150,33 @@ Wrap each of these behind a helper where possible.
 
 ```text
 omtteam.openmodularlighting
-│
-├── OML                            shared start-up: init() (config, packets) and registrationSteps() (registry.RegistrationStep:
-│                                  registry + call), both used by the loader entrypoints; constants (MOD_ID, LOGGER), id(path)
-│
-├── core/                          ── pure Java, NO Minecraft imports (enforced by verifyCoreIsolation) ──
-│   ├── math/                      Pos (int x,y,z record), Facing (6 directions), Rotation (port of MathUtil.rotate)
-│   ├── beam/                      BeamShape (straight, narrow cone, wide cone, fluorescent, grow, UV), Ray,
-│   │                              BeamMode (floodlight modes), GrowMode (lighting / black light)
-│   ├── light/                     LightWorld (interface) + Cell, LightType (phantom / UV rules), BeamCaster,
-│   │                              LightSources (all + active sources of a phantom/UV block), ShapeDiff
-│   ├── state/                     LightController (active/inverted/timeout/re-cast state machine),
-│   │                              PowerSource (interface: energy buffer or fuel timer), FuelTimer
-│   ├── cluster/                   Cluster + ClusterNode (generic connected groups: join / leave / refresh-split, max 256;
-│   │                              Minecraft-free, meant to be reused for multiblocks)
-│   ├── energy/                    EnergyStore (energy buffer: insert/extract for other blocks, generate/consume/drain
-│   │                              for the owner; taken over from OMT), EnergyAccess (what a block entity exposes)
-│   └── formula/                   CarbonFuel (burn time), GrowChance (tick interval), EnergyCost
-│
-├── block/                         FloodlightBlock (base of every light: FACING + LIT, drops; right-click in FloodlightInteraction; configure()
-│                                  for stick/wrench) → Electric…, Carbon…, UvFloodlightBlock, PanelLightBlock (thin, no
-│                                  collision, PanelShapes) → FluorescentLightBlock (small/square), GrowLightBlock;
-│                                  LightBlock (base of the light blocks: LIT, random-tick cleanup, re-cast requests,
-│                                  canReplace) → PhantomLightBlock, UvLightBlock
-├── blockentity/                   FloodlightBlockEntity (base: invert, colour, slot, power; LightBeam: cached beam, re-cast) →
-│                                  BeamFloodlightBE (BeamMode) → ElectricFloodlightBE, CarbonFloodlightBE;
-│                                  UvFloodlightBE, GrowLightBE (GrowMode, growth), FluorescentLightBE;
-│                                  LightSourceBlockEntity (interface of all lights); LightBlockEntity (sources,
-│                                  save/load) → PhantomLightBE, UvLightBE (damage)
-├── menu/                          FloodlightMenu (+ disguise slot on CamoBlocks) → ElectricFloodlightMenu, CarbonFloodlightMenu;
-│                                  LongContainerData (syncs longs as two shorts)
-├── camo/                          disguise (§6.11): CamoBlock (marker), CamoRules (valid disguises), CamoData (state + NBT)
-├── inventory/                     ItemAccess (container slot range + insert/extract filters as other blocks see them;
-│                                  loader adapters in platform/<loader>)
-├── registry/                      ModBlocks, ModItems (crafting items and the light debug tool are plain Items), ModBlockEntities (+ lights() for the loader lookups), ModMenus, ModCreativeTabs
-├── energy/                        ElectricPower (EnergyStore of a light), ClusterEnergy (pull + insert-only View),
-│                                  Batteries (battery-slot check and discharge via platform.Energy)
-├── world/                         LightBlocks (join / leave / setActive on light blocks, applies LightSources
-│                                  effects), Positions (core ↔ Minecraft types), LevelLightWorld (core LightWorld
-│                                  on top of Level)
-├── network/                       OMLPackets (all packet types), ConfigSyncPacket
-├── config/                        OMLConfig (load, validate, save, sync), ConfigData (the fields), @Comment, @Range,
-│                                  ConfigWriter, ConfigRanges, ConfigValidator
-├── compat/                        every 1.20.1/1.21.1 difference: VersionCompat, CompatBlockEntity, InteractiveBlock,
-│                                  MenuCompat, network/ (NetworkCompat, PacketType); jade/ (optional Jade plugin:
-│                                  OMLJadePlugin, FloodlightJadeProvider; FloodlightTooltip has the content, no Jade)
-├── platform/                      loader-specific code (§4 "Loaders"); each node compiles only its own loader's package.
-│   │                              Platform (holder) + PlatformServices (record of all services): installed once,
-│   │                              first thing in the entrypoint; a getter before install or a second install throws
-│   │                              IllegalStateException. Services: LoaderInfo (configDir, isModLoaded), Fuel (burnTime, remainder), Network, Menus,
-│   │                              Energy (isBattery, dischargeItem, pushToBlock)
-│   ├── fabric/                    OMLFabric (ModInitializer: install services, OML.init(), Fabric callbacks),
-│   │                              FabricBlockLookups (item + energy lookups), FabricItemStorages, FabricEnergyStorages (Team Reborn
-│   │                              adapters: SnapshotParticipant per EnergyStore, weak-keyed/-valued cache; cluster view),
-│   │                              Fabric… service implementations
-│   ├── neoforge/                  OMLNeoForge (@Mod entrypoint: services, OML.init, steps per RegisterEvent, capabilities,
-│   │                              events), NeoForgeBlockEnabledCondition, NeoForge… service implementations;
-│   │                              FML constructs a mod's common @Mod class before its client one (OMLNeoForgeClient)
-│   └── forge/                     OMLForge (@Mod entrypoint like OMLNeoForge, starts OMLForgeClient by name on a client),
-│                                  ForgeLightCapabilities (AttachCapabilitiesEvent), ForgeBlockEnabledCondition, Forge… services
-└── datagen/                       recipe, loot table, block tag, model providers (runs per version)
-
-src/client/java/omtteam/openmodularlighting/client
-├── OMLClient                      shared client start-up (init, registerScreens(ScreenRegistrar), appendTooltip)
-├── platform/                      ClientPlatform + ClientPlatformServices (ClientNetwork), like Platform in main;
-│   ├── fabric/                    OMLFabricClient (ClientModInitializer: wires Fabric's client callbacks), FabricClientNetwork,
-│   │                              FabricCamoModel (disguise model, Renderer API)
-│   ├── neoforge/                  OMLNeoForgeClient (@Mod(dist = CLIENT): wires NeoForge's client events), NeoForgeClientNetwork,
-│   │                              NeoForgeCamoModel (disguise model, ModelData)
-│   └── forge/                     OMLForgeClient (constructed by OMLForge: wires Forge's client events), ForgeClientNetwork,
-│                                  ForgeCamoModel (disguise model, ModelData)
-├── camo/                          CamoModels (which models get wrapped, LAMP_TINT_INDEX)
-├── screen/                        FloodlightScreen (one status line) → Electric…, CarbonFloodlightScreen
-├── render/                        FloodlightTint (dye colour × a brightness factor per block), LightBlockDebugRenderer
-│                                  (light debug tool: wireframes around light blocks while held; called from the
-│                                  loader's world render event, not a block entity renderer, so it costs nothing while
-│                                  not held)
-├── compat/                        ClientCompat, ClientNetworkCompat
-└── network/                       ClientPacketHandlers (config sync handler)
+├── OML                 @Mod entrypoint (pre-init: config, network, event handlers; init: GUI handler, smelting), MOD_ID, LOGGER, id(path)
+├── CommonProxy         server side of the @SidedProxy (client: client.ClientProxy)
+├── core/               ── pure Java 8, NO Minecraft imports; the same classes as on the main branch ──
+├── block/              FloodlightBlock (+ FloodlightInteraction) → Electric…, Carbon…, UvFloodlightBlock, CubeLightBlock,
+│                       PanelLightBlock (PanelShapes) → FluorescentLightBlock, GrowLightBlock; LightBlock → PhantomLightBlock,
+│                       UvLightBlock; LightproofGlassBlock
+├── blockentity/        FloodlightBlockEntity (LightBeam) → BeamFloodlightBE → Electric…, Carbon…; UvFloodlightBE,
+│                       PanelLightBlockEntity → FluorescentLightBE, GrowLightBE, CubeLightBE; LightBlockEntity → PhantomLightBE, UvLightBE
+├── menu/               FloodlightMenu → Electric…, CarbonFloodlightMenu; OMLGuiHandler
+├── camo/               CamoBlock (+ CAMO property), CamoRules, CamoData
+├── inventory/          InsertOnlyItemHandler
+├── registry/           ModBlocks, ModItems, ModBlockEntities, ModCreativeTabs, ModRecipes, Registration
+├── energy/             ElectricPower, FuelPower, LightPower, ClusterEnergy, Batteries, ForgeEnergyStorage
+├── world/              LightBlocks, LevelLightWorld, Positions, PosArrays, Worlds
+├── network/            OMLNetwork, ConfigSyncPacket
+├── config/             as on the main branch (Java 8)
+├── compat/             CompatBlockEntity, CommonTags, BlockEnabledCondition
+└── client/             ClientProxy, ClientEvents (models, colours, tooltip, debug renderer, disconnect),
+                        camo/ (CamoModel, CamoModels), render/ (FloodlightTint, LightBlockDebugRenderer), screen/
 ```
 
-Dependency direction: `client → main → core`. `core` depends on nothing. `main` never references `client`.
+Dependency direction: `client → main → core`. `core` depends on nothing. `main` never references `client` (only through the proxy).
+
+### Gameplay (§6.2–§6.11)
+
+The following sections are the main branch's and apply here unchanged in behaviour.
+Read them with §5 at hand: "Team Reborn Energy" / "FE" means Forge Energy, "datagen" means the handwritten recipe JSON, "tags" means the ore dictionary, "GameTests" do not exist, Jade is not available, and `fabric`/`neoforge`/`platform` classes have no counterpart (their job is done by `OML`, the proxies and the block entities' capabilities).
 
 ### 6.2 Blocks and items (from 1.7.10)
 
@@ -609,13 +372,12 @@ Taken over from OpenModularTurrets (`../OMT1.20.1+`, `camo/` and `FabricCamoMode
 ## 7. Change Workflow
 
 1. Implement gameplay logic in `core/` (with unit tests) where possible; keep Minecraft-facing code thin.
-2. Wrap version differences in `compat/`.
-3. Add assets, lang entries and datagen entries; regenerate data for **both** versions.
+2. Check whether the change belongs on the main branch too (§1 "Keeping the branches together").
+3. Add assets, lang entries (all three `.lang` files) and recipe JSON by hand.
 4. Add a `CHANGELOG.md` entry for user-visible changes.
-5. Run `./gradlew chiseledBuild`.
+5. Run `./gradlew build`; check in-game behaviour with `runClient` and say what was checked.
 
-- Every variant of subblocks is an **individual registered block/item** with a lowercase snake_case ID.
-  `docs/id-mapping.md` maps the 1.7.10 IDs to the current ones.
+- Every variant of subblocks is an **individual registered block/item** with a lowercase snake_case ID, the same IDs as on the main branch. `docs/id-mapping.md` maps the 1.7.10 IDs to them.
 
 ### Designing APIs
 
@@ -623,33 +385,15 @@ The user wants close control over every API (public interfaces for other mods, b
 Design them step by step, together with the user:
 
 1. **Overall shape first:** present a few ideas (e.g. 2–3 approaches with their trade-offs and a recommendation) and wait for the user's choice before writing code.
-2. **Then each level in turn:** repeat this for each package, then each class or interface, then each public method or callback signature (names, parameters, return values, nullability, when it is called).
+2. **Then each level in turn:** repeat this for each package, then each class or interface, then each public method or callback signature.
    Propose, wait for the decision, then implement that piece.
-3. Do not implement a whole API in one go, and do not pick a signature on your own because it seems obvious; a small choice (e.g. which parameters a callback gets) is still the user's call.
+3. Do not implement a whole API in one go, and do not pick a signature on your own because it seems obvious.
 
 ### Code shared with OpenModularTurrets
 
-Parts of the code exist almost identically in OpenModularTurrets (`../OMT1.20.1+`, branch `neoforge-test`), which has the same section:
-
-- the platform layer (`platform/`, `client/platform/`, `NetworkCompat`, `PacketType`, `MenuCompat`), `ItemAccess`, `RegistrationStep`, `ScreenRegistrar`, `LongContainerData`, `@Comment` / `@Range`, `ConfigSyncPacket`, and `buildSrc` (`mod-common`);
-- energy (`core.energy.EnergyStore`, `EnergyAccess`, `FabricEnergyStorages`, `NeoForgeEnergyHandler`);
-- `CompatBlockEntity` (identical) and camouflage (`camo/CamoBlock`, `CamoData`, `CamoRules`, `client/camo/CamoModels`, `FabricCamoModel`, `NeoForgeCamoModel`; on the branch `worktree-floodlight-camo` until merged).
-  OpenModularTurrets also has a `CamoHost`, a camo menu and screen, camo light properties and a camouflage trap.
-
-The camo copies differ on purpose in three points only: the disguise rule (OpenModularTurrets: any full block; here: full opaque blocks only), extra quads on top of the disguise (the lamp overlay here), and the NBT key (`"camo"` here, `"Camo"` there; it must stay per mod, or saved disguises are lost).
-
-Until there is a shared library:
-
-- When you change one of these files, check whether the same change belongs in the other mod, and tell the user (do not edit the other repository unasked).
-- Keep the camo differences limited to the three points above, so that they can later become parameters (a disguise rule, an overlay hook, the NBT key); shaping those is API design (§7 "Designing APIs").
-
-Shared library (assessment from 2026-10-20, a recommendation; building it is the user's decision and a new dependency, §1; it would not be the old OMLib):
-
-- Not yet: about 2,000 lines are shared, and copying the small service interfaces costs little.
-- Extract it at the next Minecraft version bump, when both camo models have to be reworked anyway, or earlier if a third mod needs the code.
-  Start with camouflage, `CompatBlockEntity` and the platform services.
-- Bundle it jar-in-jar, so players do not download anything extra; it must then stay binary-compatible within a major version, because the loader picks the highest bundled version.
-- The platform services need a redesign for a library: `Platform.install` allows one install per JVM, and the network registration uses the mod's own id.
+The camouflage (`camo/`, the camo model) and `CompatBlockEntity` follow OpenModularTurrets (`../OMT1.20.1+`) on the main branch; on 1.12.2 they are rewritten for the 1.12 APIs.
+The camo differences to OpenModularTurrets stay limited to the disguise rule (full opaque blocks only), the lamp overlay and the NBT key (`"camo"`).
+When you change one of these, tell the user whether the same change belongs in the other mod or the main branch (do not edit other repositories unasked).
 
 ---
 
@@ -677,73 +421,19 @@ Shared library (assessment from 2026-10-20, a recommendation; building it is the
 
 Update this checklist as work progresses.
 
-### Infrastructure
+### Forge 1.12.2 (branch `1.12.2`)
 
-- [x] Gradle + Loom + Stonecutter skeleton; both versions build with an empty mod
-- [x] `fabric.mod.json` templating, split source sets, datagen per version
-- [x] `verifyCoreIsolation` task + JUnit setup
-- [x] Spotless
-- [x] Quality tools from OMT: ArchUnit architecture rules, PMD report, JaCoCo coverage of core, PIT mutation testing
-- [x] GameTests (`src/gametest`, headless server, part of `check`)
-- [x] `compat/` helpers (id, NBT save/load, item data, block entity base, block interaction, menus, networking, client rendering)
-- [x] Config system (incl. server → client sync on join; sync not yet tested with a real client/server pair)
-- [x] Publishing + `CHANGELOG.md` (CurseForge and Modrinth project IDs set)
-
-### Core (`core/`, with tests)
-
-- [x] `Pos`, `Facing`, `Rotation` (port of `MathUtil.rotate`)
-- [x] Beam shapes: straight, narrow cone, wide cone, fluorescent, grow, UV
-- [x] `BeamCaster` + `LightWorld` interface (opaque stop, unloaded-chunk stop, cone inner-ray rule)
-- [x] `LightSources` bookkeeping (all + active sources) and `ShapeDiff`
-- [x] `LightController` state machine (redstone/invert, timeout, diff re-cast, cost; toggles `LIT` instead of placing/removing)
-- [x] Formulas: carbon burn time, grow tick interval, energy cost per mode
-
-### Content
-
-- [x] Phantom light block + BE (persistent, `LIT` toggle, replaceable/air-like, random-tick cleanup, neighbour re-cast); `LightBlocks` operations; GameTests
-- [x] Electric floodlight (3 modes, energy, battery slot, GUI, dye tint, settings kept on the drop); GameTests
-- [x] Carbon floodlight (fuel slot, burn time, GUI); GameTests
-- [x] Fluorescent lights: small + square (rotation state, JSON panel models instead of BERs); GameTests
-- [x] UV floodlight + UV light block (persistent with `LIT` toggle, damage type, `uvLightRendered`); GameTests
-- [x] Grow light (normal/black-light mode, bonemeal ticks, JSON panel model); GameTests
-- [x] Crafting items + recipes (datagen, config condition), loot tables, creative tab; recipes of the fluorescent, UV and grow lights come with those blocks
-- [x] Interactions: invert, mode cycle / rotation with stick or wrench tag, wrench break, dye colour (`FloodlightBlock`)
-- [x] Team Reborn Energy integration (jar-in-jar)
-- [x] Transfer API (`ItemStorage.SIDED`) for the 1-slot inventories
-- [x] Assets: textures from `oldmod`, models, blockstates, lang (en_us, de_de, ru_ru)
-- [x] `docs/id-mapping.md`
-
-### NeoForge 1.21.1 (branch `neoforge-test`, reusable for OMT)
-
-- [x] Build: Stonecutter nodes `<version>-<loader>`, `buildSrc` convention plugin, `build.neoforge.gradle.kts` (ModDevGradle), `neoforge.mods.toml` template, client source set, `platform/<loader>` exclusion, loader constants, publishing (enabled from 1.0.0-beta.3)
-- [x] `@Mod` entrypoint loads in a NeoForge GameTest server run
-- [x] `platform/` shape (§7): wiring from the entrypoints; services via `Platform` / `PlatformServices` (+ `ClientPlatform` / `ClientPlatformServices`)
-- [x] Entrypoints split: `OML.init()` shared, `OMLFabric` / `OMLFabricClient` in `platform/fabric`
-- [x] Service `LoaderInfo` (`configDir`, `isModLoaded`)
-- [x] Service `Fuel` (`burnTime`, `remainder`)
-- [x] Services `Network` + `ClientNetwork` (`ClientPlatform` / `ClientPlatformServices`, NeoForge client entrypoint `OMLNeoForgeClient`)
-- [x] Service `Menus` (`createBlockMenuType`, `openBlockMenu`; `BlockPos` only)
-- [x] `core.energy.EnergyStore` + `EnergyAccess`; service `Energy` (`isBattery`, `dischargeItem`, `pushToBlock`); Fabric adapters + lookups in `platform/fabric`; NeoForge `NeoForgeEnergyHandler` (FE adapter)
-- [x] Item transfer: `inventory.ItemAccess`; Fabric `FabricItemStorages`, NeoForge `NeoForgeItemHandler`
-- [x] Registration: `OML.init()` + `OML.registrationSteps()` (NeoForge: per `RegisterEvent`, safety check at common setup); capabilities (items, energy); block use, config sync on join, recipe condition codec, creative tab builder, plain `c:` tags; all main code except `datagen` compiles on NeoForge, unit tests run there too
-- [x] Checked by hand in a NeoForge client: blocks, interaction, menus, tint, render types, debug renderer, tooltip
-- [x] Client: `OMLClient` + `ScreenRegistrar`; screens, colour handler, render types (model JSON), debug renderer, tooltip, disconnect hook wired in `OMLNeoForgeClient` (check by hand with `:1.21.1-neoforge:runClient`)
-- [x] Data on NeoForge: converted from the Fabric 1.21.1 datagen output at build time (`convertFabricData`, `datagen_from`); loading it on NeoForge is checked by the NeoForge GameTests (`RecipeGameTest`)
-- [x] GameTests on NeoForge: shared test classes (`OMLGameTests`, own empty structure, NeoForge annotations behind a condition), `TestTransfer`, loader-neutral test battery; all 54 run on NeoForge
-- [x] Jade on NeoForge: `@WailaPlugin` on `OMLJadePlugin` (Fabric keeps the entrypoint); plugin load checked once in a NeoForge run; overlay itself: check by hand with `:1.21.1-neoforge:runClient`
-
-### Forge 1.20.1 (branch `forge-test`, to be taken over by OMT)
-
-- [x] Build: node `1.20.1-forge`, `build.forge.gradle.kts` (legacy ModDevGradle, `reobfJar`, remapped Jade), `forge` constant, `mods.toml` template (+ test mod), `mod-common` knows `forge`, `convertFabricData` moved to `buildSrc` (NeoForge and Forge), generated `pack.mcmeta`, publishing (enabled on 2026-10-24)
-- [x] `platform/forge`: `OMLForge`, all five services, `ForgeLightCapabilities` (items, energy), `ForgeBlockEnabledCondition`; client `OMLForgeClient`, `ForgeClientNetwork`, `ForgeCamoModel`
-- [x] GameTests on Forge: `OMLForgeGameTests`, `ForgeTestTransfer`, `ForgeTestBattery`; `OMLGameTests.mockPlayer`; all 57 pass
-- [ ] Checked by hand in a Forge client (`:1.20.1-forge:runClient`): screens, tint, camouflage rendering, debug renderer, Jade, joining a dedicated server (config sync over the event channels)
-
-### Later / optional (ask first)
-
-- [x] Jade tooltip (replaces WAILA: invert and mode; optional dependency, the user chose Jade only, no WTHIT); GameTests
-- [x] Light debug tool function (wireframe renderer; client only, check with `runClient`)
-- [x] Disguise for the electric, carbon and UV floodlights (taken over from OMT; disguise slot, lamp overlay, kept on the drop; §6.11); GameTests. Rendering not yet checked by hand in `runClient` (both loaders)
+- [x] Build: RetroFuturaGradle 2.0, Java 8 toolchain, MCP `stable_39`, reobfuscated jar, Spotless, `verifyCoreIsolation`, changelog tasks, publishing (dry run: `publish_enabled=false`)
+- [x] `core/` and `config/` from the main branch, converted to Java 8; all unit tests pass (87)
+- [x] Blocks, block entities, registration, creative tab, interaction, drops with settings
+- [x] Phantom and UV light blocks (persistent, `LIT` toggle, random-tick cleanup, neighbour re-cast), light debug tool
+- [x] Forge Energy (insert only, cluster sharing of panel and cube lights), batteries, fuel, insert-only item capability
+- [x] GUIs (`IGuiHandler`, container sync, disguise slot), config sync on login
+- [x] Disguise model (`CamoModel`, extended state), dye tint, "Configured" tooltip
+- [x] Assets adapted (blockstates, square panel textures, `.lang` files), recipes as JSON with the `block_enabled` condition, smelting in code
+- [x] Dev client starts with no model, texture or recipe errors (checked 2026-10-24)
+- [ ] Checked by hand in a world (`runClient`): placing, beams on/off, modes, GUIs, energy from a mod cable, carbon fuel, UV damage, grow light, disguise rendering, tint, debug tool, dropped items, joining a dedicated server (config sync)
+- [ ] Optional block info overlay (The One Probe or HWYLA instead of Jade): ask the user first
 
 ---
 

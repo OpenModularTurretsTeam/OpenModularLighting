@@ -1,5 +1,7 @@
 package omtteam.openmodularlighting.core.light;
 
+import static omtteam.openmodularlighting.TestCollections.listOf;
+import static omtteam.openmodularlighting.TestCollections.setOf;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -96,7 +98,7 @@ class BeamCasterTest {
     @Test
     void straightModeSkipsEverySecondBlockStartingWithTheSecond() {
         List<Pos> lit = cast(BeamMode.STRAIGHT.shape(8, 32), Facing.EAST, TestWorld.open());
-        assertEquals(List.of(new Pos(1, 0, 0), new Pos(3, 0, 0), new Pos(5, 0, 0), new Pos(7, 0, 0)), lit);
+        assertEquals(listOf(new Pos(1, 0, 0), new Pos(3, 0, 0), new Pos(5, 0, 0), new Pos(7, 0, 0)), lit);
     }
 
     @Test
@@ -120,7 +122,7 @@ class BeamCasterTest {
     @Test
     void skippedBlocksStillBlockTheRay() {
         TestWorld world = TestWorld.open().set(new Pos(4, 0, 0), Cell.OPAQUE);
-        assertEquals(List.of(new Pos(1, 0, 0), new Pos(3, 0, 0)),
+        assertEquals(listOf(new Pos(1, 0, 0), new Pos(3, 0, 0)),
                 cast(BeamMode.STRAIGHT.shape(10, 32), Facing.EAST, world));
         // a wall at a skipped distance still ends the cone ray
         TestWorld wall = TestWorld.open().set(new Pos(6, 0, 0), Cell.OPAQUE);
@@ -152,7 +154,7 @@ class BeamCasterTest {
         for (int i = 0; i < 64; i++) {
             assertEquals(new Pos(i + 1, 0, 0), lit.get(i));
         }
-        assertEquals(List.of(new Pos(0, 0, -1), new Pos(0, 0, -2)),
+        assertEquals(listOf(new Pos(0, 0, -1), new Pos(0, 0, -2)),
                 cast(BeamShape.straight(2), Facing.NORTH, TestWorld.open()));
     }
 
@@ -172,7 +174,7 @@ class BeamCasterTest {
 
     @Test
     void fluorescentLightsFrontAndSides() {
-        assertEquals(Set.of(new Pos(0, 1, 0), new Pos(1, 0, 0), new Pos(-1, 0, 0), new Pos(0, 0, 1), new Pos(0, 0, -1)),
+        assertEquals(setOf(new Pos(0, 1, 0), new Pos(1, 0, 0), new Pos(-1, 0, 0), new Pos(0, 0, 1), new Pos(0, 0, -1)),
                 new HashSet<>(cast(BeamShape.fluorescent(), Facing.UP, TestWorld.open())));
     }
 
@@ -190,7 +192,7 @@ class BeamCasterTest {
                 .set(new Pos(3, 0, 0), Cell.UV_LIGHT)
                 .set(new Pos(4, 0, 0), Cell.PHANTOM_LIGHT)
                 .set(new Pos(6, 0, 0), Cell.OPAQUE);
-        assertEquals(List.of(new Pos(1, 0, 0), new Pos(4, 0, 0), new Pos(5, 0, 0)),
+        assertEquals(listOf(new Pos(1, 0, 0), new Pos(4, 0, 0), new Pos(5, 0, 0)),
                 cast(BeamShape.straight(10), Facing.EAST, world));
 
         world.set(new Pos(6, 0, 0), Cell.UNLOADED);
@@ -233,19 +235,19 @@ class BeamCasterTest {
                 .set(new Pos(2, 0, 0), Cell.UV_LIGHT)
                 .set(new Pos(3, 0, 0), Cell.TRANSPARENT)
                 .set(new Pos(5, 0, 0), Cell.OPAQUE);
-        assertEquals(List.of(new Pos(1, 0, 0), new Pos(2, 0, 0), new Pos(4, 0, 0)),
+        assertEquals(listOf(new Pos(1, 0, 0), new Pos(2, 0, 0), new Pos(4, 0, 0)),
                 BeamCaster.cast(BeamShape.uv(8), Pos.ORIGIN, Facing.EAST, LightType.UV, world));
     }
 
     @Test
     void shapeRejectsRaysWithLaterParents() {
-        Ray first = Ray.of(List.of(new Pos(1, 0, 0)));
-        Ray child = new Ray(List.of(new Pos(2, 0, 0)), 1, 1);
-        assertThrows(IllegalArgumentException.class, () -> new BeamShape(List.of(child, first), BeamShape.FrontRule.NONE));
-        Ray ownParent = new Ray(List.of(new Pos(2, 0, 0)), 1, 1);
-        assertThrows(IllegalArgumentException.class, () -> new BeamShape(List.of(first, ownParent), BeamShape.FrontRule.NONE));
-        Ray firstAsParent = new Ray(List.of(new Pos(2, 0, 0)), 0, 1);
-        assertEquals(2, new BeamShape(List.of(first, firstAsParent), BeamShape.FrontRule.NONE).rays().size());
+        Ray first = Ray.of(listOf(new Pos(1, 0, 0)));
+        Ray child = new Ray(listOf(new Pos(2, 0, 0)), 1, 1);
+        assertThrows(IllegalArgumentException.class, () -> new BeamShape(listOf(child, first), BeamShape.FrontRule.NONE));
+        Ray ownParent = new Ray(listOf(new Pos(2, 0, 0)), 1, 1);
+        assertThrows(IllegalArgumentException.class, () -> new BeamShape(listOf(first, ownParent), BeamShape.FrontRule.NONE));
+        Ray firstAsParent = new Ray(listOf(new Pos(2, 0, 0)), 0, 1);
+        assertEquals(2, new BeamShape(listOf(first, firstAsParent), BeamShape.FrontRule.NONE).rays().size());
     }
 
     @Test

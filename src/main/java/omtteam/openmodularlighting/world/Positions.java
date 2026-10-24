@@ -1,7 +1,7 @@
 package omtteam.openmodularlighting.world;
 
-import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
+import net.minecraft.util.EnumFacing;
+import net.minecraft.util.math.BlockPos;
 import omtteam.openmodularlighting.core.math.Facing;
 import omtteam.openmodularlighting.core.math.Pos;
 
@@ -20,12 +20,12 @@ public final class Positions {
         return new BlockPos(pos.x(), pos.y(), pos.z());
     }
 
-    /** {@link Facing} has the same order as {@link Direction}. */
-    public static Facing toFacing(Direction direction) {
+    /** {@link Facing} has the same order as {@link EnumFacing}. */
+    public static Facing toFacing(EnumFacing direction) {
         return Facing.byOrdinal(direction.ordinal());
     }
 
-    public static Direction toDirection(Facing facing) {
-        return Direction.values()[facing.ordinal()];
+    public static EnumFacing toDirection(Facing facing) {
+        return EnumFacing.values()[facing.ordinal()];
     }
 }

@@ -1,0 +1,38 @@
+{
+  "conditions": [
+    {
+      "type": "openmodularlighting:block_enabled",
+      "blocks": [
+        "carbon_floodlight"
+      ]
+    }
+  ],
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " G ",
+    "GMG",
+    "DFI"
+  ],
+  "key": {
+    "D": {
+      "item": "openmodularlighting:carbon_dissolver"
+    },
+    "F": {
+      "item": "minecraft:flint_and_steel"
+    },
+    "G": {
+      "type": "forge:ore_dict",
+      "ore": "paneGlass"
+    },
+    "I": {
+      "type": "forge:ore_dict",
+      "ore": "ingotIron"
+    },
+    "M": {
+      "item": "openmodularlighting:mantle"
+    }
+  },
+  "result": {
+    "item": "openmodularlighting:carbon_lantern"
+  }
+}

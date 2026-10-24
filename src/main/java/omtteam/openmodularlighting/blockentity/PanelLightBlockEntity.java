@@ -1,17 +1,16 @@
 package omtteam.openmodularlighting.blockentity;
 
-import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.entity.BlockEntityType;
-import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.EnumFacing;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.World;
 import omtteam.openmodularlighting.core.cluster.Cluster;
 import omtteam.openmodularlighting.core.cluster.ClusterNode;
 import omtteam.openmodularlighting.core.energy.EnergyAccess;
 import omtteam.openmodularlighting.energy.ClusterEnergy;
 import omtteam.openmodularlighting.energy.ElectricPower;
-import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -31,25 +30,21 @@ public abstract class PanelLightBlockEntity extends FloodlightBlockEntity implem
     private final ClusterEnergy.View clusterEnergy = new ClusterEnergy.View(this);
     private int pullCooldown;
 
-    protected PanelLightBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
-        super(type, pos, state);
-    }
-
     /** 1.7.10 {@code canConnectEnergy}: only the face the light is mounted on. */
     @Override
-    protected boolean acceptsEnergyFrom(@Nullable Direction side) {
+    protected boolean acceptsEnergyFrom(@Nullable EnumFacing side) {
         return side == null || side == facing().getOpposite();
     }
 
     /** The energy of the whole cluster: inserting fills the emptiest lights first, nothing can be extracted. */
     @Nullable
     @Override
-    public EnergyAccess getEnergyAccess(@Nullable Direction side) {
+    public EnergyAccess getEnergyAccess(@Nullable EnumFacing side) {
         return acceptsEnergyFrom(side) ? clusterEnergy : null;
     }
 
     @Override
-    protected void beforePower(Level level) {
+    protected void beforePower(World world) {
         if (cluster == null) {
             Cluster.join(this);
         }
@@ -62,8 +57,14 @@ public abstract class PanelLightBlockEntity extends FloodlightBlockEntity implem
     }
 
     @Override
-    public void setRemoved() {
-        super.setRemoved();
+    public void invalidate() {
+        super.invalidate();
+        Cluster.leave(this);
+    }
+
+    @Override
+    public void onChunkUnload() {
+        super.onChunkUnload();
         Cluster.leave(this);
     }
 
@@ -83,12 +84,14 @@ public abstract class PanelLightBlockEntity extends FloodlightBlockEntity implem
     @Override
     public Collection<PanelLightBlockEntity> neighbours() {
         List<PanelLightBlockEntity> result = new ArrayList<>(6);
-        if (level == null) return result;
-        for (Direction side : Direction.values()) {
-            BlockPos pos = worldPosition.relative(side);
-            if (level.hasChunkAt(pos) && level.getBlockEntity(pos) instanceof PanelLightBlockEntity other
-                    && !other.isRemoved() && connectsTo(side, other)) {
-                result.add(other);
+        if (world == null) return result;
+        for (EnumFacing side : EnumFacing.values()) {
+            BlockPos other = pos.offset(side);
+            if (!world.isBlockLoaded(other)) continue;
+            TileEntity tile = world.getTileEntity(other);
+            if (tile instanceof PanelLightBlockEntity && !tile.isInvalid()
+                    && connectsTo(side, (PanelLightBlockEntity) tile)) {
+                result.add((PanelLightBlockEntity) tile);
             }
         }
         return result;
@@ -98,7 +101,7 @@ public abstract class PanelLightBlockEntity extends FloodlightBlockEntity implem
      * Whether the light on {@code side} is part of the same cluster. Must be symmetric. Panel lights (fluorescent and
      * grow lights alike) connect on the 4 sides to panel lights that face the same way.
      */
-    protected boolean connectsTo(Direction side, PanelLightBlockEntity other) {
+    protected boolean connectsTo(EnumFacing side, PanelLightBlockEntity other) {
         return side.getAxis() != facing().getAxis() && !(other instanceof CubeLightBlockEntity)
                 && other.facing() == facing();
     }

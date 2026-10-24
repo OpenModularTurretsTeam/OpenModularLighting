@@ -1,7 +1,10 @@
 {
   "variants": {
-    "": {
-      "model": "openmodularlighting:block/phantom_light"
+    "lit=false": {
+      "model": "openmodularlighting:phantom_light"
+    },
+    "lit=true": {
+      "model": "openmodularlighting:phantom_light"
     }
   }
 }

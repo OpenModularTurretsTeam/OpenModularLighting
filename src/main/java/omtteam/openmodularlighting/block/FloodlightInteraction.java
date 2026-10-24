@@ -1,86 +1,127 @@
 package omtteam.openmodularlighting.block;
 
-import net.minecraft.core.BlockPos;
-import net.minecraft.network.chat.Component;
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.tags.ItemTags;
-import net.minecraft.world.InteractionResult;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.DyeItem;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.block.state.IBlockState;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.init.Items;
+import net.minecraft.item.EnumDyeColor;
+import net.minecraft.item.ItemStack;
+import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.EnumActionResult;
+import net.minecraft.util.EnumHand;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.text.TextComponentString;
+import net.minecraft.util.text.TextComponentTranslation;
+import net.minecraft.world.World;
+import net.minecraftforge.event.entity.player.PlayerInteractEvent;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.oredict.DyeUtils;
+import net.minecraftforge.oredict.OreDictionary;
 import omtteam.openmodularlighting.blockentity.FloodlightBlockEntity;
 import omtteam.openmodularlighting.compat.CommonTags;
 import omtteam.openmodularlighting.energy.ElectricPower;
 import omtteam.openmodularlighting.registry.ModItems;
 
-/** Right-click on a light ({@link FloodlightBlock#onUse}), as in 1.7.10 (CLAUDE.md §6.6). */
-final class FloodlightInteraction {
+import java.util.Optional;
+
+/**
+ * Right-click on a light, as in 1.7.10 (CLAUDE.md §6.6). Handled in the block-use event instead of
+ * {@code onBlockActivated}: the event also fires while sneaking with an item (a wrench of a mod that does not let
+ * sneaking bypass), and {@link EnumActionResult#PASS} lets vanilla continue (e.g. placing a held block).
+ */
+public final class FloodlightInteraction {
+    private static final String WOOL = "blockWool";
+
     private FloodlightInteraction() {
     }
 
+    /** Runs on both sides, for both hands; only the main hand is handled. */
+    @SubscribeEvent
+    public static void onRightClickBlock(PlayerInteractEvent.RightClickBlock event) {
+        EntityPlayer player = event.getEntityPlayer();
+        if (player.isSpectator() || event.getHand() != EnumHand.MAIN_HAND) return;
+        World world = event.getWorld();
+        BlockPos pos = event.getPos();
+        IBlockState state = world.getBlockState(pos);
+        TileEntity tile = world.getTileEntity(pos);
+        if (!(state.getBlock() instanceof FloodlightBlock) || !(tile instanceof FloodlightBlockEntity)) return;
+        EnumActionResult result = use((FloodlightBlock) state.getBlock(), state, world, pos, player,
+                (FloodlightBlockEntity) tile);
+        if (result != EnumActionResult.PASS) {
+            event.setCanceled(true);
+            event.setCancellationResult(result);
+        }
+    }
+
     /** Main hand only; the caller has checked that {@code light} is the block entity at {@code pos}. */
-    static InteractionResult use(FloodlightBlock block, BlockState state, Level level, BlockPos pos, Player player,
-                                 FloodlightBlockEntity light) {
-        ItemStack held = player.getMainHandItem();
-        if (held.is(ModItems.LIGHT_DEBUG_TOOL) && !player.isShiftKeyDown()) {
-            return fillEnergy(level, light);
+    static EnumActionResult use(FloodlightBlock block, IBlockState state, World world, BlockPos pos,
+                                EntityPlayer player, FloodlightBlockEntity light) {
+        ItemStack held = player.getHeldItemMainhand();
+        if (held.getItem() == ModItems.LIGHT_DEBUG_TOOL && !player.isSneaking()) {
+            return fillEnergy(world, light);
         }
-        if (player.isShiftKeyDown()) {
-            return useSneaking(level, pos, player, light, held);
+        if (player.isSneaking()) {
+            return useSneaking(world, pos, player, light, held);
         }
-        return useItem(block, state, level, pos, player, light, held);
+        return useItem(block, state, world, pos, player, light, held);
     }
 
     /** Light debug tool: fills the energy buffer of an electric light. */
-    private static InteractionResult fillEnergy(Level level, FloodlightBlockEntity light) {
+    private static EnumActionResult fillEnergy(World world, FloodlightBlockEntity light) {
         ElectricPower power = light.electricPower();
-        if (power == null) return InteractionResult.PASS;
-        if (!level.isClientSide()) power.store().generate(power.store().getCapacity());
-        return InteractionResult.sidedSuccess(level.isClientSide());
+        if (power == null) return EnumActionResult.PASS;
+        if (!world.isRemote) power.store().generate(power.store().getCapacity());
+        return EnumActionResult.SUCCESS;
     }
 
     /** Sneaking: empty hand toggles invert, a wrench dismantles, anything else lets the held item act. */
-    private static InteractionResult useSneaking(Level level, BlockPos pos, Player player, FloodlightBlockEntity light,
-                                                 ItemStack held) {
+    private static EnumActionResult useSneaking(World world, BlockPos pos, EntityPlayer player,
+                                                FloodlightBlockEntity light, ItemStack held) {
         if (held.isEmpty()) {
-            if (!level.isClientSide()) toggleInverted(level, player, light);
-        } else if (held.is(CommonTags.WRENCHES)) {
-            if (!level.isClientSide()) level.destroyBlock(pos, true, player); // dismantle
+            if (!world.isRemote) toggleInverted(world, player, light);
+        } else if (CommonTags.isWrench(held)) {
+            if (!world.isRemote) world.destroyBlock(pos, true); // dismantle
         } else {
-            return InteractionResult.PASS; // e.g. place a block
+            return EnumActionResult.PASS; // e.g. place a block
         }
-        return InteractionResult.sidedSuccess(level.isClientSide());
+        return EnumActionResult.SUCCESS;
     }
 
     /** "Inverted: …", and when the light will turn on if it now waits for its timeout. */
-    private static void toggleInverted(Level level, Player player, FloodlightBlockEntity light) {
+    private static void toggleInverted(World world, EntityPlayer player, FloodlightBlockEntity light) {
         light.toggleInverted();
-        player.displayClientMessage(Component.translatable("gui.openmodularlighting.invert").append(": ")
-                .append(Component.translatable(light.isInverted()
+        player.sendStatusMessage(new TextComponentTranslation("gui.openmodularlighting.invert")
+                .appendSibling(new TextComponentString(": "))
+                .appendSibling(new TextComponentTranslation(light.isInverted()
                         ? "gui.openmodularlighting.true" : "gui.openmodularlighting.false")), false);
-        int wait = light.ticksUntilOn(level);
+        int wait = light.ticksUntilOn(world);
         if (wait > 0) {
-            player.displayClientMessage(Component.translatable("gui.openmodularlighting.turns_on_in",
+            player.sendStatusMessage(new TextComponentTranslation("gui.openmodularlighting.turns_on_in",
                     FloodlightBlockEntity.seconds(wait)), false);
         }
     }
 
     /** Not sneaking: stick or wrench configures, dye sets the colour, wool resets it, anything else opens the GUI. */
-    private static InteractionResult useItem(FloodlightBlock block, BlockState state, Level level, BlockPos pos,
-                                             Player player, FloodlightBlockEntity light, ItemStack held) {
-        if (level.isClientSide()) return InteractionResult.SUCCESS;
-        if ((held.is(CommonTags.WRENCHES) || held.is(Items.STICK)) && block.hasConfiguration()) {
-            block.configure(level, pos, state, player, light);
-        } else if (held.getItem() instanceof DyeItem dye) {
-            light.setColor(dye.getDyeColor().getId());
-        } else if (held.is(ItemTags.WOOL)) {
+    private static EnumActionResult useItem(FloodlightBlock block, IBlockState state, World world, BlockPos pos,
+                                            EntityPlayer player, FloodlightBlockEntity light, ItemStack held) {
+        if (world.isRemote) return EnumActionResult.SUCCESS;
+        Optional<EnumDyeColor> dye = DyeUtils.colorFromStack(held);
+        if ((CommonTags.isWrench(held) || held.getItem() == Items.STICK) && block.hasConfiguration()) {
+            block.configure(world, pos, state, player, light);
+        } else if (dye.isPresent()) {
+            light.setColor(dye.get().getMetadata());
+        } else if (isWool(held)) {
             light.setColor(FloodlightBlockEntity.NO_COLOR);
-        } else if (player instanceof ServerPlayer serverPlayer) {
-            block.openMenu(serverPlayer, light);
+        } else {
+            block.openMenu(player, light);
         }
-        return InteractionResult.CONSUME;
+        return EnumActionResult.SUCCESS;
+    }
+
+    private static boolean isWool(ItemStack stack) {
+        if (stack.isEmpty()) return false;
+        for (int id : OreDictionary.getOreIDs(stack)) {
+            if (WOOL.equals(OreDictionary.getOreName(id))) return true;
+        }
+        return false;
     }
 }

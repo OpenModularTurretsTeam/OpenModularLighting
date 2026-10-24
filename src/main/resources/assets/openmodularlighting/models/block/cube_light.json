@@ -1,7 +1,7 @@
 {
   "parent": "minecraft:block/block",
   "textures": {
-    "particle": "#all",
+    "particle": "openmodularlighting:block/cube_light",
     "all": "openmodularlighting:block/cube_light"
   },
   "elements": [

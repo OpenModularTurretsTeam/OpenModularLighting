@@ -1,14 +1,11 @@
 package omtteam.openmodularlighting.blockentity;
 
-import net.minecraft.core.BlockPos;
-import net.minecraft.world.level.block.state.BlockState;
 import omtteam.openmodularlighting.block.LightBlock;
 import omtteam.openmodularlighting.config.OMLConfig;
 import omtteam.openmodularlighting.core.beam.BeamShape;
 import omtteam.openmodularlighting.core.light.LightType;
 import omtteam.openmodularlighting.energy.ElectricPower;
 import omtteam.openmodularlighting.energy.LightPower;
-import omtteam.openmodularlighting.registry.ModBlockEntities;
 import omtteam.openmodularlighting.registry.ModBlocks;
 
 /**
@@ -17,11 +14,7 @@ import omtteam.openmodularlighting.registry.ModBlocks;
  */
 public class UvFloodlightBlockEntity extends FloodlightBlockEntity {
     private final ElectricPower power = new ElectricPower(
-            () -> OMLConfig.get().general.energyUsageUVFloodlight, this::setChanged);
-
-    public UvFloodlightBlockEntity(BlockPos pos, BlockState state) {
-        super(ModBlockEntities.UV_FLOODLIGHT, pos, state);
-    }
+            () -> OMLConfig.get().general.energyUsageUVFloodlight, this::markDirty);
 
     @Override
     protected LightPower power() {

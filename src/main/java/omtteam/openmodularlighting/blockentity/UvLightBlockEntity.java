@@ -1,38 +1,34 @@
 package omtteam.openmodularlighting.blockentity;
 
-import net.minecraft.core.BlockPos;
-import net.minecraft.core.registries.Registries;
-import net.minecraft.world.damagesource.DamageSource;
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.phys.AABB;
+import net.minecraft.block.state.IBlockState;
+import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.util.DamageSource;
+import net.minecraft.util.ITickable;
+import net.minecraft.util.math.AxisAlignedBB;
+import omtteam.openmodularlighting.OML;
 import omtteam.openmodularlighting.block.LightBlock;
 import omtteam.openmodularlighting.config.OMLConfig;
-import omtteam.openmodularlighting.registry.ModBlockEntities;
-import omtteam.openmodularlighting.registry.ModDamageTypes;
 
 /**
  * Block entity of the UV light block: its UV floodlight sources (see {@link LightBlockEntity}), and the damage to
  * living entities inside it while lit (1.7.10 {@code TileEntityUVLightBlock}, CLAUDE.md §6.9).
  */
-public class UvLightBlockEntity extends LightBlockEntity {
+public class UvLightBlockEntity extends LightBlockEntity implements ITickable {
+    /** UV light damage; death message {@code death.attack.openmodularlighting.uv_light} (1.7.10 used cactus damage). */
+    public static final DamageSource UV_LIGHT = new DamageSource(OML.MOD_ID + ".uv_light");
+
     /** Once per second; 1.7.10 used {@code worldTime % 20 == 5}. */
     private static final int DAMAGE_INTERVAL = 20;
     private static final int DAMAGE_PHASE = 5;
 
-    public UvLightBlockEntity(BlockPos pos, BlockState state) {
-        super(ModBlockEntities.UV_LIGHT, pos, state);
-    }
-
-    public static void serverTick(Level level, BlockPos pos, BlockState state, UvLightBlockEntity light) {
-        if (!state.getValue(LightBlock.LIT) || level.getGameTime() % DAMAGE_INTERVAL != DAMAGE_PHASE) return;
-        // built from the damage type: DamageSources#source is private in vanilla 1.20.1 (Fabric API widens it, Forge does not)
-        DamageSource source = new DamageSource(level.registryAccess().registryOrThrow(Registries.DAMAGE_TYPE)
-                .getHolderOrThrow(ModDamageTypes.UV_LIGHT));
+    @Override
+    public void update() {
+        if (world == null || world.isRemote || world.getTotalWorldTime() % DAMAGE_INTERVAL != DAMAGE_PHASE) return;
+        IBlockState state = world.getBlockState(pos);
+        if (!(state.getBlock() instanceof LightBlock) || !state.getValue(LightBlock.LIT)) return;
         float damage = (float) OMLConfig.get().general.damageUVFloodlight;
-        for (LivingEntity entity : level.getEntitiesOfClass(LivingEntity.class, new AABB(pos))) {
-            entity.hurt(source, damage);
+        for (EntityLivingBase entity : world.getEntitiesWithinAABB(EntityLivingBase.class, new AxisAlignedBB(pos))) {
+            entity.attackEntityFrom(UV_LIGHT, damage);
         }
     }
 }

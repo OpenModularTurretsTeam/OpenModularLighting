@@ -46,7 +46,7 @@ class ConfigDataTest {
     void writtenFileReadsBack() {
         String text = ConfigWriter.write(new ConfigData(), new ConfigData());
         assertTrue(text.contains("// Range: 1 to 128\n    // Default: 64\n    \"rangeStraightFloodlight\": 64,"), text);
-        ConfigData back = new Gson().fromJson(JsonParser.parseString(text), ConfigData.class);
+        ConfigData back = new Gson().fromJson(new JsonParser().parse(text), ConfigData.class);
         assertEquals(4.0D, back.general.damageUVFloodlight);
         assertTrue(back.blocks.growLightEnabled);
     }

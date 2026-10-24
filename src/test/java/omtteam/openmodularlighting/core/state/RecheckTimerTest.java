@@ -3,13 +3,12 @@ package omtteam.openmodularlighting.core.state;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Random;
-import java.util.random.RandomGenerator;
 import org.junit.jupiter.api.Test;
 
 class RecheckTimerTest {
     @Test
     void delayAveragesTwentySeconds() {
-        RandomGenerator random = new Random(1);
+        Random random = new Random(1);
         long sum = 0;
         int samples = 20_000;
         for (int i = 0; i < samples; i++) {
@@ -23,7 +22,7 @@ class RecheckTimerTest {
 
     @Test
     void firesAboutOncePerMeanInterval() {
-        RandomGenerator random = new Random(2);
+        Random random = new Random(2);
         RecheckTimer timer = new RecheckTimer();
         int ticks = 400 * 2_000;
         int fired = 0;

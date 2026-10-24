@@ -1,14 +1,12 @@
 package omtteam.openmodularlighting.blockentity;
 
-import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
-import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.util.EnumFacing;
 import omtteam.openmodularlighting.config.OMLConfig;
 import omtteam.openmodularlighting.core.beam.BeamShape;
 import omtteam.openmodularlighting.energy.ElectricPower;
 import omtteam.openmodularlighting.energy.LightPower;
-import omtteam.openmodularlighting.registry.ModBlockEntities;
-import org.jetbrains.annotations.Nullable;
+
+import javax.annotation.Nullable;
 
 /**
  * Cube light: a full block that lights the 6 blocks around it. Takes energy from every side and shares it with the
@@ -18,19 +16,15 @@ public class CubeLightBlockEntity extends PanelLightBlockEntity {
     private static final int[] SHAPE_KEY = {0};
 
     private final ElectricPower power = new ElectricPower(
-            () -> OMLConfig.get().general.energyUsageCubeLight, this::setChanged);
-
-    public CubeLightBlockEntity(BlockPos pos, BlockState state) {
-        super(ModBlockEntities.CUBE_LIGHT, pos, state);
-    }
+            () -> OMLConfig.get().general.energyUsageCubeLight, this::markDirty);
 
     @Override
-    protected boolean acceptsEnergyFrom(@Nullable Direction side) {
+    protected boolean acceptsEnergyFrom(@Nullable EnumFacing side) {
         return true;
     }
 
     @Override
-    protected boolean connectsTo(Direction side, PanelLightBlockEntity other) {
+    protected boolean connectsTo(EnumFacing side, PanelLightBlockEntity other) {
         return other instanceof CubeLightBlockEntity;
     }
 

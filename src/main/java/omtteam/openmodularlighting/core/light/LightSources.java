@@ -2,6 +2,7 @@ package omtteam.openmodularlighting.core.light;
 
 import omtteam.openmodularlighting.core.math.Pos;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -69,16 +70,20 @@ public final class LightSources {
      */
     public Effect refresh(Function<Pos, SourceStatus> status) {
         boolean wasLit = isLit();
-        for (Pos source : Set.copyOf(sources)) {
+        for (Pos source : new ArrayList<>(sources)) {
             switch (status.apply(source)) {
-                case ON -> activeSources.add(source);
-                case OFF -> activeSources.remove(source);
-                case GONE -> {
+                case ON:
+                    activeSources.add(source);
+                    break;
+                case OFF:
+                    activeSources.remove(source);
+                    break;
+                case GONE:
                     sources.remove(source);
                     activeSources.remove(source);
-                }
-                case UNKNOWN -> {
-                }
+                    break;
+                default: // UNKNOWN: keep the stored state
+                    break;
             }
         }
         return effect(wasLit);

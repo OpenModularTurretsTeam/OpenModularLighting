@@ -1,0 +1,36 @@
+{
+  "conditions": [
+    {
+      "type": "openmodularlighting:block_enabled",
+      "blocks": [
+        "electric_floodlight",
+        "small_fluorescent_light",
+        "uv_floodlight",
+        "grow_light",
+        "cube_light"
+      ]
+    }
+  ],
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " G ",
+    "GFG",
+    " I "
+  ],
+  "key": {
+    "F": {
+      "item": "openmodularlighting:glowing_filament"
+    },
+    "G": {
+      "type": "forge:ore_dict",
+      "ore": "paneGlass"
+    },
+    "I": {
+      "type": "forge:ore_dict",
+      "ore": "ingotIron"
+    }
+  },
+  "result": {
+    "item": "openmodularlighting:light_bulb"
+  }
+}

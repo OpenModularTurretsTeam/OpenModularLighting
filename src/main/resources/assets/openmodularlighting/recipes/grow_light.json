@@ -1,0 +1,35 @@
+{
+  "conditions": [
+    {
+      "type": "openmodularlighting:block_enabled",
+      "blocks": [
+        "grow_light"
+      ]
+    }
+  ],
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "III",
+    "CBC",
+    "GGG"
+  ],
+  "key": {
+    "B": {
+      "item": "openmodularlighting:light_bulb"
+    },
+    "C": {
+      "item": "minecraft:cobblestone"
+    },
+    "G": {
+      "item": "minecraft:stained_glass",
+      "data": 6
+    },
+    "I": {
+      "type": "forge:ore_dict",
+      "ore": "ingotIron"
+    }
+  },
+  "result": {
+    "item": "openmodularlighting:grow_light"
+  }
+}

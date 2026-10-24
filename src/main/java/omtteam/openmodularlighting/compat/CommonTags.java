@@ -1,33 +1,30 @@
 package omtteam.openmodularlighting.compat;
 
-import net.minecraft.core.registries.Registries;
-import net.minecraft.tags.TagKey;
-import net.minecraft.world.item.Item;
+import net.minecraft.item.ItemStack;
+import net.minecraftforge.oredict.OreDictionary;
 
 /**
- * Common ({@code c:}) tags, shared by Fabric and NeoForge. The ids differ between versions ({@code c:iron_ingots} on
- * 1.20.1, {@code c:ingots/iron} on 1.21).
+ * What the common ({@code c:}) tags of the main branch stand for on 1.12.2, where there are no item tags: the ore
+ * dictionary (the recipes use {@code ingotIron}, {@code ingotGold}, {@code dustRedstone} and {@code paneGlass}) and,
+ * for wrenches, the tool classes items declare.
  */
 public final class CommonTags {
-    //? if >=1.21 {
-    /** Wrenches of other mods: {@code c:wrenches} on 1.20.1, {@code c:tools/wrench} on 1.21. */
-    public static final TagKey<Item> WRENCHES = tag("tools/wrench");
-    public static final TagKey<Item> IRON_INGOTS = tag("ingots/iron");
-    public static final TagKey<Item> GOLD_INGOTS = tag("ingots/gold");
-    public static final TagKey<Item> REDSTONE_DUSTS = tag("dusts/redstone");
-    //?} else {
-    /*/^* Wrenches of other mods: {@code c:wrenches} on 1.20.1, {@code c:tools/wrench} on 1.21. ^/
-    public static final TagKey<Item> WRENCHES = tag("wrenches");
-    public static final TagKey<Item> IRON_INGOTS = tag("iron_ingots");
-    public static final TagKey<Item> GOLD_INGOTS = tag("gold_ingots");
-    public static final TagKey<Item> REDSTONE_DUSTS = tag("redstone_dusts");
-    *///?}
-    public static final TagKey<Item> GLASS_PANES = tag("glass_panes");
+    /** Ore dictionary names other mods use for their wrenches. */
+    private static final String[] WRENCH_ORES = {"toolWrench", "itemWrench", "wrench"};
 
     private CommonTags() {
     }
 
-    private static TagKey<Item> tag(String path) {
-        return TagKey.create(Registries.ITEM, VersionCompat.id("c", path));
+    /** Whether the stack is a wrench: tool class {@code wrench}, or a wrench in the ore dictionary. */
+    public static boolean isWrench(ItemStack stack) {
+        if (stack.isEmpty()) return false;
+        if (stack.getItem().getToolClasses(stack).contains("wrench")) return true;
+        for (int id : OreDictionary.getOreIDs(stack)) {
+            String name = OreDictionary.getOreName(id);
+            for (String wrench : WRENCH_ORES) {
+                if (wrench.equals(name)) return true;
+            }
+        }
+        return false;
     }
 }

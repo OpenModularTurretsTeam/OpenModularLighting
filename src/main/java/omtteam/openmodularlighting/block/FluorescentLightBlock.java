@@ -1,78 +1,66 @@
 package omtteam.openmodularlighting.block;
 
-import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.level.block.entity.BlockEntityType;
-import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.block.state.StateDefinition;
-import net.minecraft.world.level.block.state.properties.BooleanProperty;
-import net.minecraft.world.phys.shapes.VoxelShape;
+import net.minecraft.block.properties.PropertyBool;
+import net.minecraft.block.state.BlockStateContainer;
+import net.minecraft.block.state.IBlockState;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.EnumFacing;
+import net.minecraft.util.math.AxisAlignedBB;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.IBlockAccess;
+import net.minecraft.world.World;
 import omtteam.openmodularlighting.blockentity.FloodlightBlockEntity;
 import omtteam.openmodularlighting.blockentity.FluorescentLightBlockEntity;
-import omtteam.openmodularlighting.registry.ModBlockEntities;
-//? if >=1.21 {
-import com.mojang.serialization.MapCodec;
-import net.minecraft.world.level.block.BaseEntityBlock;
-import org.jetbrains.annotations.NotNull;
-//?}
+import omtteam.openmodularlighting.world.Worlds;
 
 import java.util.Map;
 
 /**
  * Small and square fluorescent lights (1.7.10 {@code BlockSmallElectricFloodlight}, metadata 0 and 1). The small
  * light is a 6 px wide strip that a stick or wrench turns by 90° ({@link #ROTATED}, 1.7.10 {@code rotationState}).
+ * <p>
+ * Facing and {@code LIT} already fill the 4 metadata bits, so {@link #ROTATED} is kept in the block entity, as in
+ * 1.7.10, and only shown in the actual state for the model and the outline.
  */
 public class FluorescentLightBlock extends PanelLightBlock {
-    public static final BooleanProperty ROTATED = BooleanProperty.create("rotated");
+    public static final PropertyBool ROTATED = PropertyBool.create("rotated");
 
-    //? if >=1.21 {
-    private static final MapCodec<FluorescentLightBlock> CODEC = simpleCodec(properties -> new FluorescentLightBlock(properties, true));
-    //?}
-
-    private static final Map<Direction, VoxelShape> SQUARE = PanelShapes.of(0, 0, 0, 16, 3, 16);
-    private static final Map<Direction, VoxelShape> SMALL = PanelShapes.of(0, 0, 5, 16, 3, 11);
-    private static final Map<Direction, VoxelShape> SMALL_ROTATED = PanelShapes.of(5, 0, 0, 11, 3, 16);
+    private static final Map<EnumFacing, AxisAlignedBB> SQUARE = PanelShapes.of(0, 0, 0, 16, 3, 16);
+    private static final Map<EnumFacing, AxisAlignedBB> SMALL = PanelShapes.of(0, 0, 5, 16, 3, 11);
+    private static final Map<EnumFacing, AxisAlignedBB> SMALL_ROTATED = PanelShapes.of(5, 0, 0, 11, 3, 16);
 
     private final boolean small;
 
     /** @param small the 6 px strip (rotatable) instead of the full square */
-    public FluorescentLightBlock(Properties properties, boolean small) {
-        super(properties);
+    public FluorescentLightBlock(boolean small) {
         this.small = small;
-        registerDefaultState(defaultBlockState().setValue(ROTATED, false));
-    }
-
-    //? if >=1.21 {
-    @Override
-    protected @NotNull MapCodec<? extends BaseEntityBlock> codec() {
-        return CODEC;
-    }
-    //?}
-
-    @Override
-    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        super.createBlockStateDefinition(builder);
-        builder.add(ROTATED);
+        setDefaultState(getDefaultState().withProperty(ROTATED, false));
     }
 
     @Override
-    protected VoxelShape panelShape(BlockState state) {
-        Map<Direction, VoxelShape> shapes = !small ? SQUARE : state.getValue(ROTATED) ? SMALL_ROTATED : SMALL;
+    protected BlockStateContainer createBlockState() {
+        return new BlockStateContainer(this, FACING, LIT, ROTATED);
+    }
+
+    @Override
+    @SuppressWarnings("deprecation")
+    public IBlockState getActualState(IBlockState state, IBlockAccess world, BlockPos pos) {
+        TileEntity tile = Worlds.getTileEntity(world, pos);
+        boolean rotated = small && tile instanceof FluorescentLightBlockEntity
+                && ((FluorescentLightBlockEntity) tile).isRotated();
+        return state.withProperty(ROTATED, rotated);
+    }
+
+    @Override
+    protected AxisAlignedBB panelShape(IBlockState state) {
+        Map<EnumFacing, AxisAlignedBB> shapes = !small ? SQUARE : state.getValue(ROTATED) ? SMALL_ROTATED : SMALL;
         return shapes.get(state.getValue(FACING));
     }
 
     @Override
-    public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
-        return new FluorescentLightBlockEntity(pos, state);
-    }
-
-    @Override
-    protected BlockEntityType<? extends FloodlightBlockEntity> blockEntityType() {
-        return ModBlockEntities.FLUORESCENT_LIGHT;
+    protected FloodlightBlockEntity createLight() {
+        return new FluorescentLightBlockEntity();
     }
 
     /** Only the small light can be turned (the square one looks the same either way). */
@@ -81,9 +69,12 @@ public class FluorescentLightBlock extends PanelLightBlock {
         return small;
     }
 
-    /** Turns the strip by 90°; without neighbour updates, which would make the beam re-cast. */
+    /** Turns the strip by 90°; no block update, which would make the beam re-cast. */
     @Override
-    protected void configure(Level level, BlockPos pos, BlockState state, Player player, FloodlightBlockEntity light) {
-        level.setBlock(pos, state.cycle(ROTATED), Block.UPDATE_CLIENTS);
+    protected void configure(World world, BlockPos pos, IBlockState state, EntityPlayer player,
+                             FloodlightBlockEntity light) {
+        if (light instanceof FluorescentLightBlockEntity) {
+            ((FluorescentLightBlockEntity) light).toggleRotated();
+        }
     }
 }

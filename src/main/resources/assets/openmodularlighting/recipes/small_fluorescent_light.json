@@ -1,0 +1,32 @@
+{
+  "conditions": [
+    {
+      "type": "openmodularlighting:block_enabled",
+      "blocks": [
+        "small_fluorescent_light"
+      ]
+    }
+  ],
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " G ",
+    "GBG",
+    "III"
+  ],
+  "key": {
+    "B": {
+      "item": "openmodularlighting:light_bulb"
+    },
+    "G": {
+      "item": "minecraft:glass"
+    },
+    "I": {
+      "type": "forge:ore_dict",
+      "ore": "ingotIron"
+    }
+  },
+  "result": {
+    "item": "openmodularlighting:small_fluorescent_light",
+    "count": 2
+  }
+}

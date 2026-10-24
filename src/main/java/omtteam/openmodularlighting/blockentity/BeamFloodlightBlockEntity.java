@@ -1,9 +1,6 @@
 package omtteam.openmodularlighting.blockentity;
 
-import net.minecraft.core.BlockPos;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.world.level.block.entity.BlockEntityType;
-import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.nbt.NBTTagCompound;
 import omtteam.openmodularlighting.config.ConfigData;
 import omtteam.openmodularlighting.config.OMLConfig;
 import omtteam.openmodularlighting.core.beam.BeamMode;
@@ -16,10 +13,6 @@ public abstract class BeamFloodlightBlockEntity extends FloodlightBlockEntity {
     private static final String MODE = "mode";
 
     private BeamMode mode = BeamMode.STRAIGHT;
-
-    protected BeamFloodlightBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
-        super(type, pos, state);
-    }
 
     public BeamMode getMode() {
         return mode;
@@ -38,11 +31,14 @@ public abstract class BeamFloodlightBlockEntity extends FloodlightBlockEntity {
 
     @Override
     public String modeKey() {
-        return switch (mode) {
-            case STRAIGHT -> "gui.openmodularlighting.straight";
-            case NARROW_CONE -> "gui.openmodularlighting.narrow_cone";
-            case WIDE_CONE -> "gui.openmodularlighting.wide_cone";
-        };
+        switch (mode) {
+            case NARROW_CONE:
+                return "gui.openmodularlighting.narrow_cone";
+            case WIDE_CONE:
+                return "gui.openmodularlighting.wide_cone";
+            default:
+                return "gui.openmodularlighting.straight";
+        }
     }
 
     @Override
@@ -63,14 +59,14 @@ public abstract class BeamFloodlightBlockEntity extends FloodlightBlockEntity {
     }
 
     @Override
-    protected void writeSettings(CompoundTag tag) {
+    protected void writeSettings(NBTTagCompound tag) {
         super.writeSettings(tag);
-        tag.putInt(MODE, mode.ordinal());
+        tag.setInteger(MODE, mode.ordinal());
     }
 
     @Override
-    protected void readSettings(CompoundTag tag) {
-        mode = BeamMode.byOrdinal(tag.getInt(MODE));
+    protected void readSettings(NBTTagCompound tag) {
+        mode = BeamMode.byOrdinal(tag.getInteger(MODE));
         super.readSettings(tag);
     }
 }

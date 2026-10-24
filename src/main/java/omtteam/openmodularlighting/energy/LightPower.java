@@ -1,8 +1,8 @@
 package omtteam.openmodularlighting.energy;
 
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.world.SimpleContainer;
-import net.minecraft.world.item.ItemStack;
+import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraftforge.items.ItemStackHandler;
 import omtteam.openmodularlighting.core.state.PowerSource;
 
 /**
@@ -14,12 +14,12 @@ public interface LightPower extends PowerSource {
     boolean isValidItem(ItemStack stack);
 
     /** Charges from the battery or burns the next fuel item; runs every tick before the light logic. */
-    void prepare(SimpleContainer inventory);
+    void prepare(ItemStackHandler inventory);
 
     /** Whether there is energy or burn time worth keeping on the dropped item. */
     boolean hasStored();
 
-    void read(CompoundTag tag);
+    void read(NBTTagCompound tag);
 
-    void write(CompoundTag tag);
+    void write(NBTTagCompound tag);
 }

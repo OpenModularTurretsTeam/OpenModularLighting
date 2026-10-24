@@ -1,8 +1,7 @@
 package omtteam.openmodularlighting.block;
 
-import net.minecraft.core.Direction;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.phys.shapes.VoxelShape;
+import net.minecraft.util.EnumFacing;
+import net.minecraft.util.math.AxisAlignedBB;
 
 import java.util.EnumMap;
 import java.util.Map;
@@ -14,38 +13,47 @@ import java.util.Map;
  * 270, east: x 90 y 90).
  */
 public final class PanelShapes {
+    private static final double PIXEL = 16.0;
+
     private PanelShapes() {
     }
 
     /**
      * @param box the panel facing up, in pixels ({@code minX, minY, minZ, maxX, maxY, maxZ})
      */
-    public static Map<Direction, VoxelShape> of(double... box) {
-        Map<Direction, VoxelShape> shapes = new EnumMap<>(Direction.class);
-        for (Direction facing : Direction.values()) {
+    public static Map<EnumFacing, AxisAlignedBB> of(double... box) {
+        Map<EnumFacing, AxisAlignedBB> shapes = new EnumMap<>(EnumFacing.class);
+        for (EnumFacing facing : EnumFacing.values()) {
             shapes.put(facing, rotate(box, facing));
         }
         return shapes;
     }
 
-    private static VoxelShape rotate(double[] box, Direction facing) {
+    private static AxisAlignedBB rotate(double[] box, EnumFacing facing) {
         int[] rotation = rotation(facing);
         double[] a = turn(new double[]{box[0], box[1], box[2]}, rotation);
         double[] b = turn(new double[]{box[3], box[4], box[5]}, rotation);
-        return Block.box(Math.min(a[0], b[0]), Math.min(a[1], b[1]), Math.min(a[2], b[2]),
-                Math.max(a[0], b[0]), Math.max(a[1], b[1]), Math.max(a[2], b[2]));
+        return new AxisAlignedBB(Math.min(a[0], b[0]) / PIXEL, Math.min(a[1], b[1]) / PIXEL,
+                Math.min(a[2], b[2]) / PIXEL, Math.max(a[0], b[0]) / PIXEL, Math.max(a[1], b[1]) / PIXEL,
+                Math.max(a[2], b[2]) / PIXEL);
     }
 
     /** Blockstate rotation {x, y} in degrees for a model facing up. */
-    static int[] rotation(Direction facing) {
-        return switch (facing) {
-            case UP -> new int[]{0, 0};
-            case DOWN -> new int[]{180, 0};
-            case NORTH -> new int[]{90, 0};
-            case SOUTH -> new int[]{90, 180};
-            case WEST -> new int[]{90, 270};
-            case EAST -> new int[]{90, 90};
-        };
+    static int[] rotation(EnumFacing facing) {
+        switch (facing) {
+            case UP:
+                return new int[]{0, 0};
+            case DOWN:
+                return new int[]{180, 0};
+            case NORTH:
+                return new int[]{90, 0};
+            case SOUTH:
+                return new int[]{90, 180};
+            case WEST:
+                return new int[]{90, 270};
+            default: // EAST
+                return new int[]{90, 90};
+        }
     }
 
     /**

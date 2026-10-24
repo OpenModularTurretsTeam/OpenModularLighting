@@ -1,5 +1,6 @@
 package omtteam.openmodularlighting.config;
 
+import static omtteam.openmodularlighting.TestCollections.listOf;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -22,7 +23,7 @@ class ConfigWriterTest {
         @Range(max = 1)
         double ratio = 0.5D;
         @Comment("Names.")
-        List<String> names = new ArrayList<>(List.of("a", "b:c"));
+        List<String> names = new ArrayList<>(listOf("a", "b:c"));
         List<String> none = new ArrayList<>();
         transient int ignored = 3;
         @Comment("Nested group.") @SerializedName("inner_group")
@@ -51,11 +52,11 @@ class ConfigWriterTest {
         Sample sample = new Sample();
         sample.number = 42;
         sample.inner.chance = 0.75D;
-        JsonObject json = JsonParser.parseString(ConfigWriter.write(sample, new Sample())).getAsJsonObject();
+        JsonObject json = new JsonParser().parse(ConfigWriter.write(sample, new Sample())).getAsJsonObject();
         Sample back = new Gson().fromJson(json, Sample.class);
         assertEquals(42, back.number);
         assertEquals(0.75D, back.inner.chance);
-        assertEquals(List.of("a", "b:c"), back.names);
+        assertEquals(listOf("a", "b:c"), back.names);
         assertTrue(!json.has("ignored"));
     }
 

@@ -1,6 +1,8 @@
 # Open Modular Lighting
 
 Floodlights for **Fabric** (Minecraft 1.20.1 and 1.21.1), **NeoForge** (Minecraft 1.21.1) and **Forge** (Minecraft 1.20.1).
+This branch (`1.12.2`) builds it for **Forge** on **Minecraft 1.12.2**; the other versions are built from the branch `1.20.1+`.
+On 1.12.2 lights use Forge Energy, recipes use the ore dictionary, and there is no Jade integration.
 Open Modular Lighting is a port of the Forge 1.7.10 mod *FloodLights* by Keridos.
 It lights up large areas with invisible light blocks placed along a beam, so you can light a cave, a farm or a base without placing torches everywhere.
 

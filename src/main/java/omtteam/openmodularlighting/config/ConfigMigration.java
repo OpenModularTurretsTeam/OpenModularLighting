@@ -25,7 +25,8 @@ final class ConfigMigration {
     static boolean migrate(JsonObject json) {
         int version = version(json);
         if (version >= CURRENT_VERSION) return false;
-        if (version < 2 && json.get("general") instanceof JsonObject general) {
+        if (version < 2 && json.get("general") instanceof JsonObject) {
+            JsonObject general = (JsonObject) json.get("general");
             replaceDefault(general, "energyUsage", 20, 10);
             replaceDefault(general, "energyUsageSmallFloodlight", 2, 1);
             replaceDefault(general, "energyUsageUVFloodlight", 80, 60);
@@ -38,19 +39,19 @@ final class ConfigMigration {
 
     private static int version(JsonObject json) {
         JsonElement version = json.get(VERSION_KEY);
-        return version instanceof JsonPrimitive primitive && primitive.isNumber() ? primitive.getAsInt() : 1;
+        return version instanceof JsonPrimitive && ((JsonPrimitive) version).isNumber() ? version.getAsInt() : 1;
     }
 
     private static void replaceDefault(JsonObject section, String key, long oldDefault, long newDefault) {
         JsonElement value = section.get(key);
-        if (value instanceof JsonPrimitive primitive && primitive.isNumber() && primitive.getAsLong() == oldDefault) {
+        if (value instanceof JsonPrimitive && ((JsonPrimitive) value).isNumber() && value.getAsLong() == oldDefault) {
             section.addProperty(key, newDefault);
         }
     }
 
     private static void replaceDefault(JsonObject section, String key, double oldDefault, double newDefault) {
         JsonElement value = section.get(key);
-        if (value instanceof JsonPrimitive primitive && primitive.isNumber() && primitive.getAsDouble() == oldDefault) {
+        if (value instanceof JsonPrimitive && ((JsonPrimitive) value).isNumber() && value.getAsDouble() == oldDefault) {
             section.addProperty(key, newDefault);
         }
     }

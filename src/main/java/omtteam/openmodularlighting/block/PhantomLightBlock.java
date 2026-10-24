@@ -1,68 +1,38 @@
 package omtteam.openmodularlighting.block;
 
-import net.minecraft.core.BlockPos;
-import net.minecraft.world.level.BlockGetter;
-import net.minecraft.world.level.block.RenderShape;
-import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.material.MapColor;
-import net.minecraft.world.level.material.PushReaction;
-import net.minecraft.world.phys.shapes.CollisionContext;
-import net.minecraft.world.phys.shapes.Shapes;
-import net.minecraft.world.phys.shapes.VoxelShape;
+import net.minecraft.block.material.Material;
+import net.minecraft.block.state.IBlockState;
+import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.EnumBlockRenderType;
+import net.minecraft.world.World;
 import omtteam.openmodularlighting.blockentity.PhantomLightBlockEntity;
-import org.jetbrains.annotations.NotNull;
-//? if >=1.21 {
-import com.mojang.serialization.MapCodec;
-import net.minecraft.world.level.block.Block;
-//?}
 
 /**
  * The invisible light block of floodlights, fluorescent and grow lights: light level 15 while {@link #LIT}, 0
- * otherwise. Behaves like air for everything else (no shape, replaceable, destroyed by pistons, does not block
- * spawning while dark); see CLAUDE.md §6.3.
+ * otherwise. Behaves like air for everything else (see CLAUDE.md §6.3).
+ * <p>
+ * Its material is {@link Material#AIR}, as the 1.7.10 phantom light reported itself as air: falling blocks, trees,
+ * pistons and explosions check that material directly. Random ticks still reach it, because 1.12.2 counts them per
+ * block, not per material.
  */
 public class PhantomLightBlock extends LightBlock {
-    //? if >=1.21 {
-    private static final MapCodec<PhantomLightBlock> CODEC = simpleCodec(PhantomLightBlock::new);
-    //?}
-
-    public PhantomLightBlock(Properties properties) {
-        super(properties);
-    }
-
-    public static Properties createProperties() {
-        return Properties.of()
-                .mapColor(MapColor.NONE)
-                .replaceable()
-                .noCollission()
-                .noOcclusion()
-                .instabreak()
-                .noLootTable()
-                .pushReaction(PushReaction.DESTROY)
-                .randomTicks()
-                .lightLevel(state -> state.getValue(LIT) ? 15 : 0);
-    }
-
-    //? if >=1.21 {
-    @Override
-    protected @NotNull MapCodec<? extends Block> codec() {
-        return CODEC;
-    }
-    //?}
-
-    @Override
-    public @NotNull VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
-        return Shapes.empty();
+    public PhantomLightBlock() {
+        super(Material.AIR);
     }
 
     @Override
-    public @NotNull RenderShape getRenderShape(BlockState state) {
-        return RenderShape.INVISIBLE;
+    protected int litLightLevel() {
+        return 15;
     }
 
     @Override
-    public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
-        return new PhantomLightBlockEntity(pos, state);
+    @SuppressWarnings("deprecation")
+    public EnumBlockRenderType getRenderType(IBlockState state) {
+        return EnumBlockRenderType.INVISIBLE;
+    }
+
+    @Override
+    public TileEntity createTileEntity(World world, IBlockState state) {
+        return new PhantomLightBlockEntity();
     }
 }

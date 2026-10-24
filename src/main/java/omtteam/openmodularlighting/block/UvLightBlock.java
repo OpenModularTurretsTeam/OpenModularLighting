@@ -1,68 +1,43 @@
 package omtteam.openmodularlighting.block;
 
-import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
-import net.minecraft.world.level.BlockGetter;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.RenderShape;
-import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.level.block.entity.BlockEntityTicker;
-import net.minecraft.world.level.block.entity.BlockEntityType;
-import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.material.MapColor;
-import net.minecraft.world.level.material.PushReaction;
-import net.minecraft.world.phys.shapes.CollisionContext;
-import net.minecraft.world.phys.shapes.Shapes;
-import net.minecraft.world.phys.shapes.VoxelShape;
+import net.minecraft.block.material.MapColor;
+import net.minecraft.block.material.Material;
+import net.minecraft.block.material.MaterialTransparent;
+import net.minecraft.block.state.IBlockState;
+import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.BlockRenderLayer;
+import net.minecraft.util.EnumBlockRenderType;
+import net.minecraft.util.EnumFacing;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.IBlockAccess;
+import net.minecraft.world.World;
 import omtteam.openmodularlighting.blockentity.UvLightBlockEntity;
 import omtteam.openmodularlighting.config.OMLConfig;
-import omtteam.openmodularlighting.registry.ModBlockEntities;
 import omtteam.openmodularlighting.registry.ModBlocks;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-//? if >=1.21 {
-import com.mojang.serialization.MapCodec;
-//?}
+import omtteam.openmodularlighting.world.LightBlocks;
 
 /**
  * The UV light block of the UV floodlight (1.7.10 {@code BlockUVLightBlock}): light level 4 while {@link #LIT}, and it
  * damages living entities inside it (see {@link UvLightBlockEntity}). Otherwise like a phantom light: no shape,
- * replaceable, removed with its last source. Visible only while lit and if {@code uvLightRendered} is on.
+ * replaceable, removed with its last source, but not air. Visible only while lit and if {@code uvLightRendered} is on.
  */
 public class UvLightBlock extends LightBlock {
-    //? if >=1.21 {
-    private static final MapCodec<UvLightBlock> CODEC = simpleCodec(UvLightBlock::new);
-    //?}
+    /** Not solid, lets light and entities through, replaceable (like air, but not air). */
+    private static final Material UV_LIGHT = new MaterialTransparent(MapColor.AIR);
 
-    public UvLightBlock(Properties properties) {
-        super(properties);
+    public UvLightBlock() {
+        super(UV_LIGHT);
     }
 
-    public static Properties createProperties() {
-        return Properties.of()
-                .mapColor(MapColor.NONE)
-                .replaceable()
-                .noCollission()
-                .noOcclusion()
-                .instabreak()
-                .noLootTable()
-                .pushReaction(PushReaction.DESTROY)
-                .randomTicks()
-                .lightLevel(state -> state.getValue(LIT) ? 4 : 0);
-    }
-
-    //? if >=1.21 {
     @Override
-    protected @NotNull MapCodec<? extends Block> codec() {
-        return CODEC;
+    protected int litLightLevel() {
+        return 4;
     }
-    //?}
 
     /** The UV beam takes over phantom lights (1.7.10 {@code UVSource}). */
     @Override
-    public boolean canReplace(BlockState state) {
-        return state.is(ModBlocks.PHANTOM_LIGHT);
+    public boolean canReplace(IBlockState state) {
+        return state.getBlock() == ModBlocks.PHANTOM_LIGHT;
     }
 
     /**
@@ -71,35 +46,32 @@ public class UvLightBlock extends LightBlock {
      */
     @Override
     public int removalFlags() {
-        return Block.UPDATE_ALL;
+        return LightBlocks.UPDATE_ALL;
     }
 
     @Override
-    public @NotNull VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
-        return Shapes.empty();
+    @SuppressWarnings("deprecation")
+    public EnumBlockRenderType getRenderType(IBlockState state) {
+        return state.getValue(LIT) && OMLConfig.get().general.uvLightRendered
+                ? EnumBlockRenderType.MODEL : EnumBlockRenderType.INVISIBLE;
     }
 
     @Override
-    public @NotNull RenderShape getRenderShape(BlockState state) {
-        return state.getValue(LIT) && OMLConfig.get().general.uvLightRendered ? RenderShape.MODEL : RenderShape.INVISIBLE;
+    public BlockRenderLayer getRenderLayer() {
+        return BlockRenderLayer.CUTOUT;
     }
 
     /** Hide faces between UV light blocks, like glass (1.7.10 {@code shouldSideBeRendered}). */
     @Override
-    public boolean skipRendering(BlockState state, BlockState adjacent, Direction direction) {
-        return adjacent.is(this) && adjacent.getValue(LIT) || super.skipRendering(state, adjacent, direction);
+    @SuppressWarnings("deprecation")
+    public boolean shouldSideBeRendered(IBlockState state, IBlockAccess world, BlockPos pos, EnumFacing side) {
+        IBlockState adjacent = world.getBlockState(pos.offset(side));
+        if (adjacent.getBlock() == this && adjacent.getValue(LIT)) return false;
+        return super.shouldSideBeRendered(state, world, pos, side);
     }
 
     @Override
-    public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
-        return new UvLightBlockEntity(pos, state);
-    }
-
-    @Nullable
-    @Override
-    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
-        if (level.isClientSide() || type != ModBlockEntities.UV_LIGHT) return null;
-        return (tickLevel, pos, tickState, blockEntity) ->
-                UvLightBlockEntity.serverTick(tickLevel, pos, tickState, (UvLightBlockEntity) blockEntity);
+    public TileEntity createTileEntity(World world, IBlockState state) {
+        return new UvLightBlockEntity();
     }
 }

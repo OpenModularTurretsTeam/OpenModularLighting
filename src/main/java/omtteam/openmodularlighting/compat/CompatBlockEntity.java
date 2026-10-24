@@ -1,154 +1,97 @@
 package omtteam.openmodularlighting.compat;
 
-import net.minecraft.core.BlockPos;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.ClientGamePacketListener;
-import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.level.block.entity.BlockEntityType;
-import net.minecraft.world.level.block.state.BlockState;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-//? if neoforge {
-/*import net.neoforged.neoforge.client.model.data.ModelData;
-import net.neoforged.neoforge.client.model.data.ModelProperty;
-*///?}
-//? if forge {
-/*import net.minecraftforge.client.model.data.ModelData;
-import net.minecraftforge.client.model.data.ModelProperty;
-*///?}
-//? if <1.21 {
-/*import net.minecraft.core.RegistryAccess;
-*///?}
+import net.minecraft.block.state.IBlockState;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.network.NetworkManager;
+import net.minecraft.network.play.server.SPacketUpdateTileEntity;
+import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.World;
+
+import javax.annotation.Nullable;
 
 /**
- * Version-independent base class for all mod block entities.
+ * Base class for all mod block entities (tile entities), the 1.12.2 counterpart of the main branch's class of the same
+ * name.
  * <p>
- * Subclasses override {@link #readData} / {@link #writeData} instead of the vanilla NBT methods, whose
- * signatures differ between 1.20.1 and 1.21. Everything written by {@link #writeData} is also sent to
- * clients (initial chunk data and {@link #syncToClient()}); override {@link #writeClientData} to send less.
+ * Subclasses override {@link #readData} / {@link #writeData} instead of the vanilla NBT methods. Everything written by
+ * {@link #writeData} is also sent to clients (initial chunk data and {@link #syncToClient()}); override
+ * {@link #writeClientData} to send less.
+ * <p>
+ * Unlike vanilla's, a mod tile entity is recreated by Forge on every blockstate change unless
+ * {@link #shouldRefresh} says otherwise: here it is only replaced when the block changes, so switching {@code LIT} keeps
+ * the data.
  */
-public abstract class CompatBlockEntity extends BlockEntity {
-    //? if neoforge || forge {
-    /*/^* The {@link #renderData()} in the block entity's model data on NeoForge and Forge. ^/
-    public static final ModelProperty<Object> RENDER_DATA = new ModelProperty<>();
-    *///?}
-
-    protected CompatBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
-        super(type, pos, state);
-    }
-
+public abstract class CompatBlockEntity extends TileEntity {
     /**
      * Loads state from NBT. Also called on the client for synced data.
      */
-    protected abstract void readData(CompoundTag tag, HolderLookup.Provider registries);
+    protected abstract void readData(NBTTagCompound tag);
 
     /**
      * Saves state to NBT.
      */
-    protected abstract void writeData(CompoundTag tag, HolderLookup.Provider registries);
+    protected abstract void writeData(NBTTagCompound tag);
 
     /**
      * Data sent to clients. Defaults to the full saved data.
      */
-    protected void writeClientData(CompoundTag tag, HolderLookup.Provider registries) {
-        writeData(tag, registries);
+    protected void writeClientData(NBTTagCompound tag) {
+        writeData(tag);
     }
 
     /**
      * Marks the block entity dirty and sends its client data to all tracking players.
      */
     public void syncToClient() {
-        setChanged();
-        if (level != null && !level.isClientSide()) {
-            BlockState state = getBlockState();
-            level.sendBlockUpdated(worldPosition, state, state, Block.UPDATE_CLIENTS);
+        markDirty();
+        if (world != null && !world.isRemote) {
+            IBlockState state = world.getBlockState(pos);
+            world.notifyBlockUpdate(pos, state, state, 2);
         }
     }
 
-    /**
-     * What the block's model reads while the chunk is meshed (the camouflage), {@code null} for nothing. Fabric reads
-     * it as block entity render data, NeoForge and Forge as {@link #RENDER_DATA} in the model data. Call {@link #remesh} on the
-     * client when it changed.
-     */
-    protected @Nullable Object renderData() {
-        return null;
-    }
-
-    //? if fabric {
-    @Override
-    public @Nullable Object getRenderData() {
-        return renderData();
-    }
-    //?} else {
-    /*@Override
-    public ModelData getModelData() {
-        Object data = renderData();
-        return data == null ? ModelData.EMPTY : ModelData.builder().with(RENDER_DATA, data).build();
-    }
-    *///?}
-
-    /** Makes the client redraw the block, e.g. after its {@link #renderData()} changed (no effect on the server). */
+    /** Makes the client redraw the block, e.g. after data the model reads changed (no effect on the server). */
     public void remesh() {
-        if (level != null && level.isClientSide()) {
-            //? if neoforge || forge {
-            /*requestModelDataUpdate();
-            *///?}
-            BlockState state = getBlockState();
-            level.sendBlockUpdated(worldPosition, state, state, Block.UPDATE_IMMEDIATE);
+        if (world != null && world.isRemote) {
+            world.markBlockRangeForRenderUpdate(pos, pos);
         }
     }
 
     @Override
-    public Packet<ClientGamePacketListener> getUpdatePacket() {
-        return ClientboundBlockEntityDataPacket.create(this);
-    }
-
-    //? if >=1.21 {
-    @Override
-    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.loadAdditional(tag, registries);
-        readData(tag, registries);
+    public boolean shouldRefresh(World world, BlockPos pos, IBlockState oldState, IBlockState newState) {
+        return oldState.getBlock() != newState.getBlock();
     }
 
     @Override
-    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.saveAdditional(tag, registries);
-        writeData(tag, registries);
+    public void readFromNBT(NBTTagCompound tag) {
+        super.readFromNBT(tag);
+        readData(tag);
     }
 
     @Override
-    public @NotNull CompoundTag getUpdateTag(HolderLookup.Provider registries) {
-        CompoundTag tag = new CompoundTag();
-        writeClientData(tag, registries);
-        return tag;
-    }
-    //?} else {
-    /*@Override
-    public void load(CompoundTag tag) {
-        super.load(tag);
-        readData(tag, registries());
-    }
-
-    @Override
-    protected void saveAdditional(CompoundTag tag) {
-        super.saveAdditional(tag);
-        writeData(tag, registries());
-    }
-
-    @Override
-    public CompoundTag getUpdateTag() {
-        CompoundTag tag = new CompoundTag();
-        writeClientData(tag, registries());
+    public NBTTagCompound writeToNBT(NBTTagCompound tag) {
+        super.writeToNBT(tag);
+        writeData(tag);
         return tag;
     }
 
-    // Only passed through on 1.20.1; the level may not be set yet while loading.
-    private HolderLookup.Provider registries() {
-        return level != null ? level.registryAccess() : RegistryAccess.EMPTY;
+    /** Position and id (so the client can create the block entity) plus {@link #writeClientData}. */
+    @Override
+    public NBTTagCompound getUpdateTag() {
+        NBTTagCompound tag = super.writeToNBT(new NBTTagCompound());
+        writeClientData(tag);
+        return tag;
     }
-    *///?}
+
+    @Nullable
+    @Override
+    public SPacketUpdateTileEntity getUpdatePacket() {
+        return new SPacketUpdateTileEntity(pos, 0, getUpdateTag());
+    }
+
+    @Override
+    public void onDataPacket(NetworkManager net, SPacketUpdateTileEntity packet) {
+        handleUpdateTag(packet.getNbtCompound());
+    }
 }

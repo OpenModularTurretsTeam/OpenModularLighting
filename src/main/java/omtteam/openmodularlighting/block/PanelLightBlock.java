@@ -1,34 +1,63 @@
 package omtteam.openmodularlighting.block;
 
-import net.minecraft.core.BlockPos;
-import net.minecraft.world.level.BlockGetter;
-import net.minecraft.world.level.block.SoundType;
-import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.material.MapColor;
-import net.minecraft.world.phys.shapes.CollisionContext;
-import net.minecraft.world.phys.shapes.VoxelShape;
-import org.jetbrains.annotations.NotNull;
+import net.minecraft.block.material.Material;
+import net.minecraft.block.state.BlockFaceShape;
+import net.minecraft.block.state.IBlockState;
+import net.minecraft.util.BlockRenderLayer;
+import net.minecraft.util.EnumFacing;
+import net.minecraft.util.math.AxisAlignedBB;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.IBlockAccess;
+
+import javax.annotation.Nullable;
 
 /**
  * A light that is a thin panel (3 px) on the face behind it: fluorescent lights and the grow light. No collision
  * (1.7.10 {@code getCollisionBoundingBoxFromPool} returned null), only an outline.
  */
 public abstract class PanelLightBlock extends FloodlightBlock {
-    protected PanelLightBlock(Properties properties) {
-        super(properties);
+    /** 1.7.10: metal, metal sound, hardness 2.5. */
+    protected PanelLightBlock() {
+        super(Material.IRON);
+        setLightOpacity(0);
     }
 
-    /** 1.7.10: rock, metal sound, hardness 2.5. */
-    public static Properties createPanelProperties() {
-        return Properties.of().mapColor(MapColor.METAL).sound(SoundType.METAL).strength(2.5F)
-                .requiresCorrectToolForDrops().noCollission().noOcclusion();
-    }
-
-    /** The outline in this state (see {@link PanelShapes}). */
-    protected abstract VoxelShape panelShape(BlockState state);
+    /** The outline in this state (see {@link PanelShapes}); {@code state} is the actual state. */
+    protected abstract AxisAlignedBB panelShape(IBlockState state);
 
     @Override
-    public @NotNull VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
-        return panelShape(state);
+    @SuppressWarnings("deprecation")
+    public AxisAlignedBB getBoundingBox(IBlockState state, IBlockAccess world, BlockPos pos) {
+        return panelShape(state.getActualState(world, pos));
+    }
+
+    @Nullable
+    @Override
+    @SuppressWarnings("deprecation")
+    public AxisAlignedBB getCollisionBoundingBox(IBlockState state, IBlockAccess world, BlockPos pos) {
+        return NULL_AABB;
+    }
+
+    @Override
+    @SuppressWarnings("deprecation")
+    public boolean isOpaqueCube(IBlockState state) {
+        return false;
+    }
+
+    @Override
+    @SuppressWarnings("deprecation")
+    public boolean isFullCube(IBlockState state) {
+        return false;
+    }
+
+    @Override
+    @SuppressWarnings("deprecation")
+    public BlockFaceShape getBlockFaceShape(IBlockAccess world, IBlockState state, BlockPos pos, EnumFacing face) {
+        return BlockFaceShape.UNDEFINED;
+    }
+
+    @Override
+    public BlockRenderLayer getRenderLayer() {
+        return BlockRenderLayer.CUTOUT;
     }
 }

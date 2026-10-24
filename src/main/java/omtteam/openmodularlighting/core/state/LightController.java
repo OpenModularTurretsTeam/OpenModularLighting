@@ -23,11 +23,50 @@ public final class LightController {
     }
 
     /**
-     * @param recast  re-cast the shape (diff against the cached one)
-     * @param change  switch the light blocks on or off
-     * @param running the light ran (and paid) this tick; the grow light only grows crops then
+     * Result of a tick: {@link #recast()} re-cast the shape (diff against the cached one), {@link #change()} switch
+     * the light blocks on or off, {@link #running()} the light ran (and paid) this tick; the grow light only grows
+     * crops then.
      */
-    public record TickResult(boolean recast, Switch change, boolean running) {
+    public static final class TickResult {
+        private final boolean recast;
+        private final Switch change;
+        private final boolean running;
+
+        public TickResult(boolean recast, Switch change, boolean running) {
+            this.recast = recast;
+            this.change = change;
+            this.running = running;
+        }
+
+        public boolean recast() {
+            return recast;
+        }
+
+        public Switch change() {
+            return change;
+        }
+
+        public boolean running() {
+            return running;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (!(o instanceof TickResult)) return false;
+            TickResult other = (TickResult) o;
+            return recast == other.recast && change == other.change && running == other.running;
+        }
+
+        @Override
+        public int hashCode() {
+            return (Boolean.hashCode(recast) * 31 + change.hashCode()) * 31 + Boolean.hashCode(running);
+        }
+
+        @Override
+        public String toString() {
+            return "TickResult[recast=" + recast + ", change=" + change + ", running=" + running + "]";
+        }
     }
 
     /**

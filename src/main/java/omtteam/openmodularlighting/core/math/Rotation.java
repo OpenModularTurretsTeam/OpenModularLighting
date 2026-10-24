@@ -14,13 +14,19 @@ public final class Rotation {
         int a = offset.x();
         int b = offset.y();
         int c = offset.z();
-        return switch (facing) {
-            case DOWN -> new Pos(b, -a, c);
-            case UP -> new Pos(-b, a, c);
-            case NORTH -> new Pos(c, b, -a);
-            case SOUTH -> new Pos(-c, b, a);
-            case WEST -> new Pos(-a, b, c);
-            case EAST -> new Pos(a, b, c);
-        };
+        switch (facing) {
+            case DOWN:
+                return new Pos(b, -a, c);
+            case UP:
+                return new Pos(-b, a, c);
+            case NORTH:
+                return new Pos(c, b, -a);
+            case SOUTH:
+                return new Pos(-c, b, a);
+            case WEST:
+                return new Pos(-a, b, c);
+            default: // EAST
+                return new Pos(a, b, c);
+        }
     }
 }

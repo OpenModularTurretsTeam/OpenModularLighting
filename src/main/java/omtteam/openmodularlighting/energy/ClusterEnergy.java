@@ -6,6 +6,7 @@ import omtteam.openmodularlighting.core.energy.EnergyAccess;
 import omtteam.openmodularlighting.core.energy.EnergyStore;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
@@ -117,7 +118,7 @@ public final class ClusterEnergy {
         /** The cluster's lights, or just this one if it has not joined yet. */
         private List<PanelLightBlockEntity> members() {
             Cluster<PanelLightBlockEntity> cluster = light.cluster();
-            return cluster == null ? new ArrayList<>(List.of(light)) : new ArrayList<>(cluster.members());
+            return cluster == null ? new ArrayList<>(Collections.singletonList(light)) : new ArrayList<>(cluster.members());
         }
     }
 }

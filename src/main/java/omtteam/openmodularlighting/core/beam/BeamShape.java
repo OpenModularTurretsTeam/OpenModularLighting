@@ -3,7 +3,10 @@ package omtteam.openmodularlighting.core.beam;
 import omtteam.openmodularlighting.core.math.Pos;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * The rays of a light, in beam space (forward = +X). Ports of the 1.7.10 shapes in
@@ -14,9 +17,9 @@ import java.util.List;
  * @param frontRule whether a blocked block directly in front cancels the whole beam
  * @param spacing   which distances get a light block (the rays are followed over all of them)
  */
-public record BeamShape(List<Ray> rays, FrontRule frontRule, Spacing spacing) {
+public final class BeamShape {
     /** No light at all (e.g. the grow light in black-light mode). */
-    public static final BeamShape NONE = new BeamShape(List.of(), FrontRule.NONE);
+    public static final BeamShape NONE = new BeamShape(Collections.<Ray>emptyList(), FrontRule.NONE);
 
     /**
      * Sideways directions of the cone rays in 1.7.10 order ({@code j} = 0..7: +y, -y, +z, -z and the four diagonals),
@@ -40,14 +43,50 @@ public record BeamShape(List<Ray> rays, FrontRule frontRule, Spacing spacing) {
         this(rays, frontRule, Spacing.ALL);
     }
 
-    public BeamShape {
-        rays = List.copyOf(rays);
-        for (int i = 0; i < rays.size(); i++) {
-            Ray ray = rays.get(i);
+    private final List<Ray> rays;
+    private final FrontRule frontRule;
+    private final Spacing spacing;
+
+    public BeamShape(List<Ray> rays, FrontRule frontRule, Spacing spacing) {
+        this.rays = Collections.unmodifiableList(new ArrayList<>(rays));
+        this.frontRule = Objects.requireNonNull(frontRule);
+        this.spacing = Objects.requireNonNull(spacing);
+        for (int i = 0; i < this.rays.size(); i++) {
+            Ray ray = this.rays.get(i);
             if (ray.hasParent() && (ray.parent() < 0 || ray.parent() >= i)) {
                 throw new IllegalArgumentException("Ray " + i + " must have an earlier parent, got " + ray.parent());
             }
         }
+    }
+
+    public List<Ray> rays() {
+        return rays;
+    }
+
+    public FrontRule frontRule() {
+        return frontRule;
+    }
+
+    public Spacing spacing() {
+        return spacing;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof BeamShape)) return false;
+        BeamShape other = (BeamShape) o;
+        return rays.equals(other.rays) && frontRule == other.frontRule && spacing.equals(other.spacing);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(rays, frontRule, spacing);
+    }
+
+    @Override
+    public String toString() {
+        return "BeamShape[rays=" + rays + ", frontRule=" + frontRule + ", spacing=" + spacing + "]";
     }
 
     /** The same rays with light blocks only at some distances. */
@@ -61,7 +100,7 @@ public record BeamShape(List<Ray> rays, FrontRule frontRule, Spacing spacing) {
         for (int i = 1; i <= range; i++) {
             steps.add(new Pos(i, 0, 0));
         }
-        return new BeamShape(List.of(Ray.of(steps)), FrontRule.NONE);
+        return new BeamShape(Collections.singletonList(Ray.of(steps)), FrontRule.NONE);
     }
 
     /**
@@ -110,23 +149,27 @@ public record BeamShape(List<Ray> rays, FrontRule frontRule, Spacing spacing) {
 
     /** Fluorescent lights ({@code smallSource}): the block in front and the 4 blocks beside the light, each on its own. */
     public static BeamShape fluorescent() {
-        return new BeamShape(List.of(
-                Ray.of(List.of(new Pos(1, 0, 0))),
-                Ray.of(List.of(new Pos(0, 1, 0))),
-                Ray.of(List.of(new Pos(0, -1, 0))),
-                Ray.of(List.of(new Pos(0, 0, 1))),
-                Ray.of(List.of(new Pos(0, 0, -1)))), FrontRule.NONE);
+        return new BeamShape(Arrays.asList(
+                single(new Pos(1, 0, 0)),
+                single(new Pos(0, 1, 0)),
+                single(new Pos(0, -1, 0)),
+                single(new Pos(0, 0, 1)),
+                single(new Pos(0, 0, -1))), FrontRule.NONE);
     }
 
     /** Cube light: the 6 blocks touching it, each on its own (the same set for every facing). */
     public static BeamShape cube() {
-        return new BeamShape(List.of(
-                Ray.of(List.of(new Pos(1, 0, 0))),
-                Ray.of(List.of(new Pos(-1, 0, 0))),
-                Ray.of(List.of(new Pos(0, 1, 0))),
-                Ray.of(List.of(new Pos(0, -1, 0))),
-                Ray.of(List.of(new Pos(0, 0, 1))),
-                Ray.of(List.of(new Pos(0, 0, -1)))), FrontRule.NONE);
+        return new BeamShape(Arrays.asList(
+                single(new Pos(1, 0, 0)),
+                single(new Pos(-1, 0, 0)),
+                single(new Pos(0, 1, 0)),
+                single(new Pos(0, -1, 0)),
+                single(new Pos(0, 0, 1)),
+                single(new Pos(0, 0, -1))), FrontRule.NONE);
+    }
+
+    private static Ray single(Pos step) {
+        return Ray.of(Collections.singletonList(step));
     }
 
     /** Grow light in lighting mode ({@code growSource}): the block in front. */

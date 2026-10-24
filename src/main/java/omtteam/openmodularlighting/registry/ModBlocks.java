@@ -1,11 +1,6 @@
 package omtteam.openmodularlighting.registry;
 
-import net.minecraft.core.Registry;
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.SoundType;
-import net.minecraft.world.level.block.TintedGlassBlock;
-import net.minecraft.world.level.material.MapColor;
+import net.minecraft.block.Block;
 import omtteam.openmodularlighting.OML;
 import omtteam.openmodularlighting.block.CarbonFloodlightBlock;
 import omtteam.openmodularlighting.block.CubeLightBlock;
@@ -13,62 +8,55 @@ import omtteam.openmodularlighting.block.ElectricFloodlightBlock;
 import omtteam.openmodularlighting.block.FloodlightBlock;
 import omtteam.openmodularlighting.block.FluorescentLightBlock;
 import omtteam.openmodularlighting.block.GrowLightBlock;
-import omtteam.openmodularlighting.block.PanelLightBlock;
+import omtteam.openmodularlighting.block.LightproofGlassBlock;
 import omtteam.openmodularlighting.block.PhantomLightBlock;
 import omtteam.openmodularlighting.block.UvFloodlightBlock;
 import omtteam.openmodularlighting.block.UvLightBlock;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 /**
- * All blocks of the mod. 1.7.10 ids are mapped in {@code docs/id-mapping.md}.
+ * All blocks of the mod; registered in {@link Registration}. 1.7.10 ids are mapped in {@code docs/id-mapping.md}.
  */
 public final class ModBlocks {
     /** Invisible light block of the floodlights; no item, not in the creative tab. */
-    public static final PhantomLightBlock PHANTOM_LIGHT =
-            register("phantom_light", new PhantomLightBlock(PhantomLightBlock.createProperties()));
+    public static final PhantomLightBlock PHANTOM_LIGHT = named("phantom_light", new PhantomLightBlock());
     /** Light block of the UV floodlight; no item, not in the creative tab. */
-    public static final UvLightBlock UV_LIGHT = register("uv_light", new UvLightBlock(UvLightBlock.createProperties()));
+    public static final UvLightBlock UV_LIGHT = named("uv_light", new UvLightBlock());
 
     public static final ElectricFloodlightBlock ELECTRIC_FLOODLIGHT =
-            register("electric_floodlight", new ElectricFloodlightBlock(FloodlightBlock.createProperties()));
-    public static final CarbonFloodlightBlock CARBON_FLOODLIGHT =
-            register("carbon_floodlight", new CarbonFloodlightBlock(FloodlightBlock.createProperties()));
-    public static final UvFloodlightBlock UV_FLOODLIGHT =
-            register("uv_floodlight", new UvFloodlightBlock(FloodlightBlock.createProperties()));
-    public static final FluorescentLightBlock SMALL_FLUORESCENT_LIGHT = register("small_fluorescent_light",
-            new FluorescentLightBlock(PanelLightBlock.createPanelProperties(), true));
-    public static final FluorescentLightBlock SQUARE_FLUORESCENT_LIGHT = register("square_fluorescent_light",
-            new FluorescentLightBlock(PanelLightBlock.createPanelProperties(), false));
-    public static final GrowLightBlock GROW_LIGHT =
-            register("grow_light", new GrowLightBlock(PanelLightBlock.createPanelProperties()));
-    public static final CubeLightBlock CUBE_LIGHT =
-            register("cube_light", new CubeLightBlock(FloodlightBlock.createProperties()));
+            named("electric_floodlight", new ElectricFloodlightBlock());
+    public static final CarbonFloodlightBlock CARBON_FLOODLIGHT = named("carbon_floodlight", new CarbonFloodlightBlock());
+    public static final UvFloodlightBlock UV_FLOODLIGHT = named("uv_floodlight", new UvFloodlightBlock());
+    public static final FluorescentLightBlock SMALL_FLUORESCENT_LIGHT =
+            named("small_fluorescent_light", new FluorescentLightBlock(true));
+    public static final FluorescentLightBlock SQUARE_FLUORESCENT_LIGHT =
+            named("square_fluorescent_light", new FluorescentLightBlock(false));
+    public static final GrowLightBlock GROW_LIGHT = named("grow_light", new GrowLightBlock());
+    public static final CubeLightBlock CUBE_LIGHT = named("cube_light", new CubeLightBlock());
 
-    /** Glass that can be seen through but lets no light through (like tinted glass), and stops floodlight beams. */
-    public static final TintedGlassBlock LIGHTPROOF_GLASS = register("lightproof_glass", new TintedGlassBlock(
-            Block.Properties.of()
-                    .mapColor(MapColor.COLOR_BLACK)
-                    .strength(0.3F)
-                    .sound(SoundType.GLASS)
-                    .noOcclusion()
-                    .isValidSpawn((state, level, pos, type) -> false)
-                    .isRedstoneConductor((state, level, pos) -> false)
-                    .isSuffocating((state, level, pos) -> false)
-                    .isViewBlocking((state, level, pos) -> false)));
+    /** Glass that can be seen through but lets no light through, and stops floodlight beams. */
+    public static final LightproofGlassBlock LIGHTPROOF_GLASS = named("lightproof_glass", new LightproofGlassBlock());
 
     /** All light source blocks (shared interaction, drops and tint), in creative tab order. */
-    public static final List<FloodlightBlock> LIGHT_SOURCES = List.of(ELECTRIC_FLOODLIGHT, CARBON_FLOODLIGHT,
-            UV_FLOODLIGHT, SMALL_FLUORESCENT_LIGHT, SQUARE_FLUORESCENT_LIGHT, GROW_LIGHT, CUBE_LIGHT);
+    public static final List<FloodlightBlock> LIGHT_SOURCES = Collections.unmodifiableList(Arrays.asList(
+            ELECTRIC_FLOODLIGHT, CARBON_FLOODLIGHT, UV_FLOODLIGHT, SMALL_FLUORESCENT_LIGHT, SQUARE_FLUORESCENT_LIGHT,
+            GROW_LIGHT, CUBE_LIGHT));
+
+    /** Every block, in registration order. */
+    public static final List<Block> ALL = Collections.unmodifiableList(Arrays.asList(PHANTOM_LIGHT, UV_LIGHT,
+            ELECTRIC_FLOODLIGHT, CARBON_FLOODLIGHT, UV_FLOODLIGHT, SMALL_FLUORESCENT_LIGHT, SQUARE_FLUORESCENT_LIGHT,
+            GROW_LIGHT, CUBE_LIGHT, LIGHTPROOF_GLASS));
 
     private ModBlocks() {
     }
 
-    private static <T extends Block> T register(String name, T block) {
-        return Registry.register(BuiltInRegistries.BLOCK, OML.id(name), block);
-    }
-
-    /** Loads the class, registering all blocks. */
-    public static void init() {
+    /** Registry name {@code openmodularlighting:<name>}, translation key {@code tile.openmodularlighting.<name>.name}. */
+    private static <T extends Block> T named(String name, T block) {
+        block.setRegistryName(OML.id(name));
+        block.setTranslationKey(OML.MOD_ID + "." + name);
+        return block;
     }
 }

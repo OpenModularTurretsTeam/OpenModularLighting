@@ -1,0 +1,32 @@
+{
+  "conditions": [
+    {
+      "type": "openmodularlighting:block_enabled",
+      "blocks": [
+        "carbon_floodlight"
+      ]
+    }
+  ],
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "GRG",
+    "IGI"
+  ],
+  "key": {
+    "G": {
+      "type": "forge:ore_dict",
+      "ore": "paneGlass"
+    },
+    "I": {
+      "type": "forge:ore_dict",
+      "ore": "ingotIron"
+    },
+    "R": {
+      "type": "forge:ore_dict",
+      "ore": "dustRedstone"
+    }
+  },
+  "result": {
+    "item": "openmodularlighting:carbon_dissolver"
+  }
+}

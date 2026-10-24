@@ -35,14 +35,22 @@ public class ConfigData {
          * Blocks without a switch are always enabled.
          */
         public boolean isEnabled(String block) {
-            return switch (block) {
-                case "electric_floodlight" -> electricFloodlightEnabled;
-                case "small_fluorescent_light", "square_fluorescent_light", "cube_light" -> smallElectricFloodlightEnabled;
-                case "carbon_floodlight" -> carbonFloodlightEnabled;
-                case "uv_floodlight" -> uvFloodlightEnabled;
-                case "grow_light" -> growLightEnabled;
-                default -> true;
-            };
+            switch (block) {
+                case "electric_floodlight":
+                    return electricFloodlightEnabled;
+                case "small_fluorescent_light":
+                case "square_fluorescent_light":
+                case "cube_light":
+                    return smallElectricFloodlightEnabled;
+                case "carbon_floodlight":
+                    return carbonFloodlightEnabled;
+                case "uv_floodlight":
+                    return uvFloodlightEnabled;
+                case "grow_light":
+                    return growLightEnabled;
+                default:
+                    return true;
+            }
         }
     }
 

@@ -7,7 +7,6 @@ import omtteam.openmodularlighting.core.beam.BeamMode;
 import org.junit.jupiter.api.Test;
 
 import java.util.Random;
-import java.util.random.RandomGenerator;
 
 class FormulaTest {
     @Test
@@ -33,7 +32,7 @@ class FormulaTest {
 
     @Test
     void growDelayStaysInTheOldBounds() {
-        RandomGenerator random = new Random(1);
+        Random random = new Random(1);
         long sum = 0;
         int samples = 20_000;
         for (int i = 0; i < samples; i++) {
@@ -47,7 +46,7 @@ class FormulaTest {
 
     @Test
     void growDelayAtFullChance() {
-        RandomGenerator random = new Random(2);
+        Random random = new Random(2);
         for (int i = 0; i < 1000; i++) {
             long delay = GrowChance.nextDelay(1, random);
             assertTrue(delay >= 10 && delay < 30, "delay " + delay);
@@ -63,7 +62,7 @@ class FormulaTest {
 
     @Test
     void zeroChanceNeverGrows() {
-        RandomGenerator random = new Random(3);
+        Random random = new Random(3);
         assertEquals(Long.MAX_VALUE, GrowChance.nextDelay(0, random));
         assertEquals(Long.MAX_VALUE, GrowChance.nextDelay(Double.NaN, random));
         assertEquals(Long.MAX_VALUE, GrowChance.nextGrowTick(123_456L, 0, random));

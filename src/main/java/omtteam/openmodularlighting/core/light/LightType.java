@@ -19,11 +19,16 @@ public enum LightType {
     }
 
     public Step step(Cell cell) {
-        return switch (cell) {
-            case AIR, PHANTOM_LIGHT -> Step.LIGHT;
-            case UV_LIGHT -> this == UV ? Step.LIGHT : Step.PASS;
-            case TRANSPARENT -> Step.PASS;
-            case OPAQUE, UNLOADED -> Step.BLOCK;
-        };
+        switch (cell) {
+            case AIR:
+            case PHANTOM_LIGHT:
+                return Step.LIGHT;
+            case UV_LIGHT:
+                return this == UV ? Step.LIGHT : Step.PASS;
+            case TRANSPARENT:
+                return Step.PASS;
+            default: // OPAQUE, UNLOADED
+                return Step.BLOCK;
+        }
     }
 }

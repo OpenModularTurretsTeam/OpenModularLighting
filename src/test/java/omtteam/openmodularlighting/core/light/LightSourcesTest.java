@@ -1,9 +1,12 @@
 package omtteam.openmodularlighting.core.light;
 
+import static omtteam.openmodularlighting.TestCollections.setOf;
+import static omtteam.openmodularlighting.TestCollections.mapOf;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import omtteam.openmodularlighting.TestCollections;
 import omtteam.openmodularlighting.core.light.LightSources.Effect;
 import omtteam.openmodularlighting.core.light.LightSources.SourceStatus;
 import omtteam.openmodularlighting.core.math.Pos;
@@ -45,7 +48,7 @@ class LightSourcesTest {
         LightSources sources = new LightSources();
         sources.add(A, false);
         assertEquals(Effect.TURN_ON, sources.add(A, true));
-        assertEquals(Set.of(A), sources.sources());
+        assertEquals(setOf(A), sources.sources());
     }
 
     @Test
@@ -54,7 +57,7 @@ class LightSourcesTest {
         sources.add(A, false);
         assertEquals(Effect.NONE, sources.setActive(B, true));
         assertFalse(sources.isLit());
-        assertEquals(Set.of(A), sources.sources());
+        assertEquals(setOf(A), sources.sources());
     }
 
     @Test
@@ -63,12 +66,12 @@ class LightSourcesTest {
         sources.add(A, true);
         sources.add(B, false);
         sources.add(C, true);
-        Map<Pos, SourceStatus> status = Map.of(A, SourceStatus.GONE, B, SourceStatus.ON, C, SourceStatus.UNKNOWN);
+        Map<Pos, SourceStatus> status = mapOf(A, SourceStatus.GONE, B, SourceStatus.ON, C, SourceStatus.UNKNOWN);
         assertEquals(Effect.NONE, sources.refresh(status::get));
-        assertEquals(Set.of(B, C), sources.sources());
-        assertEquals(Set.of(B, C), sources.activeSources());
+        assertEquals(setOf(B, C), sources.sources());
+        assertEquals(setOf(B, C), sources.activeSources());
 
-        assertEquals(Effect.TURN_OFF, sources.refresh(Map.of(B, SourceStatus.OFF, C, SourceStatus.OFF)::get));
+        assertEquals(Effect.TURN_OFF, sources.refresh(TestCollections.<Pos, SourceStatus>mapOf(B, SourceStatus.OFF, C, SourceStatus.OFF)::get));
         assertEquals(Effect.REMOVE, sources.refresh(pos -> SourceStatus.GONE));
     }
 }

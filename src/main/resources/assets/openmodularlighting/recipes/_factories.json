@@ -1,0 +1,5 @@
+{
+  "conditions": {
+    "block_enabled": "omtteam.openmodularlighting.compat.BlockEnabledCondition"
+  }
+}

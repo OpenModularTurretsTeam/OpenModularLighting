@@ -1,5 +1,7 @@
 # Architecture
 
+> On the branch `1.12.2` this guide describes the main branch (`1.20.1+`); the 1.12.2 port has the same `core/` and the same class names, without the Stonecutter build and the `platform/` layer. See `CLAUDE.md` §5 on that branch.
+
 A guide to the code of Open Modular Lighting (OML) for people working on it: how it is layered, what lives where, how the main flows run, and how to add the common things.
 It describes the code as it is; where it falls short of its own rules, the last section says so.
 

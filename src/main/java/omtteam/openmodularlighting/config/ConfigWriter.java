@@ -29,7 +29,7 @@ final class ConfigWriter {
     }
 
     private static void writeObject(StringBuilder out, Object config, Object defaults, int depth) {
-        String indent = INDENT.repeat(depth + 1);
+        String indent = indent(depth + 1);
         out.append("{\n");
         Field[] fields = ConfigRanges.fields(config.getClass());
         for (int i = 0; i < fields.length; i++) {
@@ -44,15 +44,23 @@ final class ConfigWriter {
             if (i < fields.length - 1) out.append(',');
             out.append('\n');
         }
-        out.append(INDENT.repeat(depth)).append('}');
+        out.append(indent(depth)).append('}');
+    }
+
+    private static String indent(int depth) {
+        StringBuilder indent = new StringBuilder();
+        for (int i = 0; i < depth; i++) {
+            indent.append(INDENT);
+        }
+        return indent.toString();
     }
 
     private static void writeValue(StringBuilder out, Object value, Object def, boolean section, String indent,
                                    int depth) {
         if (section) {
             writeObject(out, value, def, depth + 1);
-        } else if (value instanceof List<?> list) {
-            writeList(out, list, indent);
+        } else if (value instanceof List<?>) {
+            writeList(out, (List<?>) value, indent);
         } else {
             out.append(VALUE.toJson(value));
         }

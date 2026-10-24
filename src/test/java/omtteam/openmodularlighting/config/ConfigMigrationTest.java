@@ -10,7 +10,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ConfigMigrationTest {
     private static JsonObject json(String text) {
-        return JsonParser.parseString(text).getAsJsonObject();
+        return new JsonParser().parse(text).getAsJsonObject();
     }
 
     @Test

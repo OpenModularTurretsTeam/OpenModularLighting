@@ -1,6 +1,6 @@
 package omtteam.openmodularlighting.blockentity;
 
-import net.minecraft.core.BlockPos;
+import net.minecraft.util.math.BlockPos;
 
 /**
  * A block entity that lights light blocks (floodlights, fluorescent and grow lights, UV floodlight). Light blocks use

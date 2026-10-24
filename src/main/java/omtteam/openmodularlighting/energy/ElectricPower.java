@@ -1,8 +1,8 @@
 package omtteam.openmodularlighting.energy;
 
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.world.SimpleContainer;
-import net.minecraft.world.item.ItemStack;
+import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraftforge.items.ItemStackHandler;
 import omtteam.openmodularlighting.core.energy.EnergyStore;
 
 import java.util.function.IntSupplier;
@@ -59,8 +59,8 @@ public final class ElectricPower implements LightPower {
     }
 
     @Override
-    public void prepare(SimpleContainer inventory) {
-        if (!inventory.getItem(0).isEmpty() && store.getFreeSpace() > 0) {
+    public void prepare(ItemStackHandler inventory) {
+        if (!inventory.getStackInSlot(0).isEmpty() && store.getFreeSpace() > 0) {
             Batteries.discharge(inventory, 0, store);
         }
     }
@@ -71,12 +71,12 @@ public final class ElectricPower implements LightPower {
     }
 
     @Override
-    public void read(CompoundTag tag) {
+    public void read(NBTTagCompound tag) {
         store.setAmountUnchecked(Math.min(store.getCapacity(), tag.getLong(ENERGY)));
     }
 
     @Override
-    public void write(CompoundTag tag) {
-        tag.putLong(ENERGY, store.getAmount());
+    public void write(NBTTagCompound tag) {
+        tag.setLong(ENERGY, store.getAmount());
     }
 }

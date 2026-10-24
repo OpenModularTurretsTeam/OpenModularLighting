@@ -1,6 +1,6 @@
 package omtteam.openmodularlighting.core.state;
 
-import java.util.random.RandomGenerator;
+import java.util.Random;
 
 /**
  * Random countdown to the next periodic re-cast of a light, which repairs its beam after world changes that sent no
@@ -17,12 +17,12 @@ public final class RecheckTimer {
     /**
      * Ticks until the next re-cast: uniform in {@code [MEAN_TICKS / 2, 3 × MEAN_TICKS / 2)}, mean {@code MEAN_TICKS}.
      */
-    public static long nextDelay(RandomGenerator random) {
-        return MEAN_TICKS / 2 + random.nextLong(MEAN_TICKS);
+    public static long nextDelay(Random random) {
+        return MEAN_TICKS / 2 + random.nextInt(MEAN_TICKS);
     }
 
     /** Advances one tick; true when the light should re-cast now. */
-    public boolean tick(RandomGenerator random) {
+    public boolean tick(Random random) {
         if (remaining < 0) {
             remaining = nextDelay(random);
         }

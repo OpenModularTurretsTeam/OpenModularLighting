@@ -1,60 +1,64 @@
 package omtteam.openmodularlighting;
 
-import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceLocation;
-import omtteam.openmodularlighting.compat.VersionCompat;
+import net.minecraft.util.ResourceLocation;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.common.SidedProxy;
+import net.minecraftforge.fml.common.event.FMLInitializationEvent;
+import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
+import net.minecraftforge.fml.common.network.NetworkRegistry;
+import omtteam.openmodularlighting.block.FloodlightInteraction;
 import omtteam.openmodularlighting.config.OMLConfig;
-import omtteam.openmodularlighting.network.OMLPackets;
-import omtteam.openmodularlighting.registry.ModBlockEntities;
-import omtteam.openmodularlighting.registry.ModBlocks;
-import omtteam.openmodularlighting.registry.ModCreativeTabs;
-import omtteam.openmodularlighting.registry.ModItems;
-import omtteam.openmodularlighting.registry.ModMenus;
-import omtteam.openmodularlighting.registry.RegistrationStep;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.List;
+import omtteam.openmodularlighting.menu.OMLGuiHandler;
+import omtteam.openmodularlighting.network.OMLNetwork;
+import omtteam.openmodularlighting.registry.ModRecipes;
+import omtteam.openmodularlighting.registry.Registration;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
- * Shared constants and start-up of Open Modular Lighting.
- * The loader entrypoints ({@code platform/<loader>/}) call {@link #init()}, run the {@link #registrationSteps()} and
- * wire their loader's events.
+ * The Forge 1.12.2 entrypoint of Open Modular Lighting, and the mod's shared constants. Registration runs in Forge's
+ * registry events ({@link Registration}); the client side is started through {@link CommonProxy}.
  */
+@Mod(modid = OML.MOD_ID, name = OML.MOD_NAME, useMetadata = true, acceptedMinecraftVersions = "[1.12.2]")
 public final class OML {
     public static final String MOD_ID = "openmodularlighting";
-    public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
+    public static final String MOD_NAME = "Open Modular Lighting";
+    public static final Logger LOGGER = LogManager.getLogger(MOD_ID);
+
+    @Mod.Instance(MOD_ID)
+    public static OML instance;
+
+    @SidedProxy(clientSide = "omtteam.openmodularlighting.client.ClientProxy",
+            serverSide = "omtteam.openmodularlighting.CommonProxy")
+    public static CommonProxy proxy;
 
     /**
      * Creates a {@link ResourceLocation} in the mod namespace.
      */
     public static ResourceLocation id(String path) {
-        return VersionCompat.id(MOD_ID, path);
-    }
-
-    private OML() {
+        return new ResourceLocation(MOD_ID, path);
     }
 
     /**
-     * Loads the config and registers the packets. Both entrypoints call it first, before any registration (recipes and
-     * block properties come from the config; NeoForge accepts packets only until its payload registration event).
+     * Loads the config (block switches and recipes depend on it) and registers the packets and event handlers.
+     * Forge fires the registry events after this.
      */
-    public static void init() {
+    @Mod.EventHandler
+    public void preInit(FMLPreInitializationEvent event) {
         LOGGER.info("Initializing Open Modular Lighting");
-        OMLPackets.init();
-        OMLConfig.init();
+        OMLConfig.init(event.getModConfigurationDirectory().toPath());
+        OMLNetwork.init();
+        MinecraftForge.EVENT_BUS.register(Registration.class);
+        MinecraftForge.EVENT_BUS.register(FloodlightInteraction.class);
+        MinecraftForge.EVENT_BUS.register(OMLConfig.class);
+        proxy.preInit();
     }
 
-    /**
-     * The registration steps in dependency order, each with the registry it fills. Fabric runs them in this order;
-     * NeoForge runs each in the {@code RegisterEvent} of its registry.
-     */
-    public static List<RegistrationStep> registrationSteps() {
-        return List.of(
-                new RegistrationStep(Registries.BLOCK, ModBlocks::init),
-                new RegistrationStep(Registries.ITEM, ModItems::init),
-                new RegistrationStep(Registries.BLOCK_ENTITY_TYPE, ModBlockEntities::init),
-                new RegistrationStep(Registries.MENU, ModMenus::init),
-                new RegistrationStep(Registries.CREATIVE_MODE_TAB, ModCreativeTabs::init));
+    @Mod.EventHandler
+    public void init(FMLInitializationEvent event) {
+        NetworkRegistry.INSTANCE.registerGuiHandler(this, new OMLGuiHandler());
+        ModRecipes.registerSmelting();
+        proxy.init();
     }
 }

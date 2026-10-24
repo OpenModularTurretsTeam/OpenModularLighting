@@ -1,7 +1,7 @@
 {
   "variants": {
-    "": {
-      "model": "openmodularlighting:block/lightproof_glass"
+    "normal": {
+      "model": "openmodularlighting:lightproof_glass"
     }
   }
 }

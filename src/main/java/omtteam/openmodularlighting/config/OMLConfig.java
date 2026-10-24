@@ -6,15 +6,17 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
-import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.server.MinecraftServer;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.fml.common.gameevent.PlayerEvent;
 import omtteam.openmodularlighting.OML;
-import omtteam.openmodularlighting.compat.network.NetworkCompat;
 import omtteam.openmodularlighting.network.ConfigSyncPacket;
-import omtteam.openmodularlighting.network.OMLPackets;
-import omtteam.openmodularlighting.platform.Platform;
+import omtteam.openmodularlighting.network.OMLNetwork;
 
 import java.io.IOException;
 import java.io.Reader;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
@@ -36,6 +38,7 @@ public final class OMLConfig {
     private static ConfigData local = new ConfigData();
     /** Config in effect: the server's while connected to a remote server, otherwise {@link #local}. */
     private static volatile ConfigData active = local;
+    private static Path configDir;
 
     private OMLConfig() {
     }
@@ -48,38 +51,43 @@ public final class OMLConfig {
     }
 
     /**
-     * Loads the config file (writing defaults if it is missing).
+     * Loads the config file from Forge's config folder (writing defaults if it is missing).
      */
-    public static void init() {
+    public static void init(Path dir) {
+        configDir = dir;
         load();
     }
 
     /**
-     * Sends the server's config to a joining player; called by the loader's player-join event on the server.
+     * Sends the server's config to a joining player.
      */
-    public static void onPlayerJoin(ServerPlayer player) {
+    @SubscribeEvent
+    public static void onPlayerJoin(PlayerEvent.PlayerLoggedInEvent event) {
+        if (!(event.player instanceof EntityPlayerMP)) return;
+        EntityPlayerMP player = (EntityPlayerMP) event.player;
+        MinecraftServer server = player.server;
         // The singleplayer host already uses this config
-        if (!player.server.isSingleplayerOwner(player.getGameProfile()) && NetworkCompat.canSend(player, OMLPackets.CONFIG_SYNC)) {
-            NetworkCompat.sendToPlayer(player, OMLPackets.CONFIG_SYNC, new ConfigSyncPacket(GSON.toJson(local)));
+        if (server != null && (server.isDedicatedServer() || !player.getName().equals(server.getServerOwner()))) {
+            OMLNetwork.CHANNEL.sendTo(new ConfigSyncPacket(GSON.toJson(local)), player);
         }
     }
 
     public static void load() {
-        Path path = Platform.loaderInfo().configDir().resolve(FILE_NAME);
+        Path path = configDir.resolve(FILE_NAME);
         ConfigData data;
         boolean changed;
         if (Files.exists(path)) {
             JsonElement json;
-            try (Reader reader = Files.newBufferedReader(path)) {
-                json = JsonParser.parseReader(reader);
+            try (Reader reader = Files.newBufferedReader(path, StandardCharsets.UTF_8)) {
+                json = new JsonParser().parse(reader);
             } catch (Exception e) {
                 OML.LOGGER.error("Could not read {}, using defaults (the file is left untouched)", path, e);
                 local = active = new ConfigData();
                 return;
             }
             ParseResult result = parse(json);
-            data = result.data();
-            changed = result.changed() || !commented(data).equals(readText(path));
+            data = result.data;
+            changed = result.changed || !commented(data).equals(readText(path));
         } else {
             data = new ConfigData();
             changed = true;
@@ -87,7 +95,7 @@ public final class OMLConfig {
         if (changed) {
             try {
                 Files.createDirectories(path.getParent());
-                Files.writeString(path, commented(data));
+                Files.write(path, commented(data).getBytes(StandardCharsets.UTF_8));
             } catch (IOException e) {
                 OML.LOGGER.error("Could not write {}", path, e);
             }
@@ -102,7 +110,7 @@ public final class OMLConfig {
 
     private static String readText(Path path) {
         try {
-            return Files.readString(path);
+            return new String(Files.readAllBytes(path), StandardCharsets.UTF_8);
         } catch (IOException e) {
             return "";
         }
@@ -113,7 +121,7 @@ public final class OMLConfig {
      */
     public static void applyServerConfig(String json) {
         try {
-            active = parse(JsonParser.parseString(json)).data();
+            active = parse(new JsonParser().parse(json)).data;
         } catch (Exception e) {
             OML.LOGGER.error("Received an invalid config from the server, keeping the local one", e);
         }
@@ -126,7 +134,14 @@ public final class OMLConfig {
         active = local;
     }
 
-    private record ParseResult(ConfigData data, boolean changed) {
+    private static final class ParseResult {
+        final ConfigData data;
+        final boolean changed;
+
+        ParseResult(ConfigData data, boolean changed) {
+            this.data = data;
+            this.changed = changed;
+        }
     }
 
     private static ParseResult parse(JsonElement json) {
@@ -168,9 +183,9 @@ public final class OMLConfig {
                 result.add(key, def);
             }
         }
-        for (String key : user.keySet()) {
-            if (!defaults.has(key)) {
-                OML.LOGGER.warn("Config: removed unknown key {}{}", path, key);
+        for (Map.Entry<String, JsonElement> entry : user.entrySet()) {
+            if (!defaults.has(entry.getKey())) {
+                OML.LOGGER.warn("Config: removed unknown key {}{}", path, entry.getKey());
                 changed[0] = true;
             }
         }

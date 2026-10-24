@@ -1,0 +1,6 @@
+[04:19:37] [Test worker/WARN]: Config: general.rangeStraightFloodlight = 500 is outside [1, 128], using 128
+[04:19:37] [Test worker/WARN]: Config: general.chanceGrowLight = -1.0 is outside [0.0, 1.0], using 0.0
+[04:19:37] [Test worker/WARN]: Config: number = 500 is outside [1, 100], using 100
+[04:19:37] [Test worker/WARN]: Config: atLeast = -3 is outside [0, 2147483647], using 0
+[04:19:37] [Test worker/WARN]: Config: ratio = 7.0 is outside [-Infinity, 1.0], using 1.0
+[04:19:37] [Test worker/WARN]: Config: inner_group.chance = -1.0 is outside [0.0, 1.0], using 0.0

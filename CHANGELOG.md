@@ -9,6 +9,10 @@ turns *Unreleased* into the release section; `chiseledPublish` uploads exactly t
 
 ## [Unreleased]
 
+### Added
+
+- Forge 1.12.2 build (branch `1.12.2`): all lights, the disguise, Forge Energy and item pipes; no Jade on 1.12.2
+
 ## [1.0.0-beta.5] - 2026-10-24
 
 ### Added

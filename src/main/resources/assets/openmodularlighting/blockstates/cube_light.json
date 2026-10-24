@@ -1,10 +1,10 @@
 {
   "variants": {
     "lit=false": {
-      "model": "openmodularlighting:block/cube_light"
+      "model": "openmodularlighting:cube_light"
     },
     "lit=true": {
-      "model": "openmodularlighting:block/cube_light_on"
+      "model": "openmodularlighting:cube_light_on"
     }
   }
 }

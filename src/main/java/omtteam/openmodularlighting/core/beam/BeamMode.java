@@ -19,11 +19,14 @@ public enum BeamMode {
      * {@link Spacing#STRAIGHT} and {@link Spacing#CONE}.
      */
     public BeamShape shape(int straightRange, int coneRange) {
-        return switch (this) {
-            case STRAIGHT -> BeamShape.straight(straightRange).withSpacing(Spacing.STRAIGHT);
-            case NARROW_CONE -> BeamShape.narrowCone(coneRange).withSpacing(Spacing.CONE);
-            case WIDE_CONE -> BeamShape.wideCone(coneRange / 4).withSpacing(Spacing.CONE);
-        };
+        switch (this) {
+            case NARROW_CONE:
+                return BeamShape.narrowCone(coneRange).withSpacing(Spacing.CONE);
+            case WIDE_CONE:
+                return BeamShape.wideCone(coneRange / 4).withSpacing(Spacing.CONE);
+            default:
+                return BeamShape.straight(straightRange).withSpacing(Spacing.STRAIGHT);
+        }
     }
 
     /** The mode with this ordinal; unknown values fall back to {@link #STRAIGHT}. */

@@ -1,13 +1,15 @@
 package omtteam.openmodularlighting.camo;
 
-import net.minecraft.core.BlockPos;
-import net.minecraft.world.item.BlockItem;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.EmptyBlockGetter;
-import net.minecraft.world.level.block.EntityBlock;
-import net.minecraft.world.level.block.RenderShape;
-import net.minecraft.world.level.block.state.BlockState;
-import org.jetbrains.annotations.Nullable;
+import net.minecraft.block.Block;
+import net.minecraft.block.material.Material;
+import net.minecraft.block.state.IBlockState;
+import net.minecraft.init.Items;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemBlock;
+import net.minecraft.item.ItemStack;
+import net.minecraft.util.EnumBlockRenderType;
+
+import javax.annotation.Nullable;
 
 /**
  * Which blocks may be used as a disguise, and the item form of one. Only full, opaque blocks (stone, planks, wool...):
@@ -19,22 +21,32 @@ public final class CamoRules {
     }
 
     /** A full, opaque block that is drawn from a normal model and has no block entity of its own. */
-    public static boolean isValidDisguise(BlockState state) {
-        if (state.isAir() || state.getBlock() instanceof EntityBlock) return false;
-        if (state.getRenderShape() != RenderShape.MODEL) return false;
-        return state.isSolidRender(EmptyBlockGetter.INSTANCE, BlockPos.ZERO);
+    @SuppressWarnings("deprecation") // the state methods are the ones to call
+    public static boolean isValidDisguise(IBlockState state) {
+        Block block = state.getBlock();
+        if (state.getMaterial() == Material.AIR || block.hasTileEntity(state)) return false;
+        if (state.getRenderType() != EnumBlockRenderType.MODEL) return false;
+        return state.isOpaqueCube() && state.isFullCube();
     }
 
-    /** The disguise a held stack stands for (the item's block in its default state), if it is a valid one. */
+    /**
+     * The disguise a held stack stands for: the item's block in the state of the item's metadata (wool colour, plank
+     * type), if it is a valid one.
+     */
     @Nullable
-    public static BlockState disguiseFor(ItemStack stack) {
-        if (!(stack.getItem() instanceof BlockItem item)) return null;
-        BlockState state = item.getBlock().defaultBlockState();
+    @SuppressWarnings("deprecation") // getStateFromMeta is how 1.12 maps item damage to a state
+    public static IBlockState disguiseFor(ItemStack stack) {
+        if (stack.isEmpty() || !(stack.getItem() instanceof ItemBlock)) return null;
+        ItemBlock item = (ItemBlock) stack.getItem();
+        IBlockState state = item.getBlock().getStateFromMeta(item.getMetadata(stack.getMetadata()));
         return isValidDisguise(state) ? state : null;
     }
 
     /** The item shown in the disguise slot of the GUI. */
-    public static ItemStack itemFor(@Nullable BlockState camo) {
-        return camo == null ? ItemStack.EMPTY : new ItemStack(camo.getBlock());
+    public static ItemStack itemFor(@Nullable IBlockState camo) {
+        if (camo == null) return ItemStack.EMPTY;
+        Item item = Item.getItemFromBlock(camo.getBlock());
+        return item == Items.AIR ? ItemStack.EMPTY
+                : new ItemStack(item, 1, camo.getBlock().damageDropped(camo));
     }
 }

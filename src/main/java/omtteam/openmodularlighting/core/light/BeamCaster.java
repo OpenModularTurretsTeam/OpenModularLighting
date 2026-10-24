@@ -7,6 +7,8 @@ import omtteam.openmodularlighting.core.math.Facing;
 import omtteam.openmodularlighting.core.math.Pos;
 import omtteam.openmodularlighting.core.math.Rotation;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -27,7 +29,7 @@ public final class BeamCaster {
      */
     public static List<Pos> cast(BeamShape shape, Pos origin, Facing facing, LightType type, LightWorld world) {
         if (frontAborts(shape.frontRule(), world.cellAt(origin.offset(facing, 1)), type)) {
-            return List.of();
+            return Collections.emptyList();
         }
         Set<Pos> lit = new LinkedHashSet<>();
         List<Ray> rays = shape.rays();
@@ -51,7 +53,7 @@ public final class BeamCaster {
                 }
             }
         }
-        return List.copyOf(lit);
+        return Collections.unmodifiableList(new ArrayList<>(lit));
     }
 
     /** The 1.7.10 cone rule: an inner ray is skipped if its outer ray was blocked before it got far enough. */
@@ -67,10 +69,13 @@ public final class BeamCaster {
     }
 
     private static boolean frontAborts(BeamShape.FrontRule rule, Cell front, LightType type) {
-        return switch (rule) {
-            case NONE -> false;
-            case ABORT_IF_OPAQUE -> front == Cell.OPAQUE;
-            case ABORT_IF_BLOCKED -> type.step(front) == LightType.Step.BLOCK;
-        };
+        switch (rule) {
+            case ABORT_IF_OPAQUE:
+                return front == Cell.OPAQUE;
+            case ABORT_IF_BLOCKED:
+                return type.step(front) == LightType.Step.BLOCK;
+            default:
+                return false;
+        }
     }
 }

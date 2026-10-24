@@ -1,0 +1,28 @@
+{
+  "conditions": [
+    {
+      "type": "openmodularlighting:block_enabled",
+      "blocks": [
+        "carbon_floodlight"
+      ]
+    }
+  ],
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "SSS",
+    "SRS",
+    "SSS"
+  ],
+  "key": {
+    "R": {
+      "type": "forge:ore_dict",
+      "ore": "dustRedstone"
+    },
+    "S": {
+      "item": "minecraft:string"
+    }
+  },
+  "result": {
+    "item": "openmodularlighting:mantle"
+  }
+}

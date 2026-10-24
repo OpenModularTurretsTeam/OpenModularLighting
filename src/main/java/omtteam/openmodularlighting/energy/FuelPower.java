@@ -1,13 +1,13 @@
 package omtteam.openmodularlighting.energy;
 
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.world.SimpleContainer;
-import net.minecraft.world.item.ItemStack;
+import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.tileentity.TileEntityFurnace;
+import net.minecraftforge.items.ItemStackHandler;
 import omtteam.openmodularlighting.config.OMLConfig;
 import omtteam.openmodularlighting.core.beam.BeamMode;
 import omtteam.openmodularlighting.core.formula.CarbonFuel;
 import omtteam.openmodularlighting.core.state.FuelTimer;
-import omtteam.openmodularlighting.platform.Platform;
 
 import java.util.function.Supplier;
 
@@ -26,9 +26,9 @@ public final class FuelPower implements LightPower {
         this.timer = new FuelTimer(() -> CarbonFuel.drain(mode.get()));
     }
 
-    /** Furnace burn time of an item in ticks, 0 if it is no fuel. */
+    /** Furnace burn time of an item in ticks (vanilla and modded fuels), 0 if it is no fuel. */
     public static int burnTime(ItemStack stack) {
-        return Platform.fuel().burnTime(stack);
+        return stack.isEmpty() ? 0 : Math.max(0, TileEntityFurnace.getItemBurnTime(stack));
     }
 
     /** Stored burn time, in ticks of straight light. */
@@ -60,20 +60,17 @@ public final class FuelPower implements LightPower {
      * Burns the next item as soon as the timer is empty, even while the light is off (1.7.10). Leaves the remainder (lava bucket → bucket) like a furnace.
      */
     @Override
-    public void prepare(SimpleContainer inventory) {
+    public void prepare(ItemStackHandler inventory) {
         if (!timer.needsFuel()) return;
-        ItemStack stack = inventory.getItem(0);
+        ItemStack stack = inventory.getStackInSlot(0);
         int burnTime = burnTime(stack);
         if (burnTime <= 0 || !timer.refuel(CarbonFuel.ticks(burnTime, OMLConfig.get().general.carbonTime))) {
             return;
         }
-        ItemStack remainder = Platform.fuel().remainder(stack);
-        stack.shrink(1);
-        if (stack.isEmpty() && !remainder.isEmpty()) {
-            inventory.setItem(0, remainder);
-        } else {
-            inventory.setChanged();
-        }
+        ItemStack remainder = stack.getItem().getContainerItem(stack);
+        ItemStack rest = stack.copy();
+        rest.shrink(1);
+        inventory.setStackInSlot(0, rest.isEmpty() ? remainder : rest);
     }
 
     @Override
@@ -82,12 +79,12 @@ public final class FuelPower implements LightPower {
     }
 
     @Override
-    public void read(CompoundTag tag) {
-        timer.setTicksRemaining(tag.getInt(TIME_REMAINING));
+    public void read(NBTTagCompound tag) {
+        timer.setTicksRemaining(tag.getInteger(TIME_REMAINING));
     }
 
     @Override
-    public void write(CompoundTag tag) {
-        tag.putInt(TIME_REMAINING, timer.ticksRemaining());
+    public void write(NBTTagCompound tag) {
+        tag.setInteger(TIME_REMAINING, timer.ticksRemaining());
     }
 }

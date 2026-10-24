@@ -1,7 +1,10 @@
 {
   "variants": {
-    "": {
-      "model": "openmodularlighting:block/uv_light"
+    "lit=false": {
+      "model": "openmodularlighting:uv_light"
+    },
+    "lit=true": {
+      "model": "openmodularlighting:uv_light"
     }
   }
 }

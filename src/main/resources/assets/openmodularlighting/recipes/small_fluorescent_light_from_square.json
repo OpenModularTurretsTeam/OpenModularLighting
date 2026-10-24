@@ -1,0 +1,19 @@
+{
+  "conditions": [
+    {
+      "type": "openmodularlighting:block_enabled",
+      "blocks": [
+        "small_fluorescent_light"
+      ]
+    }
+  ],
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    {
+      "item": "openmodularlighting:square_fluorescent_light"
+    }
+  ],
+  "result": {
+    "item": "openmodularlighting:small_fluorescent_light"
+  }
+}
