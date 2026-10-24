@@ -56,7 +56,7 @@ public final class ModBlocks {
     /** Registry name {@code openmodularlighting:<name>}, translation key {@code tile.openmodularlighting.<name>.name}. */
     private static <T extends Block> T named(String name, T block) {
         block.setRegistryName(OML.id(name));
-        block.setTranslationKey(OML.MOD_ID + "." + name);
+        block.setUnlocalizedName(OML.MOD_ID + "." + name);
         return block;
     }
 }

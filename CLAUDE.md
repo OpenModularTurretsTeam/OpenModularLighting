@@ -1,4 +1,4 @@
-# CLAUDE.md — Floodlights (Forge 1.12.2, branch `1.12.2`)
+# CLAUDE.md — Floodlights (Forge 1.12.2, branch `1.12`)
 
 This file guides Claude Code when working on this branch. Read it fully before making changes.
 This branch is the **Forge 1.12.2** port; the modern versions (Fabric 1.20.1/1.21.1, NeoForge 1.21.1, Forge 1.20.1, built with Stonecutter) live on the main branch `1.20.1+`, whose `CLAUDE.md` describes them.
@@ -24,12 +24,14 @@ Core gameplay (the same as on the main branch):
 ### Keeping the branches together
 
 - `core/` and `config/` (and their unit tests) should stay identical to the main branch except for Java 8 syntax (no records, switch expressions, `instanceof` patterns, `List.of`, `RandomGenerator`; core takes `java.util.Random`). When a change lands on one branch, port it to the other, and tell the user.
+  Exception: `core.energy` (`EnergyStore`, `EnergyAccess`) comes from OMLib (`omtteam.omlib.core.energy`, the same classes) and is not part of this mod.
 - Gameplay changes on the main branch usually belong here too; the Minecraft-facing classes have the same names and packages, so the corresponding class is easy to find.
 - Never merge this branch into `1.20.1+` or the other way round: the build and most of `main` differ completely. Cherry-pick or port by hand.
 
 ### Allowed dependencies
 
 - **Forge 1.12.2** (14.23.5.x, chosen by RetroFuturaGradle) and **Forge Energy** (`CapabilityEnergy`, part of Forge; replaces Team Reborn Energy / NeoForge FE, 1 E = 1 FE).
+- **OMLib** (required, `required-after:omlib`): the shared library of the OpenModularTurretsTeam mods (`../OMLib` in the OMTTeam 1.12 workspace). Code it already has is used from there, not duplicated: the energy buffer (`core.energy`) and its wrench (`ItemMultiTool`, accepted by `CommonTags.isWrench`).
 - Build-time only: **RetroFuturaGradle** (`com.gtnewhorizons.retrofuturagradle`, the maintained 1.12.2 toolchain, from the GTNH maven), the mod publish plugin, Spotless, JUnit 5 (5.13: the last line that runs on Java 8).
 - Nothing else without asking the user first. No mixins, no Jabel, no CTM/TOP/HWYLA dependency.
 - Jade does not exist on 1.12.2. A The One Probe or HWYLA integration would be optional and is not done; ask the user first.
@@ -43,11 +45,14 @@ Core gameplay (the same as on the main branch):
 | Java | 8 (Azul toolchain, auto-provisioned) |
 | Loader | Forge 14.23.5.2847 |
 | Gradle plugin | RetroFuturaGradle 2.0.x |
-| Mappings | MCP `stable_39` (names such as `TileEntity`, `IBlockState`, `EntityPlayer`, `World`) |
+| Mappings | MCP `snapshot_20171212` (names such as `TileEntity`, `IBlockState`, `EntityPlayer`, `World`), the same as OMLib and the OMTTeam 1.12 workspace: one dev run has one set of names |
 
 - Gradle 9.8 (Kotlin DSL), one project: `build.gradle.kts`, `settings.gradle.kts`, `gradle.properties`. No Stonecutter, no `buildSrc`.
 - **Gradle itself must run on Java 17+** (Gradle 9). In the user's shell `JAVA_HOME` points to Java 8, so run Gradle with `JAVA_HOME=/usr/lib/jvm/java-25-openjdk` (or any JDK 17+); the compile and test toolchain is Java 8 regardless.
 - The decompiled Minecraft + Forge sources are in `build/rfg/minecraft-src/java` after `./gradlew setupDecompWorkspace`. Look up exact MCP names there instead of guessing.
+- **OMLib** comes from mavenLocal (`omtteam:omlib:1.12.2-<omlib_version>`, `omlib_version` in `gradle.properties`): run `./gradlew -b build.gradle publishToMavenLocal` in OMLib first. `OML.DEPENDENCIES` says `omlib@[0.0.0,)` in the sources (dev runs, where OMLib's version stays unreplaced); `replaceOmlibRange` compiles a copy of `OML.java` with `[<omlib_version>,<next major>.0.0-alpha)`.
+- **Workspace build:** in the OMTTeam 1.12 workspace (the folder above) this mod is also built by `gradle/workspace/OpenModularLighting.gradle` (ForgeGradle 3, Gradle 4.9) against the OMLib sources and runs with the other mods in `runenv`; that build ignores `build.gradle.kts` and sets up the tests and `verifyCoreIsolation` itself.
+- **RFG and the shared MCP cache:** RFG unpacks the MCP data (`joined.srg`, `joined.exc`, patches) into `~/.gradle/caches/minecraft/de/oceanlabs/mcp/mcp_<channel>/<version>` only if that folder does not exist yet. ForgeGradle 2 (OMLib, OMT, OMPD) creates `mcp_snapshot/20171212` with the CSVs only, and RFG then fails in `generateForgeSrgMappings` ("joined.srg doesn't exist"): copy `astyle.cfg`, `exceptor.json`, `joined.exc`, `joined.srg`, `static_methods.txt` and `patches/` from another RFG mapping folder (e.g. `mcp_stable/39`) into it; they do not depend on the mapping names.
 - Formatting: Spotless (tabs → spaces, trailing whitespace, final newline), as on the main branch. Run `./gradlew spotlessApply` before committing.
 - Language: Java only.
 
@@ -125,7 +130,7 @@ Differences to the main branch, and the 1.12.2 pitfalls the code handles. Keep t
 | Lightproof glass | own `LightproofGlassBlock` (no tinted glass in 1.12): glass with light opacity 255 that drops itself |
 | Drops | `FloodlightBlock` keeps the block until `harvestBlock` (`removedByPlayer`), so `getDrops` can read the block entity; settings go into the item's `BlockEntityTag`, which vanilla loads on placement |
 | Interaction | `FloodlightInteraction` listens to `PlayerInteractEvent.RightClickBlock` (fires before the sneak check, also for wrenches that do not bypass sneaking) |
-| Wrenches, wool, dyes | no tags: `CommonTags.isWrench` (tool class `wrench` or ore dictionary `toolWrench`/`itemWrench`/`wrench`), ore dictionary `blockWool`, Forge `DyeUtils` |
+| Wrenches, wool, dyes | no tags: `CommonTags.isWrench` (OMLib's `ItemMultiTool`, tool class `wrench` or ore dictionary `toolWrench`/`itemWrench`/`wrench`), ore dictionary `blockWool`, Forge `DyeUtils` |
 | Energy, items | capabilities on the block entities: `ForgeEnergyStorage` wraps the core `EnergyAccess` (insert only), `InsertOnlyItemHandler` wraps the slot's `ItemStackHandler`; batteries are items with extractable FE |
 | Fuel | `TileEntityFurnace.getItemBurnTime` and the item's container item |
 | Menus | `OMLGuiHandler` (`IGuiHandler`, ids `ELECTRIC` / `CARBON`); screens come from `ClientProxy.createScreen`. `FloodlightMenu` syncs long values as two 16-bit window properties |
@@ -276,7 +281,7 @@ The timeout still applies: toggling `LIT` is much cheaper than placing blocks, b
 
 ### 6.5 Power and fuel
 
-- Electric lights have an internal buffer of **50 000 E** (`core.energy.EnergyStore`; exposed as `EnergyAccess` through Team Reborn Energy on Fabric and FE on NeoForge, 1 E = 1 FE; accepting on all sides; fluorescent and grow lights only on the back face, opposite the facing). Up to the whole buffer can be inserted per tick. **Nothing can be extracted**, so cables cannot drain lights.
+- Electric lights have an internal buffer of **50 000 E** (`core.energy.EnergyStore`, from OMLib on this branch; exposed as `EnergyAccess` through Team Reborn Energy on Fabric and FE on NeoForge, 1 E = 1 FE; accepting on all sides; fluorescent and grow lights only on the back face, opposite the facing). Up to the whole buffer can be inserted per tick. **Nothing can be extracted**, so cables cannot drain lights.
 - **Panel lights share energy** (`blockentity.PanelLightBlockEntity`, `energy.ClusterEnergy`; cube lights use the same base but accept energy on every side and cluster only with cube lights on any of their 6 faces): fluorescent and grow lights (any mix) that touch on their sides and face the same way form a `core.cluster.Cluster` (in memory, not saved; joins on the first tick, leaves in `setRemoved`, splits in `refresh()` once per tick). Each light keeps its own buffer. The back-face storage shows the whole cluster: inserting fills the emptiest light first, nothing can be extracted. A light that cannot pay its next tick takes energy from the fullest others (each gives at most half).
 - The battery slot accepts any item with extractable energy in the loader's energy API (`energy.Batteries` → `platform.Energy`), and is discharged into the buffer each tick while the buffer has room.
 - Cost per tick: `energyUsage` for straight, ×2 for cones; `energyUsageSmallFloodlight` (fluorescent), `energyUsageCubeLight`, `energyUsageUVFloodlight`, `energyUsageGrowLight`.
@@ -424,10 +429,12 @@ When you change one of these, tell the user whether the same change belongs in t
 
 Update this checklist as work progresses.
 
-### Forge 1.12.2 (branch `1.12.2`)
+### Forge 1.12.2 (branch `1.12`)
 
-- [x] Build: RetroFuturaGradle 2.0, Java 8 toolchain, MCP `stable_39`, reobfuscated jar, Spotless, `verifyCoreIsolation`, changelog tasks, publishing (dry run: `publish_enabled=false`)
-- [x] `core/` and `config/` from the main branch, converted to Java 8; all unit tests pass (87)
+- [x] Build: RetroFuturaGradle 2.0, Java 8 toolchain, MCP `snapshot_20171212` (was `stable_39`), reobfuscated jar, Spotless, `verifyCoreIsolation`, changelog tasks, publishing (dry run: `publish_enabled=false`)
+- [x] `core/` and `config/` from the main branch, converted to Java 8; all unit tests pass (77; the energy tests are OMLib's)
+- [x] Depends on OMLib, built in the OMTTeam 1.12 workspace and run there with OMLib, OMT and OMPD (2026-10-24); `core.energy` and the wrench check use OMLib
+- [ ] Further OMLib reuse, decisions open (see the workspace `CLAUDE.md`, phase 7): OMLib's camouflage (`ICamoSupport`, camo menu, `CamoBakedModel`) instead of `camo/` and `client/camo/`, OMLib's `core.machine.MachineMode` instead of the invert toggle
 - [x] Blocks, block entities, registration, creative tab, interaction, drops with settings
 - [x] Phantom and UV light blocks (persistent, `LIT` toggle, random-tick cleanup, neighbour re-cast), light debug tool
 - [x] Forge Energy (insert only, cluster sharing of panel and cube lights), batteries, fuel, insert-only item capability

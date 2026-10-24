@@ -57,7 +57,7 @@ public abstract class PanelLightBlock extends FloodlightBlock {
     }
 
     @Override
-    public BlockRenderLayer getRenderLayer() {
+    public BlockRenderLayer getBlockLayer() {
         return BlockRenderLayer.CUTOUT;
     }
 }

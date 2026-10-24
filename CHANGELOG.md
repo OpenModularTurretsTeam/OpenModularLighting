@@ -11,7 +11,8 @@ turns *Unreleased* into the release section; `chiseledPublish` uploads exactly t
 
 ### Added
 
-- Forge 1.12.2 build (branch `1.12.2`): all lights, the disguise, Forge Energy and item pipes; no Jade on 1.12.2
+- Forge 1.12.2 build (branch `1.12`): all lights, the disguise, Forge Energy and item pipes; no Jade on 1.12.2
+- Forge 1.12.2: requires OMLib 4.x; OMLib's wrench configures and dismantles lights
 
 ## [1.0.0-beta.5] - 2026-10-24
 

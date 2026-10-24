@@ -4,7 +4,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraftforge.energy.CapabilityEnergy;
 import net.minecraftforge.energy.IEnergyStorage;
 import net.minecraftforge.items.ItemStackHandler;
-import omtteam.openmodularlighting.core.energy.EnergyStore;
+import omtteam.omlib.core.energy.EnergyStore;
 
 import javax.annotation.Nullable;
 

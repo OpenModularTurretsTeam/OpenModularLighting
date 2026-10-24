@@ -4,9 +4,9 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
+import omtteam.omlib.core.energy.EnergyAccess;
 import omtteam.openmodularlighting.core.cluster.Cluster;
 import omtteam.openmodularlighting.core.cluster.ClusterNode;
-import omtteam.openmodularlighting.core.energy.EnergyAccess;
 import omtteam.openmodularlighting.energy.ClusterEnergy;
 import omtteam.openmodularlighting.energy.ElectricPower;
 

@@ -20,10 +20,16 @@ import org.apache.logging.log4j.Logger;
  * The Forge 1.12.2 entrypoint of Open Modular Lighting, and the mod's shared constants. Registration runs in Forge's
  * registry events ({@link Registration}); the client side is started through {@link CommonProxy}.
  */
-@Mod(modid = OML.MOD_ID, name = OML.MOD_NAME, useMetadata = true, acceptedMinecraftVersions = "[1.12.2]")
+@Mod(modid = OML.MOD_ID, name = OML.MOD_NAME, useMetadata = true, acceptedMinecraftVersions = "[1.12.2]",
+        dependencies = OML.DEPENDENCIES)
 public final class OML {
     public static final String MOD_ID = "openmodularlighting";
     public static final String MOD_NAME = "Open Modular Lighting";
+    /**
+     * OMLib is required. The standalone build replaces the range with {@code [<omlib_version>,<next major>.0.0-alpha)};
+     * dev runs keep {@code [0.0.0,)}, because OMLib's version stays unreplaced there.
+     */
+    public static final String DEPENDENCIES = "required-after:omlib@[0.0.0,)";
     public static final Logger LOGGER = LogManager.getLogger(MOD_ID);
 
     @Mod.Instance(MOD_ID)

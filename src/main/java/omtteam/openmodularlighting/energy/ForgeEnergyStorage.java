@@ -1,7 +1,7 @@
 package omtteam.openmodularlighting.energy;
 
 import net.minecraftforge.energy.IEnergyStorage;
-import omtteam.openmodularlighting.core.energy.EnergyAccess;
+import omtteam.omlib.core.energy.EnergyAccess;
 
 /**
  * An {@link EnergyAccess} as Forge Energy (1 E = 1 FE) for cables and other mods. Forge Energy counts in {@code int},

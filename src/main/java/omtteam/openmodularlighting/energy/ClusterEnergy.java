@@ -1,9 +1,9 @@
 package omtteam.openmodularlighting.energy;
 
+import omtteam.omlib.core.energy.EnergyAccess;
+import omtteam.omlib.core.energy.EnergyStore;
 import omtteam.openmodularlighting.blockentity.PanelLightBlockEntity;
 import omtteam.openmodularlighting.core.cluster.Cluster;
-import omtteam.openmodularlighting.core.energy.EnergyAccess;
-import omtteam.openmodularlighting.core.energy.EnergyStore;
 
 import java.util.ArrayList;
 import java.util.Collections;

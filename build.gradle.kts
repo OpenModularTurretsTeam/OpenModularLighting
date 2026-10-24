@@ -40,7 +40,17 @@ minecraft {
     extraRunJvmArguments.add("-ea:$basePackage")
 }
 
+repositories {
+    // OMLib from its publishToMavenLocal (omtteam:omlib:<minecraft_version>-<omlib_version>)
+    mavenLocal {
+        content { includeGroup("omtteam") }
+    }
+}
+
 dependencies {
+    // OMLib, the shared library of the OpenModularTurretsTeam mods (its SRG jar, deobfuscated by RetroFuturaGradle)
+    implementation(rfg.deobf("omtteam:omlib:$minecraftVersion-${property("omlib_version")}"))
+
     // Unit tests for the core game logic and the config (test only, not shipped)
     testImplementation(platform("org.junit:junit-bom:${property("junit_version")}"))
     testImplementation("org.junit.jupiter:junit-jupiter")
@@ -63,7 +73,30 @@ spotless {
     }
 }
 
+// OML.DEPENDENCIES says omlib@[0.0.0,) in the sources (dev runs, where OMLib's version stays unreplaced); the jar gets
+// [<omlib_version>,<next major>.0.0-alpha), as in OpenModularTurrets and OpenModularPassiveDefense
+val omlibVersion = property("omlib_version") as String
+val omlibRange = Regex("""^(\d+)(\.\d+)*(-(alpha|beta)\.[1-9]\d*)?$""").matchEntire(omlibVersion)
+    ?.let { "[$omlibVersion,${it.groupValues[1].toInt() + 1}.0.0-alpha)" }
+    ?: throw GradleException("omlib_version '$omlibVersion' must look like 4.0.0, 4.0.0-alpha.1 or 4.0.0-beta.2")
+val modClass = "${basePackage.replace('.', '/')}/OML.java"
+
+val replaceOmlibRange = tasks.register<Sync>("replaceOmlibRange") {
+    description = "Copies OML.java with the OMLib version range of omlib_version"
+    from("src/main/java") { include(modClass) }
+    into(layout.buildDirectory.dir("generated/sources/omlibRange"))
+    inputs.property("omlibRange", omlibRange)
+    filter { it.replace("omlib@[0.0.0,)", "omlib@$omlibRange") }
+}
+
 tasks {
+    compileJava {
+        // the copy of OML.java instead of the original
+        val original = source
+        setSource(original.filter { !it.invariantSeparatorsPath.endsWith("/$modClass") })
+        source(replaceOmlibRange)
+    }
+
     processResources {
         val props = mapOf(
             "version" to project.version.toString(),
@@ -92,7 +125,8 @@ tasks {
         inputs.dir(coreDir)
         doLast {
             val ownPackage = Regex.escape(basePackage)
-            val forbidden = Regex("""^\s*import\s+(static\s+)?(net\.minecraft|net\.minecraftforge|com\.mojang|$ownPackage\.(?!core\b))""")
+            // OMLib's core is allowed (energy buffer), the rest of OMLib is game code
+            val forbidden = Regex("""^\s*import\s+(static\s+)?(net\.minecraft|net\.minecraftforge|com\.mojang|($ownPackage|omtteam\.omlib)\.(?!core\b))""")
             val violations = coreDir.walkTopDown().filter { it.extension == "java" }.flatMap { file ->
                 file.readLines().withIndex().filter { forbidden.containsMatchIn(it.value) }
                     .map { "${file.relativeTo(root)}:${it.index + 1}: ${it.value.trim()}" }

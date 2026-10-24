@@ -57,7 +57,7 @@ public final class ModItems {
     private static Item item(String name) {
         Item item = new Item();
         item.setRegistryName(OML.id(name));
-        item.setTranslationKey(OML.MOD_ID + "." + name);
+        item.setUnlocalizedName(OML.MOD_ID + "." + name);
         item.setCreativeTab(ModCreativeTabs.MAIN);
         return item;
     }

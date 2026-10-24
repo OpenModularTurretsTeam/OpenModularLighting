@@ -22,7 +22,7 @@ public class LightproofGlassBlock extends BlockBreakable {
     }
 
     @Override
-    public BlockRenderLayer getRenderLayer() {
+    public BlockRenderLayer getBlockLayer() {
         return BlockRenderLayer.TRANSLUCENT;
     }
 

@@ -3,7 +3,7 @@ package omtteam.openmodularlighting.energy;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraftforge.items.ItemStackHandler;
-import omtteam.openmodularlighting.core.energy.EnergyStore;
+import omtteam.omlib.core.energy.EnergyStore;
 
 import java.util.function.IntSupplier;
 
