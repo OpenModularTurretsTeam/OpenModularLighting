@@ -107,7 +107,7 @@ class BeamCasterTest {
             Set<Pos> lit = castSet(mode.shape(64, 64), Pos.ORIGIN, Facing.EAST, TestWorld.open());
             for (Pos pos : lit) {
                 boolean onAxis = pos.y() == 0 && pos.z() == 0;
-                assertTrue(pos.x() % 2 == (onAxis ? 1 : 0), mode + " lit at " + pos);
+                assertEquals(onAxis ? 1 : 0, pos.x() % 2, mode + " lit at " + pos);
             }
             for (int x : new int[]{1, 3, 5, 7}) {
                 assertTrue(lit.contains(new Pos(x, 0, 0)), mode + " centre line at " + x);

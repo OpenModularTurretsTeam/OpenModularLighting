@@ -7,6 +7,8 @@ import net.minecraftforge.fml.common.network.simpleimpl.IMessageHandler;
 import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
 import omtteam.openmodularlighting.config.OMLConfig;
 
+import javax.annotation.Nullable;
+
 /**
  * S2C: the server's config as JSON, sent on join.
  */
@@ -39,6 +41,8 @@ public final class ConfigSyncPacket implements IMessage {
 
     /** Client side: switching the config in effect is a single volatile write, so it runs on the network thread. */
     public static final class Handler implements IMessageHandler<ConfigSyncPacket, IMessage> {
+        /** No answer (null). */
+        @Nullable
         @Override
         public IMessage onMessage(ConfigSyncPacket message, MessageContext ctx) {
             OMLConfig.applyServerConfig(message.json);

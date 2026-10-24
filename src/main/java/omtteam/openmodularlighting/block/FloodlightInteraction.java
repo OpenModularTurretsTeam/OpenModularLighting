@@ -62,7 +62,8 @@ public final class FloodlightInteraction {
         if (player.isSneaking()) {
             return useSneaking(world, pos, player, light, held);
         }
-        return useItem(block, state, world, pos, player, light, held);
+        useItem(block, state, world, pos, player, light, held);
+        return EnumActionResult.SUCCESS;
     }
 
     /** Light debug tool: fills the energy buffer of an electric light. */
@@ -101,9 +102,9 @@ public final class FloodlightInteraction {
     }
 
     /** Not sneaking: stick or wrench configures, dye sets the colour, wool resets it, anything else opens the GUI. */
-    private static EnumActionResult useItem(FloodlightBlock block, IBlockState state, World world, BlockPos pos,
-                                            EntityPlayer player, FloodlightBlockEntity light, ItemStack held) {
-        if (world.isRemote) return EnumActionResult.SUCCESS;
+    private static void useItem(FloodlightBlock block, IBlockState state, World world, BlockPos pos,
+                                EntityPlayer player, FloodlightBlockEntity light, ItemStack held) {
+        if (world.isRemote) return;
         Optional<EnumDyeColor> dye = DyeUtils.colorFromStack(held);
         if ((CommonTags.isWrench(held) || held.getItem() == Items.STICK) && block.hasConfiguration()) {
             block.configure(world, pos, state, player, light);
@@ -114,7 +115,6 @@ public final class FloodlightInteraction {
         } else {
             block.openMenu(player, light);
         }
-        return EnumActionResult.SUCCESS;
     }
 
     private static boolean isWool(ItemStack stack) {

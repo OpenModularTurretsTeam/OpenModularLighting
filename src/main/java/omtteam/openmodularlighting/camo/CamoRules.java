@@ -21,7 +21,6 @@ public final class CamoRules {
     }
 
     /** A full, opaque block that is drawn from a normal model and has no block entity of its own. */
-    @SuppressWarnings("deprecation") // the state methods are the ones to call
     public static boolean isValidDisguise(IBlockState state) {
         Block block = state.getBlock();
         if (state.getMaterial() == Material.AIR || block.hasTileEntity(state)) return false;

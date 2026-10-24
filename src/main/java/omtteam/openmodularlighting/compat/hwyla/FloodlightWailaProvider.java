@@ -12,7 +12,6 @@ import net.minecraft.util.text.ITextComponent;
 import net.minecraft.world.World;
 import omtteam.openmodularlighting.blockentity.FloodlightBlockEntity;
 
-import javax.annotation.Nonnull;
 import java.util.List;
 
 /**
@@ -25,7 +24,6 @@ public enum FloodlightWailaProvider implements IWailaDataProvider {
     /** Key of the on/off switch in Hwyla's config; its name is the lang key {@code option.<key>}. */
     public static final String CONFIG_KEY = "openmodularlighting.light";
 
-    @Nonnull
     @Override
     public NBTTagCompound getNBTData(EntityPlayerMP player, TileEntity te, NBTTagCompound tag, World world,
                                      BlockPos pos) {
@@ -35,7 +33,6 @@ public enum FloodlightWailaProvider implements IWailaDataProvider {
         return tag;
     }
 
-    @Nonnull
     @Override
     public List<String> getWailaBody(ItemStack itemStack, List<String> tooltip, IWailaDataAccessor accessor,
                                      IWailaConfigHandler config) {
