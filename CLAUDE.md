@@ -12,6 +12,7 @@ A **Forge 1.20.1** build is being added on the branch `forge-test` (requested by
 It is a test run for the same setup in OpenModularTurrets (`../OMT1.20.1+`), so keep the build logic and the `platform/` pattern mod-independent.
 
 `oldmod/` is the **read-only reference** for the port. Never edit it and never build it. It is a source of ideas, values and assets, not a specification: the beam thinning, the persistent light blocks and other details differ on purpose. Do not copy its structure (static singletons, metadata, `ForgeDirection`, CoFH API).
+`oldmod/` is *FloodLights* for Forge 1.7.10 by Keridos; key classes: `tileentity/TileEntityMetaFloodlight` (beam shapes), `tileentity/TileEntityPhantomLight` (source tracking), `tileentity/TileEntityFLElectric` (energy), `handler/ConfigHandler`, `handler/RecipeHandler`.
 
 Core gameplay:
 
@@ -104,7 +105,7 @@ Check exact latest patch versions of Loader, API, Loom and Stonecutter when sett
     └── gametest/                                     # in-world GameTests: separate test mod, never shipped
 ```
 
-- **Mod ID:** `openmodularlighting`. **Base package:** `omtteam.openmodularlighting`.
+- **Mod ID:** `openmodularlighting`. **Base package:** `omtteam.openmodularlighting` (keep it).
 - Use Loom **split environment source sets** (`splitEnvironmentSourceSets()`). Client-only code (renderers, screens, models, client networking handlers) goes in `src/client/java`. Never reference client classes from `main`.
   The NeoForge node keeps the same split: `build.neoforge.gradle.kts` creates a `client` source set that sees `main`, and the jar contains both.
 - `fabric.mod.json`, `META-INF/neoforge.mods.toml` and `META-INF/mods.toml` (Forge) are templated via `processResources` (`mod-common`); each jar only contains its own loader's file (also in the test mod).
@@ -744,13 +745,3 @@ Update this checklist as work progresses.
 - [x] Jade tooltip (replaces WAILA: invert and mode; optional dependency, the user chose Jade only, no WTHIT); GameTests
 - [x] Light debug tool function (wireframe renderer; client only, check with `runClient`)
 - [x] Disguise for the electric, carbon and UV floodlights (taken over from OMT; disguise slot, lamp overlay, kept on the drop; §6.11); GameTests. Rendering not yet checked by hand in `runClient` (both loaders)
-
----
-
-## 10. Further Information
-
-1. **Energy API:** Team Reborn Energy is acceptable (jar-in-jar)
-2. **Mappings:** Mojang official
-3. **Package name:** keep `omtteam.openmodularlighting`
-4. **Reference source:** `oldmod/` (FloodLights for Forge 1.7.10, by Keridos). Key classes: `tileentity/TileEntityMetaFloodlight` (beam shapes), `tileentity/TileEntityPhantomLight` (source tracking), `tileentity/TileEntityFLElectric` (energy), `handler/ConfigHandler`, `handler/RecipeHandler`.
-5. The 1.7.10 CurseForge page is `224728-floodlights`.
