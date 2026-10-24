@@ -103,6 +103,7 @@ export JAVA_HOME=/usr/lib/jvm/java-25-openjdk   # Gradle needs 17+
 - Same plugin, project IDs, token handling and changelog workflow as on the main branch (`CHANGELOG.md`, `./gradlew changelogEntry`, `./gradlew releaseChangelog`).
 - The old 1.7.10 CurseForge page is `224728-floodlights`.
 - `publish_enabled=false` in `gradle.properties` keeps every upload a dry run until the user decides to release the 1.12.2 build. Ask before changing it.
+- `checkOmlibChangelog` runs before every publish task (also dry runs): if `omlib_version` differs from the one at the previous release tag, the version's `CHANGELOG.md` section must contain `OMLib <omlib_version>` ("Requires OMLib <version> or newer" under *Changed*, see the workspace `CLAUDE.md`).
 - Changelog entries of this branch describe 1.12.2 changes; the main branch has its own `CHANGELOG.md`.
 
 ### Core Game Logic Source

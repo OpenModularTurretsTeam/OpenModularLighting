@@ -1,4 +1,5 @@
 import java.time.LocalDate
+import java.util.Properties
 
 // Forge 1.12.2 build (branch 1.12): one project, RetroFuturaGradle, Java 8, MCP mappings.
 // The multi-loader build of the modern versions (Stonecutter, Loom, ModDevGradle) lives on the main branch.
@@ -316,4 +317,41 @@ publishMods {
             environment = CLIENT_AND_SERVER
         }
     }
+}
+
+// ---- OMLib requirement in the release notes ----
+
+/**
+ * Players have to update OMLib too, so a new OMLib requirement belongs into the release notes: fails if omlib_version
+ * differs from the one at the previous release tag and the version's CHANGELOG.md section does not mention
+ * "OMLib <omlib_version>". Every upload depends on it (as checkOmlibChangelog in OMT and OMPD).
+ */
+val releaseVersion = property("mod_version") as String
+
+val checkOmlibChangelog = tasks.register("checkOmlibChangelog") {
+    group = "release"
+    description = "Fails if omlib_version changed since the previous release tag and the version's CHANGELOG.md section does not mention it"
+    val dir = projectDir
+    val notes = releaseNotes
+    doLast {
+        fun git(vararg args: String): String? {
+            val process = ProcessBuilder(listOf("git") + args).directory(dir).start()
+            val out = process.inputStream.bufferedReader().readText()
+            process.errorStream.readAllBytes()
+            return if (process.waitFor() == 0) out.trim() else null
+        }
+        val tag = git("describe", "--tags", "--abbrev=0") ?: return@doLast
+        val before = git("show", "$tag:gradle.properties")
+            ?.let { text -> Properties().apply { load(text.reader()) }.getProperty("omlib_version") }
+        if (before != omlibVersion && !notes.get().contains("OMLib $omlibVersion")) {
+            throw GradleException(
+                "omlib_version changed since $tag (${before ?: "none"} -> $omlibVersion), but the CHANGELOG.md section of " +
+                    "$releaseVersion does not say so; add \"Requires OMLib $omlibVersion or newer\" under ### Changed"
+            )
+        }
+    }
+}
+
+tasks.matching { it.name in setOf("publishMods", "publishCurseforge", "publishModrinth") }.configureEach {
+    dependsOn(checkOmlibChangelog)
 }
