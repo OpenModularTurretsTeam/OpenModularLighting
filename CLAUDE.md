@@ -12,6 +12,7 @@ This branch builds it for **Minecraft 1.12.2 on Forge** (requested by the user o
 
 `oldmod/` is the **read-only reference**. Never edit it and never build it.
 It is a source of ideas, values and assets, not a specification: the beam thinning, the persistent light blocks and other details differ on purpose.
+Key classes: `tileentity/TileEntityMetaFloodlight` (beam shapes), `tileentity/TileEntityPhantomLight` (source tracking), `tileentity/TileEntityFLElectric` (energy), `handler/ConfigHandler`, `handler/RecipeHandler`.
 
 Core gameplay (the same as on the main branch):
 
@@ -67,7 +68,7 @@ Core gameplay (the same as on the main branch):
     └── test/java/omtteam/openmodularlighting/...   # JUnit tests (core/, config)
 ```
 
-- **Mod ID:** `openmodularlighting`. **Base package:** `omtteam.openmodularlighting`.
+- **Mod ID:** `openmodularlighting`. **Base package:** `omtteam.openmodularlighting` (keep it, as on the main branch).
 - 1.12.2 has no split source sets. Client-only code lives in the `client` package and is reached only through the `@SidedProxy` (`CommonProxy` / `client.ClientProxy`). **Main code never references `client` classes.**
 - The mod version is `<mod_version>+1.12.2-forge`; `mcmod.info` is templated from `gradle.properties` (`${version}`, `${mod_id}`, `${mod_name}`, `${minecraft_version}`).
 
@@ -95,6 +96,7 @@ export JAVA_HOME=/usr/lib/jvm/java-25-openjdk   # Gradle needs 17+
 ### Publishing
 
 - Same plugin, project IDs, token handling and changelog workflow as on the main branch (`CHANGELOG.md`, `./gradlew changelogEntry`, `./gradlew releaseChangelog`).
+- The old 1.7.10 CurseForge page is `224728-floodlights`.
 - `publish_enabled=false` in `gradle.properties` keeps every upload a dry run until the user decides to release the 1.12.2 build. Ask before changing it.
 - Changelog entries of this branch describe 1.12.2 changes; the main branch has its own `CHANGELOG.md`.
 
@@ -434,13 +436,3 @@ Update this checklist as work progresses.
 - [x] Dev client starts with no model, texture or recipe errors (checked 2026-10-24)
 - [ ] Checked by hand in a world (`runClient`): placing, beams on/off, modes, GUIs, energy from a mod cable, carbon fuel, UV damage, grow light, disguise rendering, tint, debug tool, dropped items, joining a dedicated server (config sync)
 - [ ] Optional block info overlay (The One Probe or HWYLA instead of Jade): ask the user first
-
----
-
-## 10. Further Information
-
-1. **Energy API:** Team Reborn Energy is acceptable (jar-in-jar)
-2. **Mappings:** Mojang official
-3. **Package name:** keep `omtteam.openmodularlighting`
-4. **Reference source:** `oldmod/` (FloodLights for Forge 1.7.10, by Keridos). Key classes: `tileentity/TileEntityMetaFloodlight` (beam shapes), `tileentity/TileEntityPhantomLight` (source tracking), `tileentity/TileEntityFLElectric` (energy), `handler/ConfigHandler`, `handler/RecipeHandler`.
-5. The 1.7.10 CurseForge page is `224728-floodlights`.
