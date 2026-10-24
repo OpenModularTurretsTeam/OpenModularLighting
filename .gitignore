@@ -3,6 +3,7 @@
 build/
 versions/*/build/
 versions/*/logs/
+logs/
 !versions/*/src/main/generated/
 versions/*/src/main/generated/.cache/
 
