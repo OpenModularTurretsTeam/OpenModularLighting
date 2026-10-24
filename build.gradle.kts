@@ -307,6 +307,9 @@ publishMods {
             javaVersions.add(JavaVersion.toVersion(javaVersion))
             client = true
             server = true
+            // CurseForge slugs (as curse_relations of OMT and OMPD); on Modrinth OMLib has no project yet
+            requires("omlib")
+            optional("hwyla")
         }
     }
     if (modrinthProjectId.isNotEmpty()) {
@@ -321,6 +324,14 @@ publishMods {
 
 // ---- OMLib requirement in the release notes ----
 
+/** Runs git in the mod folder: its output, or null if git failed (e.g. no tag yet). */
+fun git(vararg args: String): String? {
+    val process = ProcessBuilder(listOf("git") + args).directory(projectDir).start()
+    val out = process.inputStream.bufferedReader().readText()
+    process.errorStream.readAllBytes()
+    return if (process.waitFor() == 0) out.trim() else null
+}
+
 /**
  * Players have to update OMLib too, so a new OMLib requirement belongs into the release notes: fails if omlib_version
  * differs from the one at the previous release tag and the version's CHANGELOG.md section does not mention
@@ -331,15 +342,8 @@ val releaseVersion = property("mod_version") as String
 val checkOmlibChangelog = tasks.register("checkOmlibChangelog") {
     group = "release"
     description = "Fails if omlib_version changed since the previous release tag and the version's CHANGELOG.md section does not mention it"
-    val dir = projectDir
     val notes = releaseNotes
     doLast {
-        fun git(vararg args: String): String? {
-            val process = ProcessBuilder(listOf("git") + args).directory(dir).start()
-            val out = process.inputStream.bufferedReader().readText()
-            process.errorStream.readAllBytes()
-            return if (process.waitFor() == 0) out.trim() else null
-        }
         val tag = git("describe", "--tags", "--abbrev=0") ?: return@doLast
         val before = git("show", "$tag:gradle.properties")
             ?.let { text -> Properties().apply { load(text.reader()) }.getProperty("omlib_version") }
@@ -354,4 +358,68 @@ val checkOmlibChangelog = tasks.register("checkOmlibChangelog") {
 
 tasks.matching { it.name in setOf("publishMods", "publishCurseforge", "publishModrinth") }.configureEach {
     dependsOn(checkOmlibChangelog)
+}
+
+// ---- Releases (./release.sh in the OMTTeam 1.12 workspace, or ./gradlew release) ----
+
+/** The release tag: the full version (1.0.0-beta.6+1.12.2-forge), so it cannot clash with the 1.20.1+ release tags. */
+val releaseTag = project.version.toString()
+
+/** The version set in the gradle.properties of the OMLib checkout next to this mod (the workspace), null if there is none. */
+fun siblingOmlibVersion(): String? {
+    val file = projectDir.resolveSibling("OMLib/gradle.properties")
+    if (!file.isFile) return null
+    val properties = Properties().apply { file.reader().use { load(it) } }
+    val base = properties.getProperty("mod_version")
+    val type = properties.getProperty("release_type") ?: "release"
+    return if (type == "release") base else "$base-$type.${properties.getProperty("release_number")}"
+}
+
+tasks.register("checkRelease") {
+    group = "release"
+    description = "Checks that the version, its CHANGELOG.md section, the tokens and the git tree are ready for a release"
+    dependsOn(checkOmlibChangelog)
+    val notes = releaseNotes
+    doLast {
+        notes.get() // fails if CHANGELOG.md has no section for mod_version
+        if (!publishEnabled) {
+            throw GradleException("publish_enabled is false in gradle.properties: the uploads would only be dry runs")
+        }
+        if (curseforgeProjectId.isNotEmpty() && !curseforgeToken.isPresent) {
+            throw GradleException("curseforge_token is not set (~/.gradle/gradle.properties)")
+        }
+        if (modrinthProjectId.isNotEmpty() && !modrinthToken.isPresent) {
+            throw GradleException("modrinth_token is not set (~/.gradle/gradle.properties)")
+        }
+        val omlib = siblingOmlibVersion()
+        if (omlib != null && omlib != omlibVersion) {
+            throw GradleException("omlib_version is $omlibVersion, but ../OMLib is set to $omlib")
+        }
+        if (!git("status", "--porcelain").isNullOrEmpty()) {
+            throw GradleException("The git working tree has uncommitted changes; commit them before releasing")
+        }
+        if (!git("tag", "--list", releaseTag).isNullOrEmpty()) {
+            throw GradleException("Tag $releaseTag already exists")
+        }
+        logger.lifecycle("Releasing $modId $releaseTag to CurseForge and Modrinth")
+    }
+}
+
+tasks.matching { it.name == "publishMods" }.configureEach {
+    mustRunAfter("checkRelease", "build")
+}
+
+// a release fails on its checks before it spends time on the build
+tasks.named("build") {
+    mustRunAfter("checkRelease", checkOmlibChangelog)
+}
+
+tasks.register("release") {
+    group = "release"
+    description = "Builds mod_version, uploads it to CurseForge and Modrinth (publishMods) and tags it as <version>"
+    dependsOn("checkRelease", "build", "publishMods")
+    doLast {
+        git("tag", "-a", releaseTag, "-m", "$modName $releaseTag") ?: throw GradleException("git tag $releaseTag failed")
+        logger.lifecycle("Tagged $releaseTag")
+    }
 }

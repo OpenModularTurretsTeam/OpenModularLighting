@@ -90,10 +90,10 @@ export JAVA_HOME=/usr/lib/jvm/java-25-openjdk   # Gradle needs 17+
 ./gradlew runClient              # dev client (run dir run/)
 ./gradlew runServer              # dev server; RetroFuturaGradle asks for the EULA: never accept it for the user
 ./gradlew spotlessApply
-./gradlew publishMods            # CurseForge / Modrinth; a dry run while publish_enabled=false
+./gradlew release                # checkRelease, build, publishMods, tag <version> (or ./release.sh in the workspace)
 ```
 
-- The released jar is `build/libs/openmodularlighting-<version>.jar`, made by `reobfJar` (SRG names). `-dev.jar` is the deobfuscated one.
+- The released jar is `build/libs/openmodularlighting-<version>.jar` (`<version>` = `<mod_version>+1.12.2-forge`), made by `reobfJar` (SRG names). `-dev.jar` is the deobfuscated one.
 - **Definition of done for any change:** `./gradlew build` succeeds (this includes the unit tests).
 - There are **no GameTests** on 1.12.2 (the framework does not exist). Check in-game behaviour by hand with `runClient` (single player needs no EULA), and say what was and was not checked.
 - The dedicated server checks the EULA before any mod loads, so it cannot be used for a smoke test without accepting the EULA. Do not accept it on the user's behalf.
@@ -102,7 +102,8 @@ export JAVA_HOME=/usr/lib/jvm/java-25-openjdk   # Gradle needs 17+
 
 - Same plugin, project IDs, token handling and changelog workflow as on the main branch (`CHANGELOG.md`, `./gradlew changelogEntry`, `./gradlew releaseChangelog`).
 - The old 1.7.10 CurseForge page is `224728-floodlights`.
-- `publish_enabled=false` in `gradle.properties` keeps every upload a dry run until the user decides to release the 1.12.2 build. Ask before changing it.
+- Releases go with the other OMTTeam mods: `./release.sh` in the workspace (after OMLib, whose release OML builds against from mavenLocal) or `./gradlew release` here: `checkRelease` (CHANGELOG section of `mod_version`, `publish_enabled`, tokens, `omlib_version` = `../OMLib`, clean git tree, tag absent, `checkOmlibChangelog`) → `build` → `publishMods` → annotated tag `<mod_version>+1.12.2-forge` (the 1.20.1+ tags are plain `1.0.0-beta.N`).
+- `publish_enabled=true` since 1.0.0-beta.6 (decided by the user, 2026-10-24); `-Ppublish_enabled=false` makes a single run a dry run. CurseForge relations: OMLib required, Hwyla optional; Modrinth none until OMLib has a project there.
 - `checkOmlibChangelog` runs before every publish task (also dry runs): if `omlib_version` differs from the one at the previous release tag, the version's `CHANGELOG.md` section must contain `OMLib <omlib_version>` ("Requires OMLib <version> or newer" under *Changed*, see the workspace `CLAUDE.md`).
 - Changelog entries of this branch describe 1.12.2 changes; the main branch has its own `CHANGELOG.md`.
 
