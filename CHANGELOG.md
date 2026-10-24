@@ -9,6 +9,10 @@ turns *Unreleased* into the release section; `chiseledPublish` uploads exactly t
 
 ## [Unreleased]
 
+### Changed
+
+- Forge 1.12.2: the jar files are named `openmodularlighting-<version>-mc1.12.2-forge.jar`, as in the other OpenModularTurretsTeam 1.12.2 mods
+
 ## [1.0.0-beta.6] - 2026-10-24
 
 ### Added

@@ -23,6 +23,11 @@ val basePackage = property("maven_group") as String
 version = "${property("mod_version")}+$minecraftVersion-forge"
 group = basePackage
 base.archivesName = property("archives_base_name") as String
+// jars: <mod_id>-<mod_version>-mc<minecraft_version>-forge[-dev|-sources].jar (name, version, Minecraft, loader, as in
+// the other OMTTeam 1.12 mods); the mod version and the release tag stay <mod_version>+<minecraft_version>-forge
+tasks.withType<Jar>().configureEach {
+    archiveVersion = "${project.property("mod_version")}-mc$minecraftVersion-forge"
+}
 
 java {
     withSourcesJar()

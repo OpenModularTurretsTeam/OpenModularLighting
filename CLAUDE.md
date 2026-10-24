@@ -93,7 +93,7 @@ export JAVA_HOME=/usr/lib/jvm/java-25-openjdk   # Gradle needs 17+
 ./gradlew release                # checkRelease, build, publishMods, tag <version> (or ./release.sh in the workspace)
 ```
 
-- The released jar is `build/libs/openmodularlighting-<version>.jar` (`<version>` = `<mod_version>+1.12.2-forge`), made by `reobfJar` (SRG names). `-dev.jar` is the deobfuscated one.
+- The released jar is `build/libs/openmodularlighting-<mod_version>-mc1.12.2-forge.jar` (`<mod_id>-<version>-mc<minecraft_version>-<loader>`, as in the other OMTTeam 1.12 mods), made by `reobfJar` (SRG names). `-dev.jar` is the deobfuscated one, `-sources.jar` the sources. The mod version and the release tag stay `<mod_version>+1.12.2-forge`.
 - **Definition of done for any change:** `./gradlew build` succeeds (this includes the unit tests).
 - There are **no GameTests** on 1.12.2 (the framework does not exist). Check in-game behaviour by hand with `runClient` (single player needs no EULA), and say what was and was not checked.
 - The dedicated server checks the EULA before any mod loads, so it cannot be used for a smoke test without accepting the EULA. Do not accept it on the user's behalf.
