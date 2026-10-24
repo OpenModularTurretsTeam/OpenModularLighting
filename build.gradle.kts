@@ -1,14 +1,15 @@
 import java.time.LocalDate
 
-// Forge 1.12.2 build (branch 1.12.2): one project, RetroFuturaGradle, Java 8, MCP mappings.
+// Forge 1.12.2 build (branch 1.12): one project, RetroFuturaGradle, Java 8, MCP mappings.
 // The multi-loader build of the modern versions (Stonecutter, Loom, ModDevGradle) lives on the main branch.
+// plugin versions: settings.gradle.kts (and the OMTTeam 1.12 workspace, which builds this file too)
 plugins {
     java
-    id("com.gtnewhorizons.retrofuturagradle") version "2.0.6"
+    id("com.gtnewhorizons.retrofuturagradle")
     // Uploads to CurseForge / Modrinth (build-time only)
-    id("me.modmuss50.mod-publish-plugin") version "2.2.1"
+    id("me.modmuss50.mod-publish-plugin")
     // Formatting checks (./gradlew spotlessCheck / spotlessApply)
-    id("com.diffplug.spotless") version "8.10.4"
+    id("com.diffplug.spotless")
 }
 
 val modId = property("mod_id") as String
@@ -48,8 +49,16 @@ repositories {
 }
 
 dependencies {
-    // OMLib, the shared library of the OpenModularTurretsTeam mods (its SRG jar, deobfuscated by RetroFuturaGradle)
-    implementation(rfg.deobf("omtteam:omlib:$minecraftVersion-${property("omlib_version")}"))
+    // OMLib, the shared library of the OpenModularTurretsTeam mods: in the OMTTeam 1.12 workspace the project of the same
+    // build, otherwise its dev jar (MCP names) from mavenLocal; deobfuscating its SRG jar misses the abstract Minecraft
+    // methods OMLib declares (e.g. CamoBakedModel.getParticleTexture)
+    val omlibProject = findProject(":OMLib")
+    if (omlibProject != null) {
+        // RetroFuturaGradle marks all of OMLib's configurations, so name the one to use
+        implementation(project(omlibProject.path, "runtimeElements"))
+    } else {
+        implementation("omtteam:omlib:$minecraftVersion-${property("omlib_version")}:dev")
+    }
 
     // Unit tests for the core game logic and the config (test only, not shipped)
     testImplementation(platform("org.junit:junit-bom:${property("junit_version")}"))
