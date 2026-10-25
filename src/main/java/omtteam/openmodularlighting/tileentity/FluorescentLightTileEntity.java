@@ -1,4 +1,4 @@
-package omtteam.openmodularlighting.blockentity;
+package omtteam.openmodularlighting.tileentity;
 
 import net.minecraft.nbt.NBTTagCompound;
 import omtteam.openmodularlighting.config.OMLConfig;
@@ -11,7 +11,7 @@ import omtteam.openmodularlighting.energy.LightPower;
  * blocks beside them; {@code energyUsageSmallFloodlight} per tick, energy only from the back. No timeout after
  * turning off.
  */
-public class FluorescentLightBlockEntity extends PanelLightBlockEntity {
+public class FluorescentLightTileEntity extends PanelLightTileEntity {
     private static final int[] SHAPE_KEY = {0};
     private static final String ROTATED = "rotated";
 

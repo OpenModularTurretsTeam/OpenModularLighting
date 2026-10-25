@@ -2,8 +2,8 @@ package omtteam.openmodularlighting.energy;
 
 import omtteam.omlib.core.energy.EnergyAccess;
 import omtteam.omlib.core.energy.EnergyStore;
-import omtteam.openmodularlighting.blockentity.PanelLightBlockEntity;
 import omtteam.openmodularlighting.core.cluster.Cluster;
+import omtteam.openmodularlighting.tileentity.PanelLightTileEntity;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -32,19 +32,19 @@ public final class ClusterEnergy {
      *
      * @return false if the light did not need energy or found none (it should wait before looking again)
      */
-    public static boolean pull(PanelLightBlockEntity light) {
-        Cluster<PanelLightBlockEntity> cluster = light.cluster();
+    public static boolean pull(PanelLightTileEntity light) {
+        Cluster<PanelLightTileEntity> cluster = light.cluster();
         ElectricPower own = light.buffer();
         if (cluster == null || cluster.size() < 2) return true;
         long cost = own.cost();
         long stored = own.store().getAmount();
         if (cost == 0 || stored >= cost) return true;
         long wanted = Math.min(own.store().getCapacity(), cost * PULL_TICKS) - stored;
-        List<PanelLightBlockEntity> donors = new ArrayList<>(cluster.members());
+        List<PanelLightTileEntity> donors = new ArrayList<>(cluster.members());
         donors.remove(light);
         donors.sort(Comparator.comparingLong(ClusterEnergy::amount).reversed());
         long gained = 0;
-        for (PanelLightBlockEntity donor : donors) {
+        for (PanelLightTileEntity donor : donors) {
             if (wanted <= 0) break;
             long available = amount(donor);
             if (available <= 0) break; // sorted: the rest is empty too
@@ -56,7 +56,7 @@ public final class ClusterEnergy {
         return gained > 0;
     }
 
-    private static long amount(PanelLightBlockEntity light) {
+    private static long amount(PanelLightTileEntity light) {
         return light.buffer().store().getAmount();
     }
 
@@ -68,9 +68,9 @@ public final class ClusterEnergy {
 
     /** The energy of a whole cluster, as seen from one of its lights. Insert only. */
     public static final class View implements EnergyAccess {
-        private final PanelLightBlockEntity light;
+        private final PanelLightTileEntity light;
 
-        public View(PanelLightBlockEntity light) {
+        public View(PanelLightTileEntity light) {
             this.light = light;
         }
 
@@ -85,10 +85,10 @@ public final class ClusterEnergy {
          * @return the amount inserted
          */
         public long fill(long maxAmount, StoreInserter inserter) {
-            List<PanelLightBlockEntity> members = members();
+            List<PanelLightTileEntity> members = members();
             members.sort(Comparator.comparingLong(ClusterEnergy::amount));
             long inserted = 0;
-            for (PanelLightBlockEntity member : members) {
+            for (PanelLightTileEntity member : members) {
                 if (inserted >= maxAmount) break;
                 inserted += inserter.insert(member.buffer().store(), maxAmount - inserted);
             }
@@ -103,20 +103,20 @@ public final class ClusterEnergy {
         @Override
         public long getAmount() {
             long sum = 0;
-            for (PanelLightBlockEntity member : members()) sum += amount(member);
+            for (PanelLightTileEntity member : members()) sum += amount(member);
             return sum;
         }
 
         @Override
         public long getCapacity() {
             long sum = 0;
-            for (PanelLightBlockEntity member : members()) sum += member.buffer().store().getCapacity();
+            for (PanelLightTileEntity member : members()) sum += member.buffer().store().getCapacity();
             return sum;
         }
 
         /** The cluster's lights, or just this one if it has not joined yet. */
-        private List<PanelLightBlockEntity> members() {
-            Cluster<PanelLightBlockEntity> cluster = light.cluster();
+        private List<PanelLightTileEntity> members() {
+            Cluster<PanelLightTileEntity> cluster = light.cluster();
             return cluster == null ? new ArrayList<>(Collections.singletonList(light)) : new ArrayList<>(cluster.members());
         }
     }

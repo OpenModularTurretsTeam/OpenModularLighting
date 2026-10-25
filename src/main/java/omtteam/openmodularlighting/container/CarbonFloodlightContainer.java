@@ -1,15 +1,15 @@
-package omtteam.openmodularlighting.menu;
+package omtteam.openmodularlighting.container;
 
 import net.minecraft.entity.player.InventoryPlayer;
-import omtteam.openmodularlighting.blockentity.CarbonFloodlightBlockEntity;
+import omtteam.openmodularlighting.tileentity.CarbonFloodlightTileEntity;
 
 /**
  * Carbon floodlight GUI: fuel slot and remaining burn time.
  */
-public class CarbonFloodlightMenu extends FloodlightMenu {
+public class CarbonFloodlightContainer extends FloodlightContainer {
     private static final int DATA_TICKS_REMAINING = 0;
 
-    public CarbonFloodlightMenu(InventoryPlayer playerInventory, CarbonFloodlightBlockEntity light) {
+    public CarbonFloodlightContainer(InventoryPlayer playerInventory, CarbonFloodlightTileEntity light) {
         super(playerInventory, light, light::getTicksRemaining);
     }
 

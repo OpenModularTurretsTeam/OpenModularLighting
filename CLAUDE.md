@@ -25,13 +25,13 @@ Core gameplay (the same as on the main branch):
 
 - `core/` and `config/` (and their unit tests) should stay identical to the main branch except for Java 8 syntax (no records, switch expressions, `instanceof` patterns, `List.of`, `RandomGenerator`; core takes `java.util.Random`). When a change lands on one branch, port it to the other, and tell the user.
   Exception: `core.energy` (`EnergyStore`, `EnergyAccess`) comes from OMLib (`omtteam.omlib.core.energy`, the same classes) and is not part of this mod.
-- Gameplay changes on the main branch usually belong here too; the Minecraft-facing classes have the same names and packages, so the corresponding class is easy to find.
+- Gameplay changes on the main branch usually belong here too; the Minecraft-facing classes have the same names and packages, except that this branch uses the MCP-style names of the OMTTeam 1.12 workspace (decided by the user, 2026-10-25): `blockentity` → `tileentity` (`…BlockEntity` → `…TileEntity`, `ModBlockEntities` → `ModTileEntities`, `CompatBlockEntity` → `CompatTileEntity`), `menu` → `container` (`…Menu` → `…Container`, `OMLGuiHandler` in `handler`), `client.screen` → `client.gui` (`…Screen` → `…Gui`).
 - Never merge this branch into `1.20.1+` or the other way round: the build and most of `main` differ completely. Cherry-pick or port by hand.
 
 ### Allowed dependencies
 
 - **Forge 1.12.2** (14.23.5.x, chosen by RetroFuturaGradle) and **Forge Energy** (`CapabilityEnergy`, part of Forge; replaces Team Reborn Energy / NeoForge FE, 1 E = 1 FE).
-- **OMLib** (required, `required-after:omlib`): the shared library of the OpenModularTurretsTeam mods (`../OMLib` in the OMTTeam 1.12 workspace). Code it already has is used from there, not duplicated: the energy buffer (`core.energy`) and its wrench (`ItemMultiTool`, accepted by `CommonTags.isWrench`).
+- **OMLib** (required, `required-after:omlib`): the shared library of the OpenModularTurretsTeam mods (`../OMLib` in the OMTTeam 1.12 workspace). Code it already has is used from there, not duplicated: the energy buffer (`core.energy`) and its Forge Energy adapter (`power.EnergyAccessStorage`), and its wrench (`ItemMultiTool`, accepted by `CommonTags.isWrench`).
 - Build-time only: **RetroFuturaGradle** (`com.gtnewhorizons.retrofuturagradle`, the maintained 1.12.2 toolchain, from the GTNH maven), the mod publish plugin, Spotless, JUnit 5 (5.13: the last line that runs on Java 8), EqualsVerifier (3.x: the last line that runs on Java 8) and PIT (1.17, likewise).
 - **Hwyla** (optional, compile-only; the mod from CurseMaven, maven.tehnut.info no longer serves it): the block info overlay instead of Jade, which does not exist on 1.12.2 (requested by the user on 2026-10-24). `compat.hwyla.OMLWailaPlugin` (`@WailaPlugin`, only loaded by Hwyla) registers `FloodlightWailaProvider`; the content is `FloodlightTooltip` (invert and mode, as the main branch's Jade tooltip), switchable in Hwyla's config (`option.openmodularlighting.light`).
 - Nothing else without asking the user first. No mixins, no Jabel, no CTM/TOP dependency. A The One Probe integration would be optional and is not done; ask the user first.
@@ -124,9 +124,9 @@ Differences to the main branch, and the 1.12.2 pitfalls the code handles. Keep t
 
 | Area | 1.12.2 |
 | --- | --- |
-| Registration | `Registration` handles `RegistryEvent.Register<Block/Item>` (fired after pre-init); block entity classes via `GameRegistry.registerTileEntity` in `ModBlockEntities`. Blocks and items are created statically in `ModBlocks` / `ModItems` (registry name + translation key there) |
+| Registration | `Registration` handles `RegistryEvent.Register<Block/Item>` (fired after pre-init); block entity classes via `GameRegistry.registerTileEntity` in `ModTileEntities`. Blocks and items are created statically in `ModBlocks` / `ModItems` (registry name + translation key there) |
 | Blockstate | metadata: facing index in bits 0–2, `LIT` in bit 3 (`FloodlightBlock`); light blocks: `LIT` only. The small fluorescent light's `ROTATED` does not fit and lives in its block entity (`getActualState`) |
-| Tile entities | `CompatBlockEntity` (`readData` / `writeData` / `writeClientData`, update packets, `syncToClient`, `remesh`). **It overrides `shouldRefresh`**: Forge otherwise recreates a mod tile entity on every state change, which would wipe a light whenever `LIT` switches |
+| Tile entities | `CompatTileEntity` (`readData` / `writeData` / `writeClientData`, update packets, `syncToClient`, `remesh`). **It overrides `shouldRefresh`**: Forge otherwise recreates a mod tile entity on every state change, which would wipe a light whenever `LIT` switches |
 | Ticking | `ITickable` on the floodlights and the UV light; the phantom light's block entity does not tick (random ticks on the block) |
 | Block flags | `LightBlocks.FLAGS` = 2 \| 16 (clients, no observers, no neighbour notification); `UPDATE_ALL` = 3 for the UV light's removal |
 | Phantom light | `Material.AIR` (so `isAir` is true, as in 1.7.10): falling blocks, trees, pistons and explosions treat it as air. Random ticks still work (1.12 counts them per block). `LevelLightWorld` and `LightBlocks.join` check the light blocks **before** `isAir` |
@@ -135,12 +135,12 @@ Differences to the main branch, and the 1.12.2 pitfalls the code handles. Keep t
 | Drops | `FloodlightBlock` keeps the block until `harvestBlock` (`removedByPlayer`), so `getDrops` can read the block entity; settings go into the item's `BlockEntityTag`, which vanilla loads on placement |
 | Interaction | `FloodlightInteraction` listens to `PlayerInteractEvent.RightClickBlock` (fires before the sneak check, also for wrenches that do not bypass sneaking) |
 | Wrenches, wool, dyes | no tags: `CommonTags.isWrench` (OMLib's `ItemMultiTool`, tool class `wrench` or ore dictionary `toolWrench`/`itemWrench`/`wrench`), ore dictionary `blockWool`, Forge `DyeUtils` |
-| Energy, items | capabilities on the block entities: `ForgeEnergyStorage` wraps the core `EnergyAccess` (insert only), `InsertOnlyItemHandler` wraps the slot's `ItemStackHandler`; batteries are items with extractable FE |
+| Energy, items | capabilities on the tile entities: OMLib's `power.EnergyAccessStorage` wraps the core `EnergyAccess` (insert only, `extractable = false`), `InsertOnlyItemHandler` wraps the slot's `ItemStackHandler`; batteries are items with extractable FE |
 | Fuel | `TileEntityFurnace.getItemBurnTime` and the item's container item |
-| Menus | `OMLGuiHandler` (`IGuiHandler`, ids `ELECTRIC` / `CARBON`); screens come from `ClientProxy.createScreen`. `FloodlightMenu` syncs long values as two 16-bit window properties |
+| Menus | `OMLGuiHandler` (`IGuiHandler`, ids `ELECTRIC` / `CARBON`); screens come from `ClientProxy.createGui`. `FloodlightContainer` syncs long values as two 16-bit window properties |
 | Network | `OMLNetwork.CHANNEL` (`SimpleNetworkWrapper`); `ConfigSyncPacket` on login (`OMLConfig.onPlayerJoin`); back to the local config on `ClientDisconnectionFromServerEvent` |
 | Disguise | `CamoBlock.CAMO` is an unlisted property in the floodlights' `ExtendedBlockState`; `client.camo.CamoModel` wraps their blockstate models in `ModelBakeEvent` and returns quads per render layer (`MinecraftForgeClient.getRenderLayer()`); camo blocks render in every layer but translucent |
-| Damage | `UvLightBlockEntity.UV_LIGHT` (`DamageSource("openmodularlighting.uv_light")`) |
+| Damage | `UvLightTileEntity.UV_LIGHT` (`DamageSource("openmodularlighting.uv_light")`) |
 | Config | Gson 2.2.4 ships with 1.12: `new JsonParser().parse(...)` (lenient, reads the `//` comments), no `keySet()`; config folder from `FMLPreInitializationEvent` |
 | NBT | position lists are flat `int` arrays (`PosArrays`): 1.12 cannot read long arrays back |
 
@@ -168,19 +168,20 @@ omtteam.openmodularlighting
 ├── block/              FloodlightBlock (+ FloodlightInteraction) → Electric…, Carbon…, UvFloodlightBlock, CubeLightBlock,
 │                       PanelLightBlock (PanelShapes) → FluorescentLightBlock, GrowLightBlock; LightBlock → PhantomLightBlock,
 │                       UvLightBlock; LightproofGlassBlock
-├── blockentity/        FloodlightBlockEntity (LightBeam) → BeamFloodlightBE → Electric…, Carbon…; UvFloodlightBE,
-│                       PanelLightBlockEntity → FluorescentLightBE, GrowLightBE, CubeLightBE; LightBlockEntity → PhantomLightBE, UvLightBE
-├── menu/               FloodlightMenu → Electric…, CarbonFloodlightMenu; OMLGuiHandler
+├── tileentity/         FloodlightTileEntity (LightBeam) → BeamFloodlightBE → Electric…, Carbon…; UvFloodlightBE,
+│                       PanelLightTileEntity → FluorescentLightBE, GrowLightBE, CubeLightBE; LightTileEntity → PhantomLightBE, UvLightBE
+├── container/          FloodlightContainer → Electric…, CarbonFloodlightContainer
+├── handler/            OMLGuiHandler
 ├── camo/               CamoBlock (+ CAMO property), CamoRules, CamoData
 ├── inventory/          InsertOnlyItemHandler
-├── registry/           ModBlocks, ModItems, ModBlockEntities, ModCreativeTabs, ModRecipes, Registration
-├── energy/             ElectricPower, FuelPower, LightPower, ClusterEnergy, Batteries, ForgeEnergyStorage
+├── registry/           ModBlocks, ModItems, ModTileEntities, ModCreativeTabs, ModRecipes, Registration
+├── energy/             ElectricPower, FuelPower, LightPower, ClusterEnergy, Batteries
 ├── world/              LightBlocks, LevelLightWorld, Positions, PosArrays, Worlds
 ├── network/            OMLNetwork, ConfigSyncPacket
 ├── config/             as on the main branch (Java 8)
-├── compat/             CompatBlockEntity, CommonTags, BlockEnabledCondition
+├── compat/             CompatTileEntity, CommonTags, BlockEnabledCondition
 └── client/             ClientProxy, ClientEvents (models, colours, tooltip, debug renderer, disconnect),
-                        camo/ (CamoModel, CamoModels), render/ (FloodlightTint, LightBlockDebugRenderer), screen/
+                        camo/ (CamoModel, CamoModels), render/ (FloodlightTint, LightBlockDebugRenderer), gui/
 ```
 
 Dependency direction: `client → main → core`. `core` depends on nothing. `main` never references `client` (only through the proxy).
@@ -275,7 +276,7 @@ Every tick on the server:
 
 1. If a re-cast is flagged (by a light block, a mode/config change or the periodic re-check): re-cast diff-based (§6.3). This happens on or off, because the phantom lights exist in both states, and is not delayed by the timeout (a re-cast does not switch anything).
 2. If `timeout > 0`: decrement and return. The timeout (`timeoutFloodlights`) starts when a light turns off, to stop flickering. The UV floodlight, the cube light and the fluorescent lights have no timeout.
-   The electric and carbon floodlight GUIs explain it with a "?" hover (`FloodlightMenu.hasTimeoutHint`), and toggling invert during it tells the player when the light turns on (`FloodlightBlockEntity.ticksUntilOn`).
+   The electric and carbon floodlight GUIs explain it with a "?" hover (`FloodlightContainer.hasTimeoutHint`), and toggling invert during it tells the player when the light turns on (`FloodlightTileEntity.ticksUntilOn`).
 3. `active = redstonePowered XOR inverted`.
 4. If active **and** it can pay this tick's cost: on the first active tick switch the cached phantom lights on and set the floodlight's own `LIT` blockstate, then pay the cost. Remember `wasActive`.
 5. Otherwise, if `wasActive`: switch the cached phantom lights off, clear `LIT`, start the timeout.
@@ -286,14 +287,14 @@ The timeout still applies: toggling `LIT` is much cheaper than placing blocks, b
 ### 6.5 Power and fuel
 
 - Electric lights have an internal buffer of **50 000 E** (`core.energy.EnergyStore`, from OMLib on this branch; exposed as `EnergyAccess` through Team Reborn Energy on Fabric and FE on NeoForge, 1 E = 1 FE; accepting on all sides; fluorescent and grow lights only on the back face, opposite the facing). Up to the whole buffer can be inserted per tick. **Nothing can be extracted**, so cables cannot drain lights.
-- **Panel lights share energy** (`blockentity.PanelLightBlockEntity`, `energy.ClusterEnergy`; cube lights use the same base but accept energy on every side and cluster only with cube lights on any of their 6 faces): fluorescent and grow lights (any mix) that touch on their sides and face the same way form a `core.cluster.Cluster` (in memory, not saved; joins on the first tick, leaves in `setRemoved`, splits in `refresh()` once per tick). Each light keeps its own buffer. The back-face storage shows the whole cluster: inserting fills the emptiest light first, nothing can be extracted. A light that cannot pay its next tick takes energy from the fullest others (each gives at most half).
+- **Panel lights share energy** (`blockentity.PanelLightTileEntity`, `energy.ClusterEnergy`; cube lights use the same base but accept energy on every side and cluster only with cube lights on any of their 6 faces): fluorescent and grow lights (any mix) that touch on their sides and face the same way form a `core.cluster.Cluster` (in memory, not saved; joins on the first tick, leaves in `setRemoved`, splits in `refresh()` once per tick). Each light keeps its own buffer. The back-face storage shows the whole cluster: inserting fills the emptiest light first, nothing can be extracted. A light that cannot pay its next tick takes energy from the fullest others (each gives at most half).
 - The battery slot accepts any item with extractable energy in the loader's energy API (`energy.Batteries` → `platform.Energy`), and is discharged into the buffer each tick while the buffer has room.
 - Cost per tick: `energyUsage` for straight, ×2 for cones; `energyUsageSmallFloodlight` (fluorescent), `energyUsageCubeLight`, `energyUsageUVFloodlight`, `energyUsageGrowLight`.
 - The carbon floodlight burns one furnace fuel item when `timeRemaining` reaches 0:
   `timeRemaining += carbonTime × burnTime / 1600 × 20` (coal = `carbonTime` seconds of straight light). The mode does not matter when refuelling; instead every tick the light runs uses up 1 (straight) or 2 (both cones, `CarbonFuel.drain`) of it, so cones burn fuel twice as fast. The GUI shows the time left in the current mode (`CarbonFuel.runTicks`). Refuelling happens even while the light is off.
   If the formula gives 0 ticks (tiny burn time, or `carbonTime = 0`), the item is **not** consumed (`FuelTimer.refuel` returns false).
   Fuel is any furnace fuel of the loader (`platform.Fuel`: Fabric's `FuelRegistry`, NeoForge's burn time incl. its data map). The remainder stays in the slot like in a furnace (lava bucket → bucket, `Fuel.remainder`, the loader's stack-aware hook).
-- Inventories (1 slot, a vanilla `SimpleContainer`) are exposed as `inventory.ItemAccess.insertOnly` (`FloodlightBlockEntity#getItemAccess`): Fabric `ItemStorage.SIDED` (`platform/fabric/FabricItemStorages`, slotted for Jade), NeoForge `IItemHandler` (`NeoForgeItemHandler`). Insertion only accepts valid fuel or energy items. Extraction is disabled.
+- Inventories (1 slot, a vanilla `SimpleContainer`) are exposed as `inventory.ItemAccess.insertOnly` (`FloodlightTileEntity#getItemAccess`): Fabric `ItemStorage.SIDED` (`platform/fabric/FabricItemStorages`, slotted for Jade), NeoForge `IItemHandler` (`NeoForgeItemHandler`). Insertion only accepts valid fuel or energy items. Extraction is disabled.
 
 ### 6.6 Interaction
 
@@ -311,11 +312,11 @@ Interaction goes through `compat.InteractiveBlock`, so it is the same on both ve
 
 ### 6.7 Block entity data
 
-Base data (`FloodlightBlockEntity`): `inverted`, `mode`, `color`, `camo` (§6.11), `active`, `wasActive`, `timeout`, `customName`, `owner`. Facing moves to the blockstate (`FACING`, plus `LIT`), not BE data.
+Base data (`FloodlightTileEntity`): `inverted`, `mode`, `color`, `camo` (§6.11), `active`, `wasActive`, `timeout`, `customName`, `owner`. Facing moves to the blockstate (`FACING`, plus `LIT`), not BE data.
 Subclasses add the energy buffer, the 1-slot inventory, `timeRemaining` (carbon), `rotationState` (fluorescent) and `nextGrowTick` (grow light).
 Every floodlight caches the positions of its current shape (the phantom or UV light blocks it placed or joined) as a `long[]` (`BlockPos.asLong`). It is saved with the BE so that turning on and off after a reload does not need a re-cast. A floodlight saved without it (or with a different mode) re-casts on its first tick.
 Phantom and UV light BEs store their sources as two `long` lists, `sources` (all) and `activeSources` (those currently on). `LIT` follows `!activeSources.isEmpty()`, and the block is removed when `sources` is empty.
-The client needs `color` and `camo` (and later `rotationState`) for rendering: send them in the update tag. On the client, a colour or disguise change re-renders the block (`CompatBlockEntity.remesh()`), because the tint and the disguise are read from the block entity (`client.render.FloodlightTint`: the dye's map colour × a brightness factor of the block).
+The client needs `color` and `camo` (and later `rotationState`) for rendering: send them in the update tag. On the client, a colour or disguise change re-renders the block (`CompatTileEntity.remesh()`), because the tint and the disguise are read from the block entity (`client.render.FloodlightTint`: the dye's map colour × a brightness factor of the block).
 
 **Dropped item.** A broken floodlight keeps mode, invert, colour, disguise and energy / burn time on the item (block entity data, `VersionCompat.setBlockEntityData`). Vanilla loads it back when the item is placed, and the tooltip shows "Configured". Also:
 - the data is only added if something differs from a new light, so unconfigured drops still stack;
@@ -373,8 +374,8 @@ Taken over from OpenModularTurrets (`../OMT1.20.1+`, `camo/` and `FabricCamoMode
 
 - **Which lights:** the electric, carbon and UV floodlights (`camo.CamoBlock`). Not the panel lights (thin, no full face to disguise) and not the cube light (no front, it would vanish completely).
 - **Valid disguises** (`CamoRules.isValidDisguise`): full, opaque blocks only (`isSolidRender`), drawn from a normal model, without a block entity. A floodlight hides its neighbours' faces like any solid block, so a see-through disguise would show holes into the world. The disguise is the default state of the item's block. An invalid disguise read from NBT is dropped.
-- **Setting it:** the phantom slot in the floodlight GUI (`FloodlightMenu.CAMO_SLOT`, only on `CamoBlock`s). Clicking it with a block sets the disguise (the block stays in the cursor), with an empty cursor removes it; shift-clicking a block that does not fit the light's slot sets it too. Only the server changes it; anyone who may open the GUI may set it.
-- **Data:** `FloodlightBlockEntity.camo` (`CamoData`), part of the settings: saved, sent in the update tag, kept on the dropped item.
+- **Setting it:** the phantom slot in the floodlight GUI (`FloodlightContainer.CAMO_SLOT`, only on `CamoBlock`s). Clicking it with a block sets the disguise (the block stays in the cursor), with an empty cursor removes it; shift-clicking a block that does not fit the light's slot sets it too. Only the server changes it; anyone who may open the GUI may set it.
+- **Data:** `FloodlightTileEntity.camo` (`CamoData`), part of the settings: saved, sent in the update tag, kept on the dropped item.
 - **Rendering:** the client wraps the models of the `CamoBlock`s (`client.camo.CamoModels`; Fabric `FabricCamoModel` through the Renderer API, NeoForge `NeoForgeCamoModel` through `ModelData`). With a disguise they emit the disguise's model (its own render layer, ambient occlusion and tint) and, of the light's own model, only the **lamp quads**: an extra front-face element in `models/block/floodlight.json` with `tintindex: 1` and the `#lamp` texture (`<light>_lamp[_on].png`, the ring and disc cut out of the front texture with the rest transparent). Without a disguise the overlay lies over the identical pixels of the front face, so the floodlights are in the cutout layer. Cut the lamp textures again if a front texture changes.
 - **Tint:** the lamp keeps the dye colour (`FloodlightTint`). Fabric bakes the disguise's tint into its quads; on NeoForge `FloodlightTint` forwards every tint index other than 1 to the disguise's colour.
 - Jade, the pick-block item and the break particles still show the real floodlight (the disguise is cosmetic, unlike OMT's hidden turrets).
@@ -403,7 +404,7 @@ Design them step by step, together with the user:
 
 ### Code shared with OpenModularTurrets
 
-The camouflage (`camo/`, the camo model) and `CompatBlockEntity` follow OpenModularTurrets (`../OMT1.20.1+`) on the main branch; on 1.12.2 they are rewritten for the 1.12 APIs.
+The camouflage (`camo/`, the camo model) and `CompatTileEntity` follow OpenModularTurrets (`../OMT1.20.1+`) on the main branch; on 1.12.2 they are rewritten for the 1.12 APIs.
 The camo differences to OpenModularTurrets stay limited to the disguise rule (full opaque blocks only), the lamp overlay and the NBT key (`"camo"`).
 When you change one of these, tell the user whether the same change belongs in the other mod or the main branch (do not edit other repositories unasked).
 

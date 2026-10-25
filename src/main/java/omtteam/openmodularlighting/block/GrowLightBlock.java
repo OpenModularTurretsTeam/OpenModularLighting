@@ -7,8 +7,8 @@ import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
-import omtteam.openmodularlighting.blockentity.FloodlightBlockEntity;
-import omtteam.openmodularlighting.blockentity.GrowLightBlockEntity;
+import omtteam.openmodularlighting.tileentity.FloodlightTileEntity;
+import omtteam.openmodularlighting.tileentity.GrowLightTileEntity;
 
 import java.util.Map;
 
@@ -36,8 +36,8 @@ public class GrowLightBlock extends PanelLightBlock {
     }
 
     @Override
-    protected FloodlightBlockEntity createLight() {
-        return new GrowLightBlockEntity();
+    protected FloodlightTileEntity createLight() {
+        return new GrowLightTileEntity();
     }
 
     @Override
@@ -47,9 +47,9 @@ public class GrowLightBlock extends PanelLightBlock {
 
     @Override
     protected void configure(World world, BlockPos pos, IBlockState state, EntityPlayer player,
-                             FloodlightBlockEntity light) {
-        if (light instanceof GrowLightBlockEntity) {
-            GrowLightBlockEntity grow = (GrowLightBlockEntity) light;
+                             FloodlightTileEntity light) {
+        if (light instanceof GrowLightTileEntity) {
+            GrowLightTileEntity grow = (GrowLightTileEntity) light;
             grow.cycleMode();
             sendMode(player, grow.modeKey());
         }

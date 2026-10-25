@@ -1,11 +1,11 @@
-package omtteam.openmodularlighting.blockentity;
+package omtteam.openmodularlighting.tileentity;
 
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.network.play.server.SPacketUpdateTileEntity;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
-import omtteam.openmodularlighting.compat.CompatBlockEntity;
+import omtteam.openmodularlighting.compat.CompatTileEntity;
 import omtteam.openmodularlighting.core.light.LightSources;
 import omtteam.openmodularlighting.core.light.LightSources.SourceStatus;
 import omtteam.openmodularlighting.core.math.Pos;
@@ -24,7 +24,7 @@ import java.util.Set;
  * <p>
  * Nothing is synced to clients: the on/off state is the {@code LIT} blockstate.
  */
-public abstract class LightBlockEntity extends CompatBlockEntity {
+public abstract class LightTileEntity extends CompatTileEntity {
     private static final String SOURCES = "sources";
     private static final String ACTIVE_SOURCES = "active_sources";
 
@@ -40,8 +40,8 @@ public abstract class LightBlockEntity extends CompatBlockEntity {
         if (world == null) return;
         for (Pos source : sources.sources()) {
             TileEntity tile = sourceAt(world, Positions.toBlockPos(source));
-            if (tile instanceof LightSourceBlockEntity) {
-                ((LightSourceBlockEntity) tile).requestRecast();
+            if (tile instanceof LightSourceTileEntity) {
+                ((LightSourceTileEntity) tile).requestRecast();
             }
         }
     }
@@ -57,10 +57,10 @@ public abstract class LightBlockEntity extends CompatBlockEntity {
             BlockPos sourcePos = Positions.toBlockPos(source);
             if (!level.isBlockLoaded(sourcePos)) return SourceStatus.UNKNOWN;
             TileEntity tile = sourceAt(level, sourcePos);
-            if (!(tile instanceof LightSourceBlockEntity) || !((LightSourceBlockEntity) tile).coversLightAt(pos)) {
+            if (!(tile instanceof LightSourceTileEntity) || !((LightSourceTileEntity) tile).coversLightAt(pos)) {
                 return SourceStatus.GONE;
             }
-            return ((LightSourceBlockEntity) tile).isLightOn() ? SourceStatus.ON : SourceStatus.OFF;
+            return ((LightSourceTileEntity) tile).isLightOn() ? SourceStatus.ON : SourceStatus.OFF;
         });
         markDirty();
         return effect;

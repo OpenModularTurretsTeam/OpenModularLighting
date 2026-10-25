@@ -9,7 +9,7 @@ import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.fml.common.network.NetworkRegistry;
 import omtteam.openmodularlighting.block.FloodlightInteraction;
 import omtteam.openmodularlighting.config.OMLConfig;
-import omtteam.openmodularlighting.menu.OMLGuiHandler;
+import omtteam.openmodularlighting.handler.OMLGuiHandler;
 import omtteam.openmodularlighting.network.OMLNetwork;
 import omtteam.openmodularlighting.registry.ModRecipes;
 import omtteam.openmodularlighting.registry.Registration;

@@ -1,6 +1,6 @@
 package omtteam.openmodularlighting;
 
-import omtteam.openmodularlighting.menu.FloodlightMenu;
+import omtteam.openmodularlighting.container.FloodlightContainer;
 
 import javax.annotation.Nullable;
 
@@ -19,7 +19,7 @@ public class CommonProxy {
 
     /** The client screen of a menu (a {@code GuiScreen}); null on a dedicated server. */
     @Nullable
-    public Object createScreen(FloodlightMenu menu) {
+    public Object createGui(FloodlightContainer menu) {
         return null;
     }
 }

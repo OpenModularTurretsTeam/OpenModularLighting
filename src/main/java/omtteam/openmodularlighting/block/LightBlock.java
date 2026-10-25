@@ -15,7 +15,7 @@ import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
-import omtteam.openmodularlighting.blockentity.LightBlockEntity;
+import omtteam.openmodularlighting.tileentity.LightTileEntity;
 import omtteam.openmodularlighting.world.LightBlocks;
 
 import javax.annotation.Nullable;
@@ -85,8 +85,8 @@ public abstract class LightBlock extends Block {
     public void randomTick(World world, BlockPos pos, IBlockState state, Random random) {
         if (world.isRemote) return;
         TileEntity tile = world.getTileEntity(pos);
-        if (tile instanceof LightBlockEntity) {
-            LightBlocks.apply(world, pos, ((LightBlockEntity) tile).refresh());
+        if (tile instanceof LightTileEntity) {
+            LightBlocks.apply(world, pos, ((LightTileEntity) tile).refresh());
         }
     }
 
@@ -102,8 +102,8 @@ public abstract class LightBlock extends Block {
                                 BlockPos neighbourPos) {
         if (world.isRemote) return;
         TileEntity tile = world.getTileEntity(pos);
-        if (tile instanceof LightBlockEntity) {
-            ((LightBlockEntity) tile).requestRecastOfSources();
+        if (tile instanceof LightTileEntity) {
+            ((LightTileEntity) tile).requestRecastOfSources();
         }
     }
 
@@ -112,8 +112,8 @@ public abstract class LightBlock extends Block {
     public void breakBlock(World world, BlockPos pos, IBlockState state) {
         if (!world.isRemote) {
             TileEntity tile = world.getTileEntity(pos);
-            if (tile instanceof LightBlockEntity) {
-                ((LightBlockEntity) tile).requestRecastOfSources();
+            if (tile instanceof LightTileEntity) {
+                ((LightTileEntity) tile).requestRecastOfSources();
             }
         }
         super.breakBlock(world, pos, state);

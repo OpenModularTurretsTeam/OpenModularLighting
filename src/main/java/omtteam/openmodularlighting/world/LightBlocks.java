@@ -6,8 +6,8 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import omtteam.openmodularlighting.block.LightBlock;
-import omtteam.openmodularlighting.blockentity.LightBlockEntity;
 import omtteam.openmodularlighting.core.light.LightSources;
+import omtteam.openmodularlighting.tileentity.LightTileEntity;
 
 import javax.annotation.Nullable;
 
@@ -47,7 +47,7 @@ public final class LightBlocks {
                 return false;
             }
         }
-        LightBlockEntity light = lightAt(world, pos, block);
+        LightTileEntity light = lightAt(world, pos, block);
         if (light == null) return false;
         apply(world, pos, light.sources().add(Positions.toPos(source), on));
         light.markDirty();
@@ -56,7 +56,7 @@ public final class LightBlocks {
 
     /** Removes {@code source} from the light block at {@code pos}; the block is removed if it was the last source. */
     public static void leave(World world, BlockPos pos, LightBlock block, BlockPos source) {
-        LightBlockEntity light = lightAt(world, pos, block);
+        LightTileEntity light = lightAt(world, pos, block);
         if (light == null) return;
         LightSources.Effect effect = light.sources().remove(Positions.toPos(source));
         light.markDirty();
@@ -65,7 +65,7 @@ public final class LightBlocks {
 
     /** Switches {@code source} on or off at the light block at {@code pos}. */
     public static void setActive(World world, BlockPos pos, LightBlock block, BlockPos source, boolean on) {
-        LightBlockEntity light = lightAt(world, pos, block);
+        LightTileEntity light = lightAt(world, pos, block);
         if (light == null) return;
         LightSources.Effect effect = light.sources().setActive(Positions.toPos(source), on);
         light.markDirty();
@@ -98,9 +98,9 @@ public final class LightBlocks {
     }
 
     @Nullable
-    private static LightBlockEntity lightAt(World world, BlockPos pos, LightBlock block) {
+    private static LightTileEntity lightAt(World world, BlockPos pos, LightBlock block) {
         if (!world.isBlockLoaded(pos) || world.getBlockState(pos).getBlock() != block) return null;
         TileEntity tile = world.getTileEntity(pos);
-        return tile instanceof LightBlockEntity ? (LightBlockEntity) tile : null;
+        return tile instanceof LightTileEntity ? (LightTileEntity) tile : null;
     }
 }

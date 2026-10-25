@@ -22,7 +22,7 @@ import javax.annotation.Nullable;
  * {@link #shouldRefresh} says otherwise: here it is only replaced when the block changes, so switching {@code LIT} keeps
  * the data.
  */
-public abstract class CompatBlockEntity extends TileEntity {
+public abstract class CompatTileEntity extends TileEntity {
     /**
      * Loads state from NBT. Also called on the client for synced data.
      */

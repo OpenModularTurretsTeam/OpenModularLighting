@@ -1,4 +1,4 @@
-package omtteam.openmodularlighting.blockentity;
+package omtteam.openmodularlighting.tileentity;
 
 import net.minecraft.util.EnumFacing;
 import omtteam.openmodularlighting.config.OMLConfig;
@@ -12,7 +12,7 @@ import javax.annotation.Nullable;
  * Cube light: a full block that lights the 6 blocks around it. Takes energy from every side and shares it with the
  * cube lights that touch it on any face. Like the UV floodlight it has no timeout after turning off.
  */
-public class CubeLightBlockEntity extends PanelLightBlockEntity {
+public class CubeLightTileEntity extends PanelLightTileEntity {
     private static final int[] SHAPE_KEY = {0};
 
     private final ElectricPower power = new ElectricPower(
@@ -24,8 +24,8 @@ public class CubeLightBlockEntity extends PanelLightBlockEntity {
     }
 
     @Override
-    protected boolean connectsTo(EnumFacing side, PanelLightBlockEntity other) {
-        return other instanceof CubeLightBlockEntity;
+    protected boolean connectsTo(EnumFacing side, PanelLightTileEntity other) {
+        return other instanceof CubeLightTileEntity;
     }
 
     @Override

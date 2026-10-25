@@ -1,11 +1,11 @@
-package omtteam.openmodularlighting.client.screen;
+package omtteam.openmodularlighting.client.gui;
 
 import net.minecraft.client.resources.I18n;
 import omtteam.openmodularlighting.OML;
-import omtteam.openmodularlighting.menu.ElectricFloodlightMenu;
+import omtteam.openmodularlighting.container.ElectricFloodlightContainer;
 
-public class ElectricFloodlightScreen extends FloodlightScreen<ElectricFloodlightMenu> {
-    public ElectricFloodlightScreen(ElectricFloodlightMenu menu) {
+public class ElectricFloodlightGui extends FloodlightGui<ElectricFloodlightContainer> {
+    public ElectricFloodlightGui(ElectricFloodlightContainer menu) {
         super(menu, OML.id("textures/gui/electric_floodlight.png"));
     }
 

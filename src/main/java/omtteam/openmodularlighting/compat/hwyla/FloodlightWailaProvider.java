@@ -10,7 +10,7 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.world.World;
-import omtteam.openmodularlighting.blockentity.FloodlightBlockEntity;
+import omtteam.openmodularlighting.tileentity.FloodlightTileEntity;
 
 import java.util.List;
 
@@ -27,8 +27,8 @@ public enum FloodlightWailaProvider implements IWailaDataProvider {
     @Override
     public NBTTagCompound getNBTData(EntityPlayerMP player, TileEntity te, NBTTagCompound tag, World world,
                                      BlockPos pos) {
-        if (te instanceof FloodlightBlockEntity) {
-            FloodlightTooltip.write(tag, (FloodlightBlockEntity) te);
+        if (te instanceof FloodlightTileEntity) {
+            FloodlightTooltip.write(tag, (FloodlightTileEntity) te);
         }
         return tag;
     }

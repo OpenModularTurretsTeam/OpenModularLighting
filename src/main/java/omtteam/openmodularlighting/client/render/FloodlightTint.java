@@ -8,9 +8,9 @@ import net.minecraft.item.EnumDyeColor;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IBlockAccess;
-import omtteam.openmodularlighting.blockentity.FloodlightBlockEntity;
 import omtteam.openmodularlighting.client.camo.CamoModels;
 import omtteam.openmodularlighting.registry.ModBlocks;
+import omtteam.openmodularlighting.tileentity.FloodlightTileEntity;
 import omtteam.openmodularlighting.world.Worlds;
 
 import javax.annotation.Nullable;
@@ -32,8 +32,8 @@ public final class FloodlightTint {
     public static int color(IBlockState state, @Nullable IBlockAccess world, @Nullable BlockPos pos, int tintIndex) {
         if (world == null || pos == null) return NO_TINT;
         TileEntity tile = Worlds.getTileEntity(world, pos);
-        if (!(tile instanceof FloodlightBlockEntity)) return NO_TINT;
-        FloodlightBlockEntity light = (FloodlightBlockEntity) tile;
+        if (!(tile instanceof FloodlightTileEntity)) return NO_TINT;
+        FloodlightTileEntity light = (FloodlightTileEntity) tile;
         IBlockState camo = light.getCamo();
         if (camo != null && tintIndex != CamoModels.LAMP_TINT_INDEX) {
             return Minecraft.getMinecraft().getBlockColors().colorMultiplier(camo, world, pos, tintIndex);
@@ -51,7 +51,7 @@ public final class FloodlightTint {
 
     /**
      * The map colour of dye {@code color} (an {@link EnumDyeColor} metadata) times {@code brightness}, each channel
-     * capped at 255. {@link FloodlightBlockEntity#NO_COLOR} is no tint.
+     * capped at 255. {@link FloodlightTileEntity#NO_COLOR} is no tint.
      */
     static int tint(int color, float brightness) {
         if (color < 0 || color > 15) return NO_TINT;

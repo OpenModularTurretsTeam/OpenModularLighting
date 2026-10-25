@@ -1,4 +1,4 @@
-package omtteam.openmodularlighting.blockentity;
+package omtteam.openmodularlighting.tileentity;
 
 import net.minecraft.util.math.BlockPos;
 
@@ -6,7 +6,7 @@ import net.minecraft.util.math.BlockPos;
  * A block entity that lights light blocks (floodlights, fluorescent and grow lights, UV floodlight). Light blocks use
  * it to check their sources and to ask for a re-cast.
  */
-public interface LightSourceBlockEntity {
+public interface LightSourceTileEntity {
     /** Whether the light is currently on. */
     boolean isLightOn();
 

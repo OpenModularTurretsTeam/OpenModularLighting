@@ -1,4 +1,4 @@
-package omtteam.openmodularlighting.blockentity;
+package omtteam.openmodularlighting.tileentity;
 
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
@@ -21,13 +21,13 @@ import java.util.Objects;
  * directly next to it that {@link #connectsTo connect} (a {@link Cluster}, see {@link ClusterEnergy}). Panel lights
  * take energy only from the back face and connect to panel lights beside them that face the same way.
  */
-public abstract class PanelLightBlockEntity extends FloodlightBlockEntity implements ClusterNode<PanelLightBlockEntity> {
+public abstract class PanelLightTileEntity extends FloodlightTileEntity implements ClusterNode<PanelLightTileEntity> {
     /** Ticks to wait before looking for energy in the cluster again after finding none. */
     private static final int PULL_COOLDOWN = 10;
 
     /** Not saved: built again when the light first ticks after loading. */
     @Nullable
-    private Cluster<PanelLightBlockEntity> cluster;
+    private Cluster<PanelLightTileEntity> cluster;
     private final ClusterEnergy.View clusterEnergy = new ClusterEnergy.View(this);
     private int pullCooldown;
 
@@ -73,26 +73,26 @@ public abstract class PanelLightBlockEntity extends FloodlightBlockEntity implem
 
     @Nullable
     @Override
-    public Cluster<PanelLightBlockEntity> cluster() {
+    public Cluster<PanelLightTileEntity> cluster() {
         return cluster;
     }
 
     @Override
-    public void setCluster(@Nullable Cluster<PanelLightBlockEntity> cluster) {
+    public void setCluster(@Nullable Cluster<PanelLightTileEntity> cluster) {
         this.cluster = cluster;
     }
 
     @Override
-    public Collection<PanelLightBlockEntity> neighbours() {
-        List<PanelLightBlockEntity> result = new ArrayList<>(6);
+    public Collection<PanelLightTileEntity> neighbours() {
+        List<PanelLightTileEntity> result = new ArrayList<>(6);
         if (world == null) return result;
         for (EnumFacing side : EnumFacing.values()) {
             BlockPos other = pos.offset(side);
             if (!world.isBlockLoaded(other)) continue;
             TileEntity tile = world.getTileEntity(other);
-            if (tile instanceof PanelLightBlockEntity && !tile.isInvalid()
-                    && connectsTo(side, (PanelLightBlockEntity) tile)) {
-                result.add((PanelLightBlockEntity) tile);
+            if (tile instanceof PanelLightTileEntity && !tile.isInvalid()
+                    && connectsTo(side, (PanelLightTileEntity) tile)) {
+                result.add((PanelLightTileEntity) tile);
             }
         }
         return result;
@@ -102,8 +102,8 @@ public abstract class PanelLightBlockEntity extends FloodlightBlockEntity implem
      * Whether the light on {@code side} is part of the same cluster. Must be symmetric. Panel lights (fluorescent and
      * grow lights alike) connect on the 4 sides to panel lights that face the same way.
      */
-    protected boolean connectsTo(EnumFacing side, PanelLightBlockEntity other) {
-        return side.getAxis() != facing().getAxis() && !(other instanceof CubeLightBlockEntity)
+    protected boolean connectsTo(EnumFacing side, PanelLightTileEntity other) {
+        return side.getAxis() != facing().getAxis() && !(other instanceof CubeLightTileEntity)
                 && other.facing() == facing();
     }
 

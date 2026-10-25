@@ -1,4 +1,4 @@
-package omtteam.openmodularlighting.blockentity;
+package omtteam.openmodularlighting.tileentity;
 
 import omtteam.openmodularlighting.energy.FuelPower;
 import omtteam.openmodularlighting.energy.LightPower;
@@ -6,7 +6,7 @@ import omtteam.openmodularlighting.energy.LightPower;
 /**
  * Carbon (non-electric) floodlight (1.7.10 {@code TileEntityCarbonFloodlight}): burns furnace fuel from its slot.
  */
-public class CarbonFloodlightBlockEntity extends BeamFloodlightBlockEntity {
+public class CarbonFloodlightTileEntity extends BeamFloodlightTileEntity {
     private final FuelPower power = new FuelPower(this::getMode);
 
     @Override

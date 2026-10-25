@@ -1,19 +1,19 @@
-package omtteam.openmodularlighting.client.screen;
+package omtteam.openmodularlighting.client.gui;
 
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.inventory.Slot;
 import net.minecraft.util.ResourceLocation;
-import omtteam.openmodularlighting.blockentity.FloodlightBlockEntity;
 import omtteam.openmodularlighting.config.OMLConfig;
-import omtteam.openmodularlighting.menu.FloodlightMenu;
+import omtteam.openmodularlighting.container.FloodlightContainer;
+import omtteam.openmodularlighting.tileentity.FloodlightTileEntity;
 
 /**
  * Floodlight GUI as in 1.7.10: the 176 × 146 texture with one status line and no title labels. Lights that can be
- * disguised also show the disguise slot ({@link FloodlightMenu#hasCamoSlot()}) below the status line on the right.
+ * disguised also show the disguise slot ({@link FloodlightContainer#hasCamoSlot()}) below the status line on the right.
  */
-public abstract class FloodlightScreen<M extends FloodlightMenu> extends GuiContainer {
+public abstract class FloodlightGui<M extends FloodlightContainer> extends GuiContainer {
     /** The light's slot on the texture (its background is copied for the disguise slot). */
     private static final int SLOT_U = 25;
     private static final int SLOT_V = 21;
@@ -30,7 +30,7 @@ public abstract class FloodlightScreen<M extends FloodlightMenu> extends GuiCont
     protected final M menu;
     private final ResourceLocation texture;
 
-    protected FloodlightScreen(M menu, ResourceLocation texture) {
+    protected FloodlightGui(M menu, ResourceLocation texture) {
         super(menu);
         this.menu = menu;
         this.texture = texture;
@@ -47,13 +47,13 @@ public abstract class FloodlightScreen<M extends FloodlightMenu> extends GuiCont
         super.drawScreen(mouseX, mouseY, partialTicks);
         renderHoveredToolTip(mouseX, mouseY);
         Slot hovered = getSlotUnderMouse();
-        if (menu.hasCamoSlot() && hovered != null && hovered.slotNumber == FloodlightMenu.CAMO_SLOT
+        if (menu.hasCamoSlot() && hovered != null && hovered.slotNumber == FloodlightContainer.CAMO_SLOT
                 && !hovered.getHasStack()) {
             drawHoveringText(fontRenderer.listFormattedStringToWidth(
                     I18n.format("tooltip.openmodularlighting.camo_slot"), HINT_WIDTH), mouseX, mouseY);
         }
         if (isOverTimeoutHint(mouseX, mouseY)) {
-            String seconds = FloodlightBlockEntity.seconds(OMLConfig.get().general.timeoutFloodlights);
+            String seconds = FloodlightTileEntity.seconds(OMLConfig.get().general.timeoutFloodlights);
             drawHoveringText(fontRenderer.listFormattedStringToWidth(
                     I18n.format("tooltip.openmodularlighting.timeout_hint", seconds), HINT_WIDTH), mouseX, mouseY);
         }
@@ -72,7 +72,7 @@ public abstract class FloodlightScreen<M extends FloodlightMenu> extends GuiCont
         mc.getTextureManager().bindTexture(texture);
         drawTexturedModalRect(guiLeft, guiTop, 0, 0, xSize, ySize);
         if (menu.hasCamoSlot()) {
-            drawTexturedModalRect(guiLeft + FloodlightMenu.CAMO_X - 1, guiTop + FloodlightMenu.CAMO_Y - 1,
+            drawTexturedModalRect(guiLeft + FloodlightContainer.CAMO_X - 1, guiTop + FloodlightContainer.CAMO_Y - 1,
                     SLOT_U, SLOT_V, SLOT_SIZE, SLOT_SIZE);
         }
     }
@@ -82,8 +82,8 @@ public abstract class FloodlightScreen<M extends FloodlightMenu> extends GuiCont
         fontRenderer.drawString(statusText(), 50, 26, STATUS_COLOR);
         if (menu.hasCamoSlot()) {
             String label = I18n.format("gui.openmodularlighting.disguise");
-            fontRenderer.drawString(label, FloodlightMenu.CAMO_X - 5 - fontRenderer.getStringWidth(label),
-                    FloodlightMenu.CAMO_Y + 4, LABEL_COLOR);
+            fontRenderer.drawString(label, FloodlightContainer.CAMO_X - 5 - fontRenderer.getStringWidth(label),
+                    FloodlightContainer.CAMO_Y + 4, LABEL_COLOR);
         }
         if (menu.hasTimeoutHint()) {
             // the foreground layer gets screen coordinates for the mouse

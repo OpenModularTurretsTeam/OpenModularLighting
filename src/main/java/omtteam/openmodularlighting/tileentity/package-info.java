@@ -4,7 +4,7 @@
  */
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-package omtteam.openmodularlighting.menu;
+package omtteam.openmodularlighting.tileentity;
 
 import mcp.MethodsReturnNonnullByDefault;
 

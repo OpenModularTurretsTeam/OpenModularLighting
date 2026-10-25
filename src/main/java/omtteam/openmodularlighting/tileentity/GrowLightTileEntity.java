@@ -1,4 +1,4 @@
-package omtteam.openmodularlighting.blockentity;
+package omtteam.openmodularlighting.tileentity;
 
 import net.minecraft.block.IGrowable;
 import net.minecraft.block.state.IBlockState;
@@ -19,7 +19,7 @@ import omtteam.openmodularlighting.energy.LightPower;
  * two blocks in front random growth ticks while it runs; {@code energyUsageGrowLight} per tick, energy only from the
  * back.
  */
-public class GrowLightBlockEntity extends PanelLightBlockEntity {
+public class GrowLightTileEntity extends PanelLightTileEntity {
     private static final String MODE = "mode";
 
     private final ElectricPower power = new ElectricPower(

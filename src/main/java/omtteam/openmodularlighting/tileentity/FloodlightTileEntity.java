@@ -1,4 +1,4 @@
-package omtteam.openmodularlighting.blockentity;
+package omtteam.openmodularlighting.tileentity;
 
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.item.ItemStack;
@@ -13,18 +13,18 @@ import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.ItemStackHandler;
 import omtteam.omlib.core.energy.EnergyAccess;
+import omtteam.omlib.power.EnergyAccessStorage;
 import omtteam.openmodularlighting.block.FloodlightBlock;
 import omtteam.openmodularlighting.block.LightBlock;
 import omtteam.openmodularlighting.camo.CamoBlock;
 import omtteam.openmodularlighting.camo.CamoData;
-import omtteam.openmodularlighting.compat.CompatBlockEntity;
+import omtteam.openmodularlighting.compat.CompatTileEntity;
 import omtteam.openmodularlighting.config.OMLConfig;
 import omtteam.openmodularlighting.core.beam.BeamShape;
 import omtteam.openmodularlighting.core.light.LightType;
 import omtteam.openmodularlighting.core.state.LightController;
 import omtteam.openmodularlighting.core.state.RecheckTimer;
 import omtteam.openmodularlighting.energy.ElectricPower;
-import omtteam.openmodularlighting.energy.ForgeEnergyStorage;
 import omtteam.openmodularlighting.energy.LightPower;
 import omtteam.openmodularlighting.inventory.InsertOnlyItemHandler;
 import omtteam.openmodularlighting.registry.ModBlocks;
@@ -39,7 +39,7 @@ import java.util.Locale;
  * {@link LightPower}, and the cached beam of light blocks (CLAUDE.md §6.3, §6.4). Subclasses define the beam shape and
  * may add a mode.
  */
-public abstract class FloodlightBlockEntity extends CompatBlockEntity implements LightSourceBlockEntity, ITickable {
+public abstract class FloodlightTileEntity extends CompatTileEntity implements LightSourceTileEntity, ITickable {
     /** 1.7.10 colour value for "not dyed". Other values are {@code EnumDyeColor} metadata. */
     public static final int NO_COLOR = 16;
 
@@ -69,7 +69,7 @@ public abstract class FloodlightBlockEntity extends CompatBlockEntity implements
     private final IItemHandler itemAccess = new InsertOnlyItemHandler(inventory);
     /** Forge Energy view of the last energy access handed out (the access objects do not change). */
     @Nullable
-    private ForgeEnergyStorage energyAdapter;
+    private EnergyAccessStorage energyAdapter;
 
     /** Light block positions of the current beam, in casting order. */
     private final LightBeam beam = new LightBeam(this);
@@ -268,14 +268,14 @@ public abstract class FloodlightBlockEntity extends CompatBlockEntity implements
             EnergyAccess access = getEnergyAccess(side);
             if (access == null) return null;
             if (energyAdapter == null || energyAdapter.access() != access) {
-                energyAdapter = new ForgeEnergyStorage(access);
+                energyAdapter = new EnergyAccessStorage(access, false); // lights never give energy away
             }
             return CapabilityEnergy.ENERGY.cast(energyAdapter);
         }
         return super.getCapability(capability, side);
     }
 
-    // ---- LightSourceBlockEntity ----
+    // ---- LightSourceTileEntity ----
 
     @Override
     public boolean isLightOn() {

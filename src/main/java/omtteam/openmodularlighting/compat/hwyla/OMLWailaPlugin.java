@@ -4,7 +4,7 @@ import mcp.mobius.waila.api.IWailaPlugin;
 import mcp.mobius.waila.api.IWailaRegistrar;
 import mcp.mobius.waila.api.WailaPlugin;
 import omtteam.openmodularlighting.OML;
-import omtteam.openmodularlighting.blockentity.FloodlightBlockEntity;
+import omtteam.openmodularlighting.tileentity.FloodlightTileEntity;
 
 /**
  * Hwyla plugin (the 1.12.2 counterpart of the main branch's {@code OMLJadePlugin}), found by Hwyla through
@@ -15,7 +15,7 @@ public class OMLWailaPlugin implements IWailaPlugin {
     @Override
     public void register(IWailaRegistrar registrar) {
         registrar.addConfig(OML.MOD_NAME, FloodlightWailaProvider.CONFIG_KEY, true);
-        registrar.registerNBTProvider(FloodlightWailaProvider.INSTANCE, FloodlightBlockEntity.class);
-        registrar.registerBodyProvider(FloodlightWailaProvider.INSTANCE, FloodlightBlockEntity.class);
+        registrar.registerNBTProvider(FloodlightWailaProvider.INSTANCE, FloodlightTileEntity.class);
+        registrar.registerBodyProvider(FloodlightWailaProvider.INSTANCE, FloodlightTileEntity.class);
     }
 }

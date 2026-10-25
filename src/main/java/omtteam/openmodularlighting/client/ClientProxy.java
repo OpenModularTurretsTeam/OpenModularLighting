@@ -2,11 +2,11 @@ package omtteam.openmodularlighting.client;
 
 import net.minecraftforge.common.MinecraftForge;
 import omtteam.openmodularlighting.CommonProxy;
-import omtteam.openmodularlighting.client.screen.CarbonFloodlightScreen;
-import omtteam.openmodularlighting.client.screen.ElectricFloodlightScreen;
-import omtteam.openmodularlighting.menu.CarbonFloodlightMenu;
-import omtteam.openmodularlighting.menu.ElectricFloodlightMenu;
-import omtteam.openmodularlighting.menu.FloodlightMenu;
+import omtteam.openmodularlighting.client.gui.CarbonFloodlightGui;
+import omtteam.openmodularlighting.client.gui.ElectricFloodlightGui;
+import omtteam.openmodularlighting.container.CarbonFloodlightContainer;
+import omtteam.openmodularlighting.container.ElectricFloodlightContainer;
+import omtteam.openmodularlighting.container.FloodlightContainer;
 
 import javax.annotation.Nullable;
 
@@ -22,9 +22,9 @@ public class ClientProxy extends CommonProxy {
 
     @Nullable
     @Override
-    public Object createScreen(FloodlightMenu menu) {
-        if (menu instanceof ElectricFloodlightMenu) return new ElectricFloodlightScreen((ElectricFloodlightMenu) menu);
-        if (menu instanceof CarbonFloodlightMenu) return new CarbonFloodlightScreen((CarbonFloodlightMenu) menu);
+    public Object createGui(FloodlightContainer menu) {
+        if (menu instanceof ElectricFloodlightContainer) return new ElectricFloodlightGui((ElectricFloodlightContainer) menu);
+        if (menu instanceof CarbonFloodlightContainer) return new CarbonFloodlightGui((CarbonFloodlightContainer) menu);
         return null;
     }
 }

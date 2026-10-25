@@ -1,4 +1,4 @@
-package omtteam.openmodularlighting.blockentity;
+package omtteam.openmodularlighting.tileentity;
 
 import omtteam.openmodularlighting.block.LightBlock;
 import omtteam.openmodularlighting.config.OMLConfig;
@@ -12,7 +12,7 @@ import omtteam.openmodularlighting.registry.ModBlocks;
  * UV floodlight (1.7.10 {@code TileEntityUVLight}): a straight beam of UV light blocks that damage living entities;
  * {@code energyUsageUVFloodlight} per tick. Unlike the other lights it has no timeout after turning off (1.7.10).
  */
-public class UvFloodlightBlockEntity extends FloodlightBlockEntity {
+public class UvFloodlightTileEntity extends FloodlightTileEntity {
     private final ElectricPower power = new ElectricPower(
             () -> OMLConfig.get().general.energyUsageUVFloodlight, this::markDirty);
 

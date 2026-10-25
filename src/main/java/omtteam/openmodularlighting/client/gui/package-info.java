@@ -4,7 +4,7 @@
  */
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-package omtteam.openmodularlighting.blockentity;
+package omtteam.openmodularlighting.client.gui;
 
 import mcp.MethodsReturnNonnullByDefault;
 

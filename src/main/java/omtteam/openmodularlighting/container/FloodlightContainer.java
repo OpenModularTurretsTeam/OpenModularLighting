@@ -1,4 +1,4 @@
-package omtteam.openmodularlighting.menu;
+package omtteam.openmodularlighting.container;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
@@ -15,9 +15,9 @@ import net.minecraft.util.text.TextComponentTranslation;
 import net.minecraftforge.items.SlotItemHandler;
 import omtteam.openmodularlighting.block.CarbonFloodlightBlock;
 import omtteam.openmodularlighting.block.ElectricFloodlightBlock;
-import omtteam.openmodularlighting.blockentity.FloodlightBlockEntity;
 import omtteam.openmodularlighting.camo.CamoBlock;
 import omtteam.openmodularlighting.camo.CamoRules;
+import omtteam.openmodularlighting.tileentity.FloodlightTileEntity;
 
 import java.util.function.LongSupplier;
 
@@ -30,7 +30,7 @@ import java.util.function.LongSupplier;
  * the cursor), clicking it with an empty cursor removes the disguise, and shift-clicking a block that does not fit the
  * light's slot sets it as well. Only the server changes the disguise; the slot shows it through the normal slot sync.
  */
-public abstract class FloodlightMenu extends Container {
+public abstract class FloodlightContainer extends Container {
     private static final double MAX_DISTANCE_SQR = 64.0;
     /** Index of the light's slot, after the 36 player slots. */
     private static final int LIGHT_SLOT = 36;
@@ -43,7 +43,7 @@ public abstract class FloodlightMenu extends Container {
     private static final int HALF_MASK = 0xFFFF;
 
     private final BlockPos pos;
-    private final FloodlightBlockEntity light;
+    private final FloodlightTileEntity light;
     private final boolean camoSlot;
     private final boolean timeoutHint;
     /** What the disguise slot shows (filled by the server, synced to the client like any slot). */
@@ -57,7 +57,7 @@ public abstract class FloodlightMenu extends Container {
      * @param light  the light's block entity (on the client the client's copy, kept in sync by the slots)
      * @param values the values shown in the status line, see {@link #value}
      */
-    protected FloodlightMenu(InventoryPlayer playerInventory, FloodlightBlockEntity light, LongSupplier... values) {
+    protected FloodlightContainer(InventoryPlayer playerInventory, FloodlightTileEntity light, LongSupplier... values) {
         this.pos = light.getPos();
         this.light = light;
         this.values = values;

@@ -7,8 +7,8 @@ import net.minecraft.util.BlockRenderLayer;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
-import omtteam.openmodularlighting.blockentity.CubeLightBlockEntity;
-import omtteam.openmodularlighting.blockentity.FloodlightBlockEntity;
+import omtteam.openmodularlighting.tileentity.CubeLightTileEntity;
+import omtteam.openmodularlighting.tileentity.FloodlightTileEntity;
 
 /**
  * Cube light: a full block that lights all 6 blocks around it. It looks the same from every side, so {@link #FACING}
@@ -33,7 +33,7 @@ public class CubeLightBlock extends FloodlightBlock {
     }
 
     @Override
-    protected FloodlightBlockEntity createLight() {
-        return new CubeLightBlockEntity();
+    protected FloodlightTileEntity createLight() {
+        return new CubeLightTileEntity();
     }
 }

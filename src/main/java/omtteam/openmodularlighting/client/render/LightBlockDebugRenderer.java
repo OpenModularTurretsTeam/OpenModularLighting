@@ -12,9 +12,9 @@ import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.chunk.Chunk;
 import omtteam.openmodularlighting.block.LightBlock;
-import omtteam.openmodularlighting.blockentity.LightBlockEntity;
-import omtteam.openmodularlighting.blockentity.UvLightBlockEntity;
 import omtteam.openmodularlighting.registry.ModItems;
+import omtteam.openmodularlighting.tileentity.LightTileEntity;
+import omtteam.openmodularlighting.tileentity.UvLightTileEntity;
 
 /**
  * The light debug tool (1.7.10 {@code TileEntityPhantomLightRenderer}): while it is held, every light block within
@@ -76,18 +76,18 @@ public final class LightBlockDebugRenderer {
     /** The light blocks of one loaded chunk within {@link #RANGE}. */
     private static void drawChunk(Chunk chunk, double x, double y, double z) {
         for (TileEntity tile : chunk.getTileEntityMap().values()) {
-            if (tile instanceof LightBlockEntity
+            if (tile instanceof LightTileEntity
                     && tile.getPos().distanceSqToCenter(x, y, z) <= (double) RANGE * RANGE) {
-                drawBox((LightBlockEntity) tile, x, y, z);
+                drawBox((LightTileEntity) tile, x, y, z);
             }
         }
     }
 
-    private static void drawBox(LightBlockEntity light, double x, double y, double z) {
+    private static void drawBox(LightTileEntity light, double x, double y, double z) {
         BlockPos pos = light.getPos();
         IBlockState state = light.getWorld().getBlockState(pos);
         boolean lit = state.getBlock() instanceof LightBlock && state.getValue(LightBlock.LIT);
-        boolean uv = light instanceof UvLightBlockEntity;
+        boolean uv = light instanceof UvLightTileEntity;
         float brightness = lit ? 1F : UNLIT_BRIGHTNESS;
         AxisAlignedBB box = new AxisAlignedBB(pos).grow(-INSET).offset(-x, -y, -z);
         RenderGlobal.drawSelectionBoundingBox(box, brightness, uv ? 0F : brightness, uv ? brightness : 0F, 1F);

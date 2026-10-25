@@ -27,9 +27,9 @@ import net.minecraftforge.common.property.ExtendedBlockState;
 import net.minecraftforge.common.property.IExtendedBlockState;
 import net.minecraftforge.common.property.IUnlistedProperty;
 import omtteam.openmodularlighting.OML;
-import omtteam.openmodularlighting.blockentity.FloodlightBlockEntity;
 import omtteam.openmodularlighting.camo.CamoBlock;
-import omtteam.openmodularlighting.menu.OMLGuiHandler;
+import omtteam.openmodularlighting.handler.OMLGuiHandler;
+import omtteam.openmodularlighting.tileentity.FloodlightTileEntity;
 import omtteam.openmodularlighting.world.Worlds;
 
 import javax.annotation.Nullable;
@@ -60,12 +60,12 @@ public abstract class FloodlightBlock extends Block {
     }
 
     /** Creates this light's block entity. */
-    protected abstract FloodlightBlockEntity createLight();
+    protected abstract FloodlightTileEntity createLight();
 
     /**
      * Opens the GUI of this light: the shared electric GUI (energy, battery slot) for electric lights. Server side.
      */
-    protected void openMenu(EntityPlayer player, FloodlightBlockEntity light) {
+    protected void openGui(EntityPlayer player, FloodlightTileEntity light) {
         if (light.electricPower() != null) {
             BlockPos pos = light.getPos();
             player.openGui(OML.instance, OMLGuiHandler.ELECTRIC, light.getWorld(), pos.getX(), pos.getY(), pos.getZ());
@@ -77,7 +77,7 @@ public abstract class FloodlightBlock extends Block {
      * if {@link #hasConfiguration()}.
      */
     protected void configure(World world, BlockPos pos, IBlockState state, EntityPlayer player,
-                             FloodlightBlockEntity light) {
+                             FloodlightTileEntity light) {
     }
 
     /** Whether {@link #configure} does something (otherwise a stick or wrench opens the GUI). */
@@ -106,7 +106,7 @@ public abstract class FloodlightBlock extends Block {
     public IBlockState getExtendedState(IBlockState state, IBlockAccess world, BlockPos pos) {
         if (!(state instanceof IExtendedBlockState)) return state;
         TileEntity tile = Worlds.getTileEntity(world, pos);
-        IBlockState camo = tile instanceof FloodlightBlockEntity ? ((FloodlightBlockEntity) tile).getCamo() : null;
+        IBlockState camo = tile instanceof FloodlightTileEntity ? ((FloodlightTileEntity) tile).getCamo() : null;
         return ((IExtendedBlockState) state).withProperty(CamoBlock.CAMO, camo);
     }
 
@@ -158,8 +158,8 @@ public abstract class FloodlightBlock extends Block {
     @Override
     public void breakBlock(World world, BlockPos pos, IBlockState state) {
         TileEntity tile = world.getTileEntity(pos);
-        if (tile instanceof FloodlightBlockEntity) {
-            FloodlightBlockEntity light = (FloodlightBlockEntity) tile;
+        if (tile instanceof FloodlightTileEntity) {
+            FloodlightTileEntity light = (FloodlightTileEntity) tile;
             light.removeLights(world);
             ItemStack slot = light.getInventory().getStackInSlot(0);
             if (!slot.isEmpty()) {
@@ -191,10 +191,10 @@ public abstract class FloodlightBlock extends Block {
                          int fortune) {
         super.getDrops(drops, world, pos, state, fortune);
         TileEntity tile = world.getTileEntity(pos);
-        if (tile instanceof FloodlightBlockEntity && ((FloodlightBlockEntity) tile).hasCustomSettings()) {
+        if (tile instanceof FloodlightTileEntity && ((FloodlightTileEntity) tile).hasCustomSettings()) {
             for (ItemStack drop : drops) {
                 if (drop.getItem() == Item.getItemFromBlock(this)) {
-                    drop.setTagInfo(BLOCK_ENTITY_TAG, ((FloodlightBlockEntity) tile).saveItemData());
+                    drop.setTagInfo(BLOCK_ENTITY_TAG, ((FloodlightTileEntity) tile).saveItemData());
                 }
             }
         }

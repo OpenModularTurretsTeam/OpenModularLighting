@@ -36,7 +36,7 @@ flowchart TB
 
 An arrow means "may use".
 The game layer and `compat` reach the loader only through the service interfaces in `platform`; `platform/<loader>` implements them and installs them first thing in its entrypoint.
-The one exception to the arrows are the entrypoints in `platform/<loader>`: they start the mod and wire the game layer to the loader (registration steps, capabilities, events), so they reference game classes such as `ModBlockEntities`.
+The one exception to the arrows are the entrypoints in `platform/<loader>`: they start the mod and wire the game layer to the loader (registration steps, capabilities, events), so they reference game classes such as `ModTileEntities`.
 The other directions are forbidden:
 
 - **core** uses only Java and itself: no Minecraft, loader or other OML packages.
@@ -53,11 +53,11 @@ This is the only place where the two meet, and the reason the core can be tested
 | --- | --- | --- |
 | `light.LightWorld` | `world.LevelLightWorld` | classifies a block position as a `Cell`: air, phantom light, UV light, opaque, transparent or unloaded |
 | `state.PowerSource` | `energy.ElectricPower`, `energy.FuelPower` (through `energy.LightPower`) | whether the light can run this tick, and paying for it |
-| `cluster.ClusterNode` | `blockentity.PanelLightBlockEntity` | who a light is connected to, for the shared energy of touching lights |
+| `cluster.ClusterNode` | `blockentity.PanelLightTileEntity` | who a light is connected to, for the shared energy of touching lights |
 | `energy.EnergyAccess` | the lights' `getEnergyAccess(side)` (the buffer of `energy.ElectricPower`, or `energy.ClusterEnergy.View` for panel lights) | what other blocks may do with a light's energy (insert; extract is never allowed) |
 
 Positions in core are the `Pos` record and directions the `Facing` enum (same ordinal order as `Direction`); `world.Positions` converts both ways.
-The block entities own one core object each and forward to it: `FloodlightBlockEntity` → `LightController`, `LightBlockEntity` → `LightSources`, `PanelLightBlockEntity` → `Cluster`.
+The block entities own one core object each and forward to it: `FloodlightTileEntity` → `LightController`, `LightTileEntity` → `LightSources`, `PanelLightTileEntity` → `Cluster`.
 A light's beam is the game-layer class `blockentity.LightBeam`, which calls `BeamCaster` and `ShapeDiff` and keeps the cached shape.
 
 ## Where things live
@@ -84,16 +84,16 @@ Packages below `omtteam.openmodularlighting` (main):
 | `core.energy` | `EnergyStore` (the buffer) and `EnergyAccess` |
 | `core.formula` | `CarbonFuel`, `GrowChance`, `EnergyCost` |
 | `block` | `FloodlightBlock` (base of every light: `FACING`, `LIT`, drops) with its subclasses; `FloodlightInteraction` (right-click); `LightBlock` (base of the phantom and UV light blocks); `PanelShapes` |
-| `blockentity` | `FloodlightBlockEntity` (base of every light) and subclasses, `LightBeam` (its cached beam and the re-cast); `LightBlockEntity` (sources of a light block) with `PhantomLightBlockEntity` and `UvLightBlockEntity`; `LightSourceBlockEntity` |
+| `blockentity` | `FloodlightTileEntity` (base of every light) and subclasses, `LightBeam` (its cached beam and the re-cast); `LightTileEntity` (sources of a light block) with `PhantomLightTileEntity` and `UvLightTileEntity`; `LightSourceTileEntity` |
 | `world` | `LightBlocks` (place, switch and remove light blocks), `LevelLightWorld`, `Positions` |
 | `energy` | `LightPower` with `ElectricPower` and `FuelPower`, `ClusterEnergy`, `Batteries` |
 | `inventory` | `ItemAccess`: the slot range and filters other blocks see (wrapped by the loader adapters) |
 | `menu` | the container menus (with the disguise slot) and `LongContainerData` |
 | `camo` | disguise of the floodlights: `CamoBlock` (marker of the lights that can be disguised), `CamoRules` (which blocks are valid), `CamoData` (the disguise and its NBT) |
-| `registry` | `ModBlocks`, `ModItems` (the crafting items and the light debug tool are plain `Item`s; what the tool does is in `FloodlightInteraction` and `client.render.LightBlockDebugRenderer`), `ModBlockEntities`, `ModMenus`, `ModCreativeTabs`, `ModDamageTypes`, `RegistrationStep` |
+| `registry` | `ModBlocks`, `ModItems` (the crafting items and the light debug tool are plain `Item`s; what the tool does is in `FloodlightInteraction` and `client.render.LightBlockDebugRenderer`), `ModTileEntities`, `ModMenus`, `ModCreativeTabs`, `ModDamageTypes`, `RegistrationStep` |
 | `network` | `OMLPackets` (all packet types) and `ConfigSyncPacket` |
 | `config` | the JSON config: `ConfigData` (fields), `@Comment`, `@Range`, `ConfigWriter`, `ConfigRanges`, `ConfigValidator`, `OMLConfig` (load, save, sync) |
-| `compat` | every 1.20.1 / 1.21.1 difference (`VersionCompat`, `CompatBlockEntity`, `InteractiveBlock`, `MenuCompat`, `network/`), `CommonTags`, the recipe condition, and the optional Jade plugin (`compat/jade`) |
+| `compat` | every 1.20.1 / 1.21.1 difference (`VersionCompat`, `CompatTileEntity`, `InteractiveBlock`, `MenuCompat`, `network/`), `CommonTags`, the recipe condition, and the optional Jade plugin (`compat/jade`) |
 | `platform` | the loader services shared code calls (`Platform` holding `PlatformServices`: `LoaderInfo`, `Fuel`, `Network`, `Menus`, `Energy`); `platform.fabric`, `platform.neoforge` and `platform.forge` hold the entrypoints and implementations and only compile for their loader |
 | `datagen` | recipes, loot tables, tags, damage types (Fabric only, generated per version) |
 
@@ -113,16 +113,16 @@ flowchart TB
         LB --> UVB[UvLightBlock]
     end
     subgraph block entities
-        FBE[FloodlightBlockEntity] --> BFBE[BeamFloodlightBlockEntity]
-        BFBE --> EFBE[ElectricFloodlightBlockEntity]
-        BFBE --> CFBE[CarbonFloodlightBlockEntity]
-        FBE --> UFBE[UvFloodlightBlockEntity]
-        FBE --> PLBE[PanelLightBlockEntity]
-        PLBE --> FLBE[FluorescentLightBlockEntity]
-        PLBE --> GLBE[GrowLightBlockEntity]
-        PLBE --> CLBE[CubeLightBlockEntity]
-        LBE[LightBlockEntity] --> PHBE[PhantomLightBlockEntity]
-        LBE --> UVBE[UvLightBlockEntity]
+        FBE[FloodlightTileEntity] --> BFBE[BeamFloodlightTileEntity]
+        BFBE --> EFBE[ElectricFloodlightTileEntity]
+        BFBE --> CFBE[CarbonFloodlightTileEntity]
+        FBE --> UFBE[UvFloodlightTileEntity]
+        FBE --> PLBE[PanelLightTileEntity]
+        PLBE --> FLBE[FluorescentLightTileEntity]
+        PLBE --> GLBE[GrowLightTileEntity]
+        PLBE --> CLBE[CubeLightTileEntity]
+        LBE[LightTileEntity] --> PHBE[PhantomLightTileEntity]
+        LBE --> UVBE[UvLightTileEntity]
     end
 ```
 
@@ -150,7 +150,7 @@ Render layers are the one thing kept twice: `BlockRenderLayerMap` on Fabric, `"r
 
 ### A light's tick (server)
 
-`FloodlightBlockEntity.serverTick`:
+`FloodlightTileEntity.serverTick`:
 
 1. `beforePower`: panel lights keep their cluster up to date and pull energy from it.
 2. `power().prepare`: charge from the battery slot, or burn the next fuel item.
@@ -163,7 +163,7 @@ The state machine itself, with the timeout against flicker, is `core.state.Light
 
 ### Casting a beam
 
-`LightBeam.recast`, called from the tick and at once from `FloodlightBlockEntity.shapeChanged` (mode change); the beam reads the shape, facing, light type and on/off state from its light:
+`LightBeam.recast`, called from the tick and at once from `FloodlightTileEntity.shapeChanged` (mode change); the beam reads the shape, facing, light type and on/off state from its light:
 
 1. `BeamCaster.cast(shape, origin, facing, lightType, new LevelLightWorld(level))` walks every ray of the shape and returns the positions that should hold a light block.
    A ray stops at an opaque or unloaded cell, passes through transparent ones without a position, and the cone rules (the inner ray is skipped if its outer ray was blocked early) live here.
@@ -177,7 +177,7 @@ The state machine itself, with the timeout against flicker, is `core.state.Light
 
 ### Light blocks and their sources
 
-A `LightBlockEntity` stores two lists: `sources` (every light that reaches this block) and `activeSources` (those that are on), in `core.light.LightSources`.
+A `LightTileEntity` stores two lists: `sources` (every light that reaches this block) and `activeSources` (those that are on), in `core.light.LightSources`.
 Every change returns an `Effect` (`NONE`, `TURN_ON`, `TURN_OFF`, `REMOVE`) which `LightBlocks.apply` carries out on the block: `LIT` is `!activeSources.isEmpty()`, and the block goes away when `sources` is empty.
 So several floodlights can share one block, and it stays lit as long as one of them is on.
 
@@ -188,10 +188,10 @@ Light blocks do not tick (there can be thousands).
 Instead they react to the world:
 
 - `neighborChanged` and `onRemove` call `requestRecastOfSources()`, which only flags the sources; the light re-casts on its next tick, never inside the neighbour callback.
-- `randomTick` calls `LightBlockEntity.refresh()`: sources whose block entity is gone, or no longer covers this position, are dropped, `LIT` is corrected and the block removes itself if nothing is left.
+- `randomTick` calls `LightTileEntity.refresh()`: sources whose block entity is gone, or no longer covers this position, are dropped, `LIT` is corrected and the block removes itself if nothing is left.
   Sources in unloaded chunks are left alone (`SourceStatus.UNKNOWN`).
 
-The UV light block is the exception that ticks: while lit it hurts every `LivingEntity` inside it once a second (`UvLightBlockEntity.serverTick`).
+The UV light block is the exception that ticks: while lit it hurts every `LivingEntity` inside it once a second (`UvLightTileEntity.serverTick`).
 
 ### Power and fuel
 
@@ -208,7 +208,7 @@ Outside access goes through the loader:
 
 ### Shared energy of panel lights
 
-Fluorescent, grow and cube lights (`PanelLightBlockEntity`) that touch and face the same way form a `core.cluster.Cluster` (cube lights: any face, cube lights only).
+Fluorescent, grow and cube lights (`PanelLightTileEntity`) that touch and face the same way form a `core.cluster.Cluster` (cube lights: any face, cube lights only).
 The cluster is in memory only: a light joins on its first tick, leaves in `setRemoved`, and a possible split is found in `refresh()` once per tick, so breaking a wall of lights costs one flood fill.
 Each light keeps its own buffer; `ClusterEnergy` shows the whole cluster to the outside (inserting fills the emptiest light first) and lets a light that cannot pay take from the fullest others.
 
@@ -218,12 +218,12 @@ Right-click handling does not use vanilla's `use` methods, because they differ b
 The loader's block-use event calls `InteractiveBlock.handleUse`, which calls `FloodlightBlock.onUse`; that hands it to `FloodlightInteraction`, one method per action:
 
 - sneak with an empty hand: toggle invert; stick or wrench: `configure` (cycle the mode, turn the small fluorescent light); wrench plus sneak: dismantle; dye or wool: set the colour;
-- anything else opens the menu: `MenuCompat.open` → `platform.Menus` → `ElectricFloodlightMenu` or `CarbonFloodlightMenu`.
-  On a `CamoBlock`, `FloodlightMenu` adds the phantom disguise slot: a click there calls `FloodlightBlockEntity.setCamo` on the server.
+- anything else opens the menu: `MenuCompat.open` → `platform.Menus` → `ElectricFloodlightContainer` or `CarbonFloodlightContainer`.
+  On a `CamoBlock`, `FloodlightContainer` adds the phantom disguise slot: a click there calls `FloodlightTileEntity.setCamo` on the server.
 
 Changes that affect the beam (`setMode`) end in `shapeChanged()`, which re-casts at once.
 The server is the only place that changes state; the screens only show it (the menus sync energy and burn time with `LongContainerData`) and the colour and the disguise reach the client in the block entity's update tag.
-The disguise is drawn by the loader's model wrapper: the block entity hands it over as render data (`CompatBlockEntity.renderData`), and the wrapper emits the disguise's quads plus the lamp quads of the light's own model (tint index 1, a cutout overlay on the front face).
+The disguise is drawn by the loader's model wrapper: the block entity hands it over as render data (`CompatTileEntity.renderData`), and the wrapper emits the disguise's quads plus the lamp quads of the light's own model (tint index 1, a cutout overlay on the front face).
 
 ### Config
 
@@ -239,8 +239,8 @@ The block entity returns it from `currentShape()` and puts everything it depends
 
 ### A light
 
-1. A block extending `FloodlightBlock` (or `PanelLightBlock`) and a block entity extending `FloodlightBlockEntity` (or `PanelLightBlockEntity`); the block entity chooses `power()`, `currentShape()` and `shapeKey()`.
-2. Register block, item and block entity in `ModBlocks`, `ModItems`, `ModBlockEntities`; add it to the lookups of every loader if it has energy or item access (`FabricBlockLookups` and the capability registration in `OMLNeoForge` use `ModBlockEntities.lights()`; Forge attaches its capabilities to every `FloodlightBlockEntity`).
+1. A block extending `FloodlightBlock` (or `PanelLightBlock`) and a block entity extending `FloodlightTileEntity` (or `PanelLightTileEntity`); the block entity chooses `power()`, `currentShape()` and `shapeKey()`.
+2. Register block, item and block entity in `ModBlocks`, `ModItems`, `ModTileEntities`; add it to the lookups of every loader if it has energy or item access (`FabricBlockLookups` and the capability registration in `OMLNeoForge` use `ModTileEntities.lights()`; Forge attaches its capabilities to every `FloodlightTileEntity`).
 3. Blockstate, model, lang entries (`en_us`, `de_de`, `ru_ru`), and the recipe, loot table and tags in `datagen`.
 4. A GameTest in `src/gametest` (and its entry in `src/gametest/resources/fabric.mod.json`), and an entry in `docs/id-mapping.md` if it replaces a block of the old mod.
 
@@ -263,7 +263,7 @@ Whole loader-specific classes go into those packages; a small difference inside 
 
 The source is written for 1.21.1; Stonecutter comments switch it to 1.20.1.
 Put the difference into a small helper in `compat` (for example `VersionCompat`) and call that, instead of `//? if` blocks in gameplay code.
-Block entities extend `compat.CompatBlockEntity` (override `readData` / `writeData`).
+Block entities extend `compat.CompatTileEntity` (override `readData` / `writeData`).
 The table of known differences is in `CLAUDE.md`, section 5.
 
 ### Recipes, loot tables, tags
@@ -339,8 +339,8 @@ Things that make the code harder to work with than they should be.
 They are known and measured, not hidden:
 
 - **One large package cycle.** The root package (`OML`), `block`, `blockentity`, `compat`, `compat.network`, `config`, `energy`, `menu`, `network`, `platform`, `registry` and `world` all depend on each other (registry ↔ blocks ↔ block entities, as in most Minecraft mods, plus the platform facades); `noNewPackageCycles` keeps it from growing.
-- **2 PMD findings**, both accepted: the coupling of `FloodlightBlock` (23; the types of the vanilla block methods it overrides) and of `FloodlightBlockEntity` (23).
-- **`FloodlightBlockEntity` does a lot** (about 330 lines): ticking, settings, the colour, the disguise, the slot and saving.
+- **2 PMD findings**, both accepted: the coupling of `FloodlightBlock` (23; the types of the vanilla block methods it overrides) and of `FloodlightTileEntity` (23).
+- **`FloodlightTileEntity` does a lot** (about 330 lines): ticking, settings, the colour, the disguise, the slot and saving.
   The beam (cast, diff and shape cache) is already in `LightBeam`; the slot would be the next candidate to move out.
 - **Phantom lights beside skipped positions.** Because of the thinning (`core.beam.Spacing`), a block change next to a position without a light block may reach no light block at all, so the beam notices it only at the periodic re-check (10 to 30 s).
 - **The client is untested** except by hand, since Fabric's client GameTests need Minecraft 1.21.4 or newer.

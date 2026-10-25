@@ -1,11 +1,11 @@
-package omtteam.openmodularlighting.client.screen;
+package omtteam.openmodularlighting.client.gui;
 
 import net.minecraft.client.resources.I18n;
 import omtteam.openmodularlighting.OML;
-import omtteam.openmodularlighting.menu.CarbonFloodlightMenu;
+import omtteam.openmodularlighting.container.CarbonFloodlightContainer;
 
-public class CarbonFloodlightScreen extends FloodlightScreen<CarbonFloodlightMenu> {
-    public CarbonFloodlightScreen(CarbonFloodlightMenu menu) {
+public class CarbonFloodlightGui extends FloodlightGui<CarbonFloodlightContainer> {
+    public CarbonFloodlightGui(CarbonFloodlightContainer menu) {
         super(menu, OML.id("textures/gui/carbon_floodlight.png"));
     }
 

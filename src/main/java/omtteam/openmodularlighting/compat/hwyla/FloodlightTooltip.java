@@ -4,7 +4,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TextComponentString;
 import net.minecraft.util.text.TextComponentTranslation;
-import omtteam.openmodularlighting.blockentity.FloodlightBlockEntity;
+import omtteam.openmodularlighting.tileentity.FloodlightTileEntity;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,7 +22,7 @@ public final class FloodlightTooltip {
     }
 
     /** Server side: the values the overlay shows (block entity data is not synced to clients). */
-    public static void write(NBTTagCompound tag, FloodlightBlockEntity light) {
+    public static void write(NBTTagCompound tag, FloodlightTileEntity light) {
         tag.setBoolean(INVERTED, light.isInverted());
         String mode = light.modeKey();
         if (mode != null) {

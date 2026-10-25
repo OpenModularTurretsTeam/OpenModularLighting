@@ -6,11 +6,11 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import omtteam.openmodularlighting.OML;
-import omtteam.openmodularlighting.blockentity.BeamFloodlightBlockEntity;
-import omtteam.openmodularlighting.blockentity.CarbonFloodlightBlockEntity;
-import omtteam.openmodularlighting.blockentity.FloodlightBlockEntity;
 import omtteam.openmodularlighting.camo.CamoBlock;
-import omtteam.openmodularlighting.menu.OMLGuiHandler;
+import omtteam.openmodularlighting.handler.OMLGuiHandler;
+import omtteam.openmodularlighting.tileentity.BeamFloodlightTileEntity;
+import omtteam.openmodularlighting.tileentity.CarbonFloodlightTileEntity;
+import omtteam.openmodularlighting.tileentity.FloodlightTileEntity;
 
 /**
  * Carbon (non-electric) floodlight: the same modes as the electric one, powered by furnace fuel.
@@ -21,8 +21,8 @@ public class CarbonFloodlightBlock extends FloodlightBlock implements CamoBlock 
     }
 
     @Override
-    protected FloodlightBlockEntity createLight() {
-        return new CarbonFloodlightBlockEntity();
+    protected FloodlightTileEntity createLight() {
+        return new CarbonFloodlightTileEntity();
     }
 
     @Override
@@ -33,16 +33,16 @@ public class CarbonFloodlightBlock extends FloodlightBlock implements CamoBlock 
     /** Cycles straight → narrow cone → wide cone. */
     @Override
     protected void configure(World world, BlockPos pos, IBlockState state, EntityPlayer player,
-                             FloodlightBlockEntity light) {
-        if (light instanceof BeamFloodlightBlockEntity) {
-            BeamFloodlightBlockEntity beam = (BeamFloodlightBlockEntity) light;
+                             FloodlightTileEntity light) {
+        if (light instanceof BeamFloodlightTileEntity) {
+            BeamFloodlightTileEntity beam = (BeamFloodlightTileEntity) light;
             beam.cycleMode();
             sendMode(player, beam.modeKey());
         }
     }
 
     @Override
-    protected void openMenu(EntityPlayer player, FloodlightBlockEntity light) {
+    protected void openGui(EntityPlayer player, FloodlightTileEntity light) {
         BlockPos pos = light.getPos();
         player.openGui(OML.instance, OMLGuiHandler.CARBON, light.getWorld(), pos.getX(), pos.getY(), pos.getZ());
     }

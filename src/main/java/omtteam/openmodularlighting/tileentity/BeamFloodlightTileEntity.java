@@ -1,4 +1,4 @@
-package omtteam.openmodularlighting.blockentity;
+package omtteam.openmodularlighting.tileentity;
 
 import net.minecraft.nbt.NBTTagCompound;
 import omtteam.openmodularlighting.config.ConfigData;
@@ -9,7 +9,7 @@ import omtteam.openmodularlighting.core.beam.BeamShape;
 /**
  * The electric and carbon floodlights: straight, narrow cone and wide cone ({@link BeamMode}).
  */
-public abstract class BeamFloodlightBlockEntity extends FloodlightBlockEntity {
+public abstract class BeamFloodlightTileEntity extends FloodlightTileEntity {
     private static final String MODE = "mode";
 
     private BeamMode mode = BeamMode.STRAIGHT;

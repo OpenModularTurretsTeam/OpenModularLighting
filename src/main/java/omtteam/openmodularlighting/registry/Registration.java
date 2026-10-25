@@ -17,7 +17,7 @@ public final class Registration {
         for (Block block : ModBlocks.ALL) {
             event.getRegistry().register(block);
         }
-        ModBlockEntities.register();
+        ModTileEntities.register();
     }
 
     @SubscribeEvent

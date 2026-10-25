@@ -5,7 +5,7 @@ import net.minecraft.block.state.IBlockState;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumBlockRenderType;
 import net.minecraft.world.World;
-import omtteam.openmodularlighting.blockentity.PhantomLightBlockEntity;
+import omtteam.openmodularlighting.tileentity.PhantomLightTileEntity;
 
 /**
  * The invisible light block of floodlights, fluorescent and grow lights: light level 15 while {@link #LIT}, 0
@@ -33,6 +33,6 @@ public class PhantomLightBlock extends LightBlock {
 
     @Override
     public TileEntity createTileEntity(World world, IBlockState state) {
-        return new PhantomLightBlockEntity();
+        return new PhantomLightTileEntity();
     }
 }

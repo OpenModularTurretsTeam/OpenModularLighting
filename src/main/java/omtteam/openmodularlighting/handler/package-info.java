@@ -4,7 +4,7 @@
  */
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-package omtteam.openmodularlighting.client.screen;
+package omtteam.openmodularlighting.handler;
 
 import mcp.MethodsReturnNonnullByDefault;
 

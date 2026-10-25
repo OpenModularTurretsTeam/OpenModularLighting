@@ -1,4 +1,4 @@
-package omtteam.openmodularlighting.blockentity;
+package omtteam.openmodularlighting.tileentity;
 
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.EntityLivingBase;
@@ -10,10 +10,10 @@ import omtteam.openmodularlighting.block.LightBlock;
 import omtteam.openmodularlighting.config.OMLConfig;
 
 /**
- * Block entity of the UV light block: its UV floodlight sources (see {@link LightBlockEntity}), and the damage to
+ * Block entity of the UV light block: its UV floodlight sources (see {@link LightTileEntity}), and the damage to
  * living entities inside it while lit (1.7.10 {@code TileEntityUVLightBlock}, CLAUDE.md §6.9).
  */
-public class UvLightBlockEntity extends LightBlockEntity implements ITickable {
+public class UvLightTileEntity extends LightTileEntity implements ITickable {
     /** UV light damage; death message {@code death.attack.openmodularlighting.uv_light} (1.7.10 used cactus damage). */
     public static final DamageSource UV_LIGHT = new DamageSource(OML.MOD_ID + ".uv_light");
 

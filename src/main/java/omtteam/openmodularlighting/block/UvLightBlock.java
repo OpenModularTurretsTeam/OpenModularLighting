@@ -11,14 +11,14 @@ import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
-import omtteam.openmodularlighting.blockentity.UvLightBlockEntity;
 import omtteam.openmodularlighting.config.OMLConfig;
 import omtteam.openmodularlighting.registry.ModBlocks;
+import omtteam.openmodularlighting.tileentity.UvLightTileEntity;
 import omtteam.openmodularlighting.world.LightBlocks;
 
 /**
  * The UV light block of the UV floodlight (1.7.10 {@code BlockUVLightBlock}): light level 4 while {@link #LIT}, and it
- * damages living entities inside it (see {@link UvLightBlockEntity}). Otherwise like a phantom light: no shape,
+ * damages living entities inside it (see {@link UvLightTileEntity}). Otherwise like a phantom light: no shape,
  * replaceable, removed with its last source, but not air. Visible only while lit and if {@code uvLightRendered} is on.
  */
 public class UvLightBlock extends LightBlock {
@@ -72,6 +72,6 @@ public class UvLightBlock extends LightBlock {
 
     @Override
     public TileEntity createTileEntity(World world, IBlockState state) {
-        return new UvLightBlockEntity();
+        return new UvLightTileEntity();
     }
 }

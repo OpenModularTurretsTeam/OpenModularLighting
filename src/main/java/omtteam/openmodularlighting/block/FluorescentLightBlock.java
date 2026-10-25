@@ -10,8 +10,8 @@ import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
-import omtteam.openmodularlighting.blockentity.FloodlightBlockEntity;
-import omtteam.openmodularlighting.blockentity.FluorescentLightBlockEntity;
+import omtteam.openmodularlighting.tileentity.FloodlightTileEntity;
+import omtteam.openmodularlighting.tileentity.FluorescentLightTileEntity;
 import omtteam.openmodularlighting.world.Worlds;
 
 import java.util.Map;
@@ -47,8 +47,8 @@ public class FluorescentLightBlock extends PanelLightBlock {
     @SuppressWarnings("deprecation")
     public IBlockState getActualState(IBlockState state, IBlockAccess world, BlockPos pos) {
         TileEntity tile = Worlds.getTileEntity(world, pos);
-        boolean rotated = small && tile instanceof FluorescentLightBlockEntity
-                && ((FluorescentLightBlockEntity) tile).isRotated();
+        boolean rotated = small && tile instanceof FluorescentLightTileEntity
+                && ((FluorescentLightTileEntity) tile).isRotated();
         return state.withProperty(ROTATED, rotated);
     }
 
@@ -59,8 +59,8 @@ public class FluorescentLightBlock extends PanelLightBlock {
     }
 
     @Override
-    protected FloodlightBlockEntity createLight() {
-        return new FluorescentLightBlockEntity();
+    protected FloodlightTileEntity createLight() {
+        return new FluorescentLightTileEntity();
     }
 
     /** Only the small light can be turned (the square one looks the same either way). */
@@ -72,9 +72,9 @@ public class FluorescentLightBlock extends PanelLightBlock {
     /** Turns the strip by 90°; no block update, which would make the beam re-cast. */
     @Override
     protected void configure(World world, BlockPos pos, IBlockState state, EntityPlayer player,
-                             FloodlightBlockEntity light) {
-        if (light instanceof FluorescentLightBlockEntity) {
-            ((FluorescentLightBlockEntity) light).toggleRotated();
+                             FloodlightTileEntity light) {
+        if (light instanceof FluorescentLightTileEntity) {
+            ((FluorescentLightTileEntity) light).toggleRotated();
         }
     }
 }

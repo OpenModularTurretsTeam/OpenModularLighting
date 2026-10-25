@@ -1,4 +1,4 @@
-package omtteam.openmodularlighting.blockentity;
+package omtteam.openmodularlighting.tileentity;
 
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.math.BlockPos;
@@ -28,14 +28,14 @@ final class LightBeam {
     private static final String SHAPE = "shape";
     private static final String SHAPE_KEY = "shape_key";
 
-    private final FloodlightBlockEntity light;
+    private final FloodlightTileEntity light;
     private List<BlockPos> shape = Collections.emptyList();
     private Set<BlockPos> shapeSet = Collections.emptySet();
     /** What the cached shape was cast for; null if there is no cached shape. */
     @Nullable
     private int[] shapeKey;
 
-    LightBeam(FloodlightBlockEntity light) {
+    LightBeam(FloodlightTileEntity light) {
         this.light = light;
     }
 
