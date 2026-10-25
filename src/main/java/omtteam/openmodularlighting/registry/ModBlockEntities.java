@@ -1,10 +1,12 @@
 package omtteam.openmodularlighting.registry;
 
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.level.block.state.BlockState;
 import omtteam.openmodularlighting.OML;
 import omtteam.openmodularlighting.blockentity.CarbonFloodlightBlockEntity;
 import omtteam.openmodularlighting.blockentity.ElectricFloodlightBlockEntity;
@@ -15,8 +17,10 @@ import omtteam.openmodularlighting.blockentity.GrowLightBlockEntity;
 import omtteam.openmodularlighting.blockentity.PhantomLightBlockEntity;
 import omtteam.openmodularlighting.blockentity.UvFloodlightBlockEntity;
 import omtteam.openmodularlighting.blockentity.UvLightBlockEntity;
+import omtteam.openmodularlighting.compat.VersionCompat;
 
 import java.util.List;
+import java.util.function.BiFunction;
 
 /**
  * All block entity types of the mod. Their item and energy access is registered per loader ({@code platform/<loader>}).
@@ -46,10 +50,10 @@ public final class ModBlockEntities {
     }
 
     private static <T extends BlockEntity> BlockEntityType<T> register(String name,
-                                                                       BlockEntityType.BlockEntitySupplier<T> factory,
+                                                                       BiFunction<BlockPos, BlockState, T> factory,
                                                                        Block... blocks) {
         return Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, OML.id(name),
-                BlockEntityType.Builder.of(factory, blocks).build(null));
+                VersionCompat.blockEntityType(factory, blocks));
     }
 
     /** Loads the class, registering all block entity types. */

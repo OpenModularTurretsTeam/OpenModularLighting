@@ -1,6 +1,8 @@
 package omtteam.openmodularlighting.compat;
 
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
@@ -11,12 +13,19 @@ import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.BonemealableBlock;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 //? if fabric {
 import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
 //?}
+//? if fabric && >=1.21.11 {
+/*import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityTypeBuilder;
+*///?}
 //? if >=1.21 {
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.item.component.CustomData;
@@ -29,6 +38,7 @@ import net.minecraft.world.level.storage.TagValueInput;
 import net.minecraft.world.level.storage.TagValueOutput;
 *///?}
 
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
 /**
@@ -54,6 +64,53 @@ public final class VersionCompat {
         //?} else {
         /*return new ResourceLocation(namespace, path);
         *///?}
+    }
+
+    // ---- Registration (1.21.11 needs the registry id in the properties before a block or item is created) ----
+
+    /** Properties of the block that will be registered as {@code id}. */
+    public static BlockBehaviour.Properties blockProperties(BlockBehaviour.Properties properties, ResourceLocation id) {
+        //? if >=1.21.11 {
+        /*return properties.setId(ResourceKey.create(Registries.BLOCK, id));
+        *///?} else {
+        return properties;
+        //?}
+    }
+
+    /** Properties of the item that will be registered as {@code id}. */
+    public static Item.Properties itemProperties(Item.Properties properties, ResourceLocation id) {
+        //? if >=1.21.11 {
+        /*return properties.setId(ResourceKey.create(Registries.ITEM, id));
+        *///?} else {
+        return properties;
+        //?}
+    }
+
+    /**
+     * Properties of the block item that will be registered as {@code id}. It keeps the block's name
+     * ({@code block.<mod>.<id>}); 1.21.11 would otherwise name it like an item.
+     */
+    public static Item.Properties blockItemProperties(Item.Properties properties, ResourceLocation id) {
+        //? if >=1.21.11 {
+        /*return itemProperties(properties, id).useBlockDescriptionPrefix();
+        *///?} else {
+        return itemProperties(properties, id);
+        //?}
+    }
+
+    /**
+     * A block entity type for these blocks (1.21.11 removed {@code BlockEntityType.Builder}; vanilla's factory interface
+     * is only accessible on NeoForge there, Fabric has its own builder).
+     */
+    public static <T extends BlockEntity> BlockEntityType<T> blockEntityType(BiFunction<BlockPos, BlockState, T> factory,
+                                                                             Block... blocks) {
+        //? if fabric && >=1.21.11 {
+        /*return FabricBlockEntityTypeBuilder.create(factory::apply, blocks).build();
+        *///?} else if >=1.21.11 {
+        /*return new BlockEntityType<>(factory::apply, blocks);
+        *///?} else {
+        return BlockEntityType.Builder.of(factory::apply, blocks).build(null);
+        //?}
     }
 
     // ---- ItemStack NBT ----

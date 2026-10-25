@@ -310,6 +310,7 @@ Wrap each of these behind a helper where possible.
 | ItemStack NBT, slot lists | `VersionCompat.saveStack` / `loadStack`, `saveItems` / `loadItems` |
 | ItemStack extra data | `VersionCompat.hasCustomData` / `getCustomData` / `setCustomData` / `updateCustomData` |
 | Block interaction | implement `compat.InteractiveBlock#onUse`; `InteractiveBlock.handleUse` is called by the loader's block-use event (Fabric `UseBlockCallback`, NeoForge `PlayerInteractEvent.RightClickBlock`; same in both versions) |
+| Registering blocks, items, block entity types | create blocks and items with `VersionCompat.blockProperties` / `itemProperties` / `blockItemProperties(properties, id)` (1.21.11 needs the id before construction; block items keep the `block.` name), block entity types with `VersionCompat.blockEntityType(factory, blocks…)` (no `BlockEntityType.Builder` on 1.21.11). Also in the test mod |
 | Creative tab builder | `VersionCompat.creativeTabBuilder()` (Fabric `FabricItemGroup`, NeoForge vanilla builder) |
 | Networking | `compat.network.NetworkCompat.registerC2S` / `registerS2C` / `sendToPlayer`; client: `client.compat.ClientNetworkCompat.registerHandler` / `sendToServer`. Packets are plain records with `write` / `read`, listed in `network.OMLPackets`. The facades forward to `platform.Network` / `client.platform.ClientNetwork` (Fabric: `PayloadTypeRegistry`; NeoForge: recorded and applied in `RegisterPayloadHandlersEvent`, optional channels, handlers on the main thread, S2C handlers dispatched from main to the handler the client registered; a packet without client handler is logged and dropped) |
 | Extended menus | `compat.MenuCompat.register` / `open` (passes the `BlockPos`; forwards to `platform.Menus`: Fabric extended screen handlers, NeoForge `IMenuTypeExtension` / `openMenu(provider, pos)`) |
@@ -756,9 +757,10 @@ Update this checklist as work progresses.
 - [x] `ResourceLocation` → `Identifier` as a Stonecutter replacement
 - [x] NBT read helpers (`compat.nbt.NbtCompat`); `CompatBlockEntity` bridges `ValueInput` / `ValueOutput`; stack, slot and item block entity data helpers have 1.21.11 branches
 - [x] Removal hook `CompatBlockEntity.onBlockRemoved` (replaces the blocks' `onRemove` logic); `Fuel.burnTime(level, stack)`
+- [x] Registration: ids in the block and item properties, block entity types through `VersionCompat.blockEntityType`
 - [x] Block callbacks: `FACING` as `EnumProperty<Direction>`, `noCollision`, `neighborChanged` with `Orientation`, `BlockCompat` (state queries, `sidedSuccess`)
 - [ ] Nodes `1.21.11-fabric` / `1.21.11-neoforge` in `settings.gradle.kts` (`versions/1.21.11-*/gradle.properties` exist; add the nodes once they compile)
-- [ ] Remaining main code: registration (block/item properties need `setId`, `BlockEntityType` builder), damage type lookup, datagen (version folders), NeoForge transfer rework, Jade 21.x, config sync
+- [ ] Remaining main code: damage type lookup, datagen (version folders), NeoForge transfer rework, Jade 21.x, config sync
 - [ ] Client: camo models (`BlockStateModel`), screens, world render event; GameTests (new framework)
 
 ### Later / optional (ask first)
