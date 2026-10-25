@@ -9,7 +9,6 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.fabricmc.fabric.api.resource.conditions.v1.ResourceCondition;
 import net.fabricmc.fabric.api.resource.conditions.v1.ResourceConditionType;
-import net.minecraft.core.HolderLookup;
 import org.jetbrains.annotations.Nullable;
 //?} else {
 /*import com.google.gson.JsonArray;
@@ -20,12 +19,18 @@ import net.minecraft.util.GsonHelper;
 
 import java.util.ArrayList;
 *///?}
+//? if >=1.21.11 {
+/*import net.minecraft.resources.RegistryOps.RegistryInfoLookup;
+*///?} else if >=1.21 {
+import net.minecraft.core.HolderLookup;
+//?}
 
 import java.util.List;
 
 /**
  * Fabric registration of {@link BlockEnabledCondition} (resource conditions). The condition API differs between 1.20.1
- * ({@code ConditionJsonProvider}) and 1.21 ({@code ResourceCondition}).
+ * ({@code ConditionJsonProvider}) and 1.21 ({@code ResourceCondition}, whose {@code test} takes a registry lookup
+ * since 1.21.2; the condition does not need it).
  * <p>
  * Recipe JSON: {@code "fabric:load_conditions": [{"condition": "openmodularlighting:block_enabled", "blocks": [...]}]}.
  */
@@ -47,8 +52,13 @@ public final class FabricBlockEnabledCondition {
             return TYPE;
         }
 
+        //? if >=1.21.11 {
+        /*@Override
+        public boolean test(@Nullable RegistryInfoLookup registries) {
+        *///?} else {
         @Override
         public boolean test(@Nullable HolderLookup.Provider registries) {
+        //?}
             return BlockEnabledCondition.anyEnabled(blocks);
         }
     }

@@ -73,10 +73,12 @@ configurations.runtimeClasspath { extendsFrom(remappedLocalRuntime) }
 // Not on the GameTest server, as on NeoForge.
 
 dependencies {
-    // Jade plugin (compat/jade): optional, not bundled; present in dev runs to try it
+    // Jade plugin (compat/jade, client/compat/jade): optional, not bundled; present in dev runs to try it
     "modCompileOnly"("maven.modrinth:jade:${property("jade_version")}")
     localRuntime("maven.modrinth:jade:${property("jade_version")}")
 }
+// The client half of the Jade plugin (client/compat/jade) compiles against it too (remapped, through compileOnly)
+configurations.named("clientCompileOnly") { extendsFrom(configurations.compileOnly.get()) }
 
 // ---- Data (recipes, loot tables, tags, advancements) ----
 // Not generated here: copied from the Fabric datagen output of the same Minecraft version (datagen_from) with Forge

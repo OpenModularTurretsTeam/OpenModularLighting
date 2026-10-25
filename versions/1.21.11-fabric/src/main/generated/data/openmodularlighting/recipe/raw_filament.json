@@ -1,0 +1,30 @@
+{
+  "fabric:load_conditions": [
+    {
+      "blocks": [
+        "electric_floodlight",
+        "small_fluorescent_light",
+        "uv_floodlight",
+        "grow_light",
+        "cube_light"
+      ],
+      "condition": "openmodularlighting:block_enabled"
+    }
+  ],
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "G": "#c:ingots/gold",
+    "L": "minecraft:glowstone_dust",
+    "R": "#c:dusts/redstone"
+  },
+  "pattern": [
+    " L ",
+    "RGR",
+    " L "
+  ],
+  "result": {
+    "count": 1,
+    "id": "openmodularlighting:raw_filament"
+  }
+}

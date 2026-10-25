@@ -1,0 +1,27 @@
+{
+  "fabric:load_conditions": [
+    {
+      "blocks": [
+        "grow_light"
+      ],
+      "condition": "openmodularlighting:block_enabled"
+    }
+  ],
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "key": {
+    "B": "openmodularlighting:light_bulb",
+    "C": "minecraft:cobblestone",
+    "G": "minecraft:pink_stained_glass",
+    "I": "#c:ingots/iron"
+  },
+  "pattern": [
+    "III",
+    "CBC",
+    "GGG"
+  ],
+  "result": {
+    "count": 1,
+    "id": "openmodularlighting:grow_light"
+  }
+}

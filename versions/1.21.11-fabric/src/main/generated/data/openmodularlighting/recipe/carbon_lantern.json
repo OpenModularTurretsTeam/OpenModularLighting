@@ -1,0 +1,28 @@
+{
+  "fabric:load_conditions": [
+    {
+      "blocks": [
+        "carbon_floodlight"
+      ],
+      "condition": "openmodularlighting:block_enabled"
+    }
+  ],
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "D": "openmodularlighting:carbon_dissolver",
+    "F": "minecraft:flint_and_steel",
+    "G": "#c:glass_panes",
+    "I": "#c:ingots/iron",
+    "M": "openmodularlighting:mantle"
+  },
+  "pattern": [
+    " G ",
+    "GMG",
+    "DFI"
+  ],
+  "result": {
+    "count": 1,
+    "id": "openmodularlighting:carbon_lantern"
+  }
+}

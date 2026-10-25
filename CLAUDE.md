@@ -25,7 +25,9 @@ Core gameplay:
 
 - Fabric Loader and **Fabric API**. Fabric API, including Transfer API, Networking, Rendering and Datagen, may be used freely.
 - **Team Reborn Energy** for power, as the de facto Fabric energy standard. Jar-in-jar it. It replaces the old RF (CoFH) and IC2 EU support.
-- **Jade** (approved by the user) as an **optional** integration only: `modCompileOnly` + `modLocalRuntime` from Modrinth's maven (`maven.modrinth:jade`, version per Minecraft version in `versions/<v>/gradle.properties`). Never bundled and never a hard dependency (`suggests` in `fabric.mod.json`, `type = "optional"` in `neoforge.mods.toml`; NeoForge: `compileOnly` + `localRuntime`). Only `compat/jade/OMLJadePlugin` and `FloodlightJadeProvider` may import `snownee.jade`; Jade loads them through the `jade` entrypoint (Fabric) or the `@WailaPlugin` annotation (NeoForge), so the mod runs without Jade.
+- **Jade** (approved by the user) as an **optional** integration only: `modCompileOnly` + `modLocalRuntime` from Modrinth's maven (`maven.modrinth:jade`, version per Minecraft version in `versions/<v>/gradle.properties`). Never bundled and never a hard dependency (`suggests` in `fabric.mod.json`, `type = "optional"` in `neoforge.mods.toml`; NeoForge: `compileOnly` + `localRuntime`). Only `compat/jade/` (`OMLJadePlugin`, `FloodlightJadeProvider`: server data) and `client/compat/jade/` (`OMLJadeClientPlugin`, `FloodlightJadeComponent`: the tooltip) may import `snownee.jade`; Jade loads both plugins through the `jade` entrypoint (Fabric) or the `@WailaPlugin` annotation (NeoForge, Forge), so the mod runs without Jade.
+  The tooltip half is in the client source set because Jade's tooltip classes are client classes (from Jade 21 on 1.21.11, `ITooltip` extends one); Jade creates the client plugin on servers too, but calls only its `registerClient`, on clients.
+  The NeoForge and Forge `client` source sets get Jade through `clientCompileOnly` extending `compileOnly`.
   Jade is not on the NeoForge GameTest server: there it sends a packet to the tests' vanilla mock players, which NeoForge refuses.
 - **NeoForge** 21.1.x (1.21.1 only), built with **ModDevGradle** (approved by the user; build-time only).
   On NeoForge, the Fabric-only APIs above are replaced by NeoForge's own (capabilities, events, payload registration); see §4 "Loaders".
@@ -95,8 +97,13 @@ Check exact latest patch versions of Loader, API, Loom and Stonecutter when sett
 │   ├── 1.21.1-fabric/
 │   │   ├── gradle.properties   # minecraft_version, fabric_api, java_version=21 …
 │   │   └── src/main/generated/ # datagen output for 1.21.1 (committed)
-│   └── 1.21.1-neoforge/
-│       └── gradle.properties   # neoforge_version, minecraft_dependency (Maven range) …
+│   ├── 1.21.1-neoforge/
+│   │   └── gradle.properties   # neoforge_version, minecraft_dependency (Maven range) …
+│   ├── 1.21.11-fabric/         # being ported (§9), not in settings.gradle.kts yet
+│   │   ├── gradle.properties
+│   │   └── src/main/generated/ # datagen output for 1.21.11 (committed)
+│   └── 1.21.11-neoforge/
+│       └── gradle.properties
 └── src/
     ├── main/java/omtteam/openmodularlighting/...
     ├── main/mc<first>-<last>/java/  # version source folders: whole classes for a range of Minecraft versions (§4)
@@ -153,7 +160,7 @@ The Stonecutter DSL changes between releases. If this does not match the install
   Inactive branches must be wrapped in `/* … */` exactly as Stonecutter expects. Prefer letting Stonecutter generate this by switching versions over hand-writing it.
 - **Minimize conditional blocks.** Hide version differences behind small helpers in `omtteam.openmodularlighting.compat.VersionCompat` (or similar) rather than sprinkling `//? if` across gameplay code. Gameplay logic (beam shapes, energy use, growth) should be version-agnostic.
 - Constants can be compared in conditions: `//? if >=1.21 {`, `//? if <1.21 {`, `//? if 1.20.1 {`.
-- **Whole classes that differ between versions** (datagen providers, camo models) go into version source folders instead of large conditions: `src/<source set>/mc<first>-<last>/java` (e.g. `src/main/mc1.20.1-1.21.1/java`, `src/client/mc1.21.11-/java`; both ends included, no `<last>` = no upper bound).
+- **Whole classes that differ between versions** (the NeoForge capability adapters, camo models) go into version source folders instead of large conditions: `src/<source set>/mc<first>-<last>/java` (e.g. `src/main/mc1.20.1-1.21.1/java`, `src/client/mc1.21.11-/java`; both ends included, no `<last>` = no upper bound).
   `mod-common` adds the folders whose range contains the node's Minecraft version. Each variant keeps the same package and class name, so entrypoints and references stay the same; the ranges of one class's variants must not overlap.
   Stonecutter does not process these folders, so they hold no `//?` conditions: loader differences inside them go into `platform/<loader>/` packages as usual (the exclusion applies there too).
 - **Renames** that Mojang applies everywhere are Stonecutter replacements in `stonecutter.gradle.kts` (`replacements`), not conditions: `ResourceLocation` → `Identifier` and `noCollission(` → `noCollision(` from 1.21.11. They work in both directions, so the new names must not be used for anything else.
@@ -327,7 +334,8 @@ Wrap each of these behind a helper where possible.
   - Connected textures of `lightproof_glass`: `assets/openmodularlighting/optifine/ctm/lightproof_glass/` holds a `ctm_compact` properties file (Continuity / OptiFine format, no dependency) and the 5 tiles `0.png`–`4.png`, cut from `textures/block/lightproof_glass.png` (32 × 32, 2 px frame): 0 unconnected, 1 fully connected, 2 up/down, 3 left/right, 4 only the frame corners. Cut them again if the base texture changes.
   - The old IGW wiki text (`wiki/`) is not ported.
 - **`data/`** (recipes, loot tables, tags, advancements): folder names and JSON formats differ. **Generate them with Fabric Datagen.**
-  - Run datagen per version.
+  - Run datagen per version. It runs in the server environment (`client = false`): the providers need no client classes, so a new version's data can be generated before its client code is ported.
+  - The recipe content is the same on every version (`OMLRecipeProvider.Recipes`); from 1.21.2 the builders that need the item registry (`shaped`, `shapeless`, `has`) come from the vanilla `RecipeProvider`, which `Recipes` extends on 1.21.11 (before, it has stand-ins).
   - Configure the output directory relative to the version project (`project.file("src/main/generated")` → `versions/<v>/src/main/generated`).
   - Add that directory as a resource source dir.
   - Commit the generated files.
@@ -388,8 +396,8 @@ omtteam.openmodularlighting
 ├── config/                        OMLConfig (load, validate, save, sync), ConfigData (the fields), @Comment, @Range,
 │                                  ConfigWriter, ConfigRanges, ConfigValidator
 ├── compat/                        every 1.20.1/1.21.1 difference: VersionCompat, CompatBlockEntity, InteractiveBlock,
-│                                  MenuCompat, network/ (NetworkCompat, PacketType); jade/ (optional Jade plugin:
-│                                  OMLJadePlugin, FloodlightJadeProvider; FloodlightTooltip has the content, no Jade)
+│                                  MenuCompat, network/ (NetworkCompat, PacketType); jade/ (optional Jade plugin, server
+│                                  half: OMLJadePlugin, FloodlightJadeProvider; FloodlightTooltip has the content, no Jade)
 ├── platform/                      loader-specific code (§4 "Loaders"); each node compiles only its own loader's package.
 │   │                              Platform (holder) + PlatformServices (record of all services): installed once,
 │   │                              first thing in the entrypoint; a getter before install or a second install throws
@@ -406,7 +414,7 @@ omtteam.openmodularlighting
 │   │                              are in the version folders (src/main/mc1.20.1-1.21.1, src/main/mc1.21.11-: transfer API)
 │   └── forge/                     OMLForge (@Mod entrypoint like OMLNeoForge, starts OMLForgeClient by name on a client),
 │                                  ForgeLightCapabilities (AttachCapabilitiesEvent), ForgeBlockEnabledCondition, Forge… services
-└── datagen/                       recipe, loot table, block tag, model providers (runs per version)
+└── datagen/                       recipe, loot table, block tag, damage type providers (runs per version)
 
 src/client/java/omtteam/openmodularlighting/client
 ├── OMLClient                      shared client start-up (init, registerScreens(ScreenRegistrar), appendTooltip)
@@ -423,7 +431,8 @@ src/client/java/omtteam/openmodularlighting/client
 │                                  (light debug tool: wireframes around light blocks while held; called from the
 │                                  loader's world render event, not a block entity renderer, so it costs nothing while
 │                                  not held)
-├── compat/                        ClientCompat, ClientNetworkCompat
+├── compat/                        ClientCompat, ClientNetworkCompat; jade/ (client half of the Jade plugin: OMLJadeClientPlugin,
+│                                  FloodlightJadeComponent)
 └── network/                       ClientPacketHandlers (config sync handler)
 ```
 
@@ -745,7 +754,7 @@ Update this checklist as work progresses.
 - [x] Client: `OMLClient` + `ScreenRegistrar`; screens, colour handler, render types (model JSON), debug renderer, tooltip, disconnect hook wired in `OMLNeoForgeClient` (check by hand with `:1.21.1-neoforge:runClient`)
 - [x] Data on NeoForge: converted from the Fabric 1.21.1 datagen output at build time (`convertFabricData`, `datagen_from`); loading it on NeoForge is checked by the NeoForge GameTests (`RecipeGameTest`)
 - [x] GameTests on NeoForge: shared test classes (`OMLGameTests`, own empty structure, NeoForge annotations behind a condition), `TestTransfer`, loader-neutral test battery; all 54 run on NeoForge
-- [x] Jade on NeoForge: `@WailaPlugin` on `OMLJadePlugin` (Fabric keeps the entrypoint); plugin load checked once in a NeoForge run; overlay itself: check by hand with `:1.21.1-neoforge:runClient`
+- [x] Jade on NeoForge: `@WailaPlugin` on the plugins (Fabric keeps the entrypoint); plugin load checked once in a NeoForge run; overlay itself: check by hand with `:1.21.1-neoforge:runClient`
 
 ### Forge 1.20.1 (branch `forge-test`, to be taken over by OMT)
 
@@ -765,7 +774,8 @@ Update this checklist as work progresses.
 - [x] Block callbacks: `FACING` as `EnumProperty<Direction>`, `noCollision`, `neighborChanged` with `Orientation`, `BlockCompat` (state queries, `sidedSuccess`)
 - [ ] Nodes `1.21.11-fabric` / `1.21.11-neoforge` in `settings.gradle.kts` (`versions/1.21.11-*/gradle.properties` exist; add the nodes once they compile)
 - [x] NeoForge transfer API: `NeoForgeEnergyHandler` (`EnergyHandler`, one `SnapshotJournal` per store), `NeoForgeItemHandler` (`ResourceHandler<ItemResource>`), `NeoForgeEnergy` and the capability registration (`NeoForgeCapabilities`) exist once per version folder (`mc1.20.1-1.21.1`: `IEnergyStorage` / `IItemHandler`, `mc1.21.11-`: transfer API); the NeoForge GameTest transfer code (`NeoForgeTestTransfer`, test battery) still uses the old API
-- [ ] Remaining main code: datagen (version folders), Jade 21.x, recipe condition (`FabricBlockEnabledCondition`)
+- [x] Datagen: shared recipe content (`OMLRecipeProvider.Recipes`, on 1.21.11 a vanilla `RecipeProvider`), `tagBuilder` for the renamed tag builder, recipe condition `test` with `RegistryInfoLookup`; datagen runs in the server environment; output in `versions/1.21.11-fabric/src/main/generated` (committed; only the recipe ingredient format differs from 1.21.1), converted for NeoForge as on 1.21.1
+- [x] Jade 21: the plugin is split into a server half (main) and a client half (`client/compat/jade`), because `ITooltip` extends a client class; all main code compiles on both 1.21.11 nodes
 - [ ] Client: camo models (`BlockStateModel`), screens, world render event; GameTests (new framework)
 
 ### Later / optional (ask first)

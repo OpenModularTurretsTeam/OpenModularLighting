@@ -1,0 +1,11 @@
+{
+  "values": [
+    "openmodularlighting:electric_floodlight",
+    "openmodularlighting:carbon_floodlight",
+    "openmodularlighting:uv_floodlight",
+    "openmodularlighting:small_fluorescent_light",
+    "openmodularlighting:square_fluorescent_light",
+    "openmodularlighting:grow_light",
+    "openmodularlighting:cube_light"
+  ]
+}

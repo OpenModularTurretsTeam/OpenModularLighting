@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "building",
+  "ingredients": [
+    "minecraft:black_stained_glass",
+    "#minecraft:coals"
+  ],
+  "result": {
+    "count": 1,
+    "id": "openmodularlighting:lightproof_glass"
+  }
+}

@@ -30,7 +30,9 @@ loom {
 
 fabricApi {
     configureDataGeneration {
-        client = true
+        // The providers need no client classes (block models are handwritten), so datagen runs without the client
+        // source set; it also works while a new Minecraft version's client code is not ported yet
+        client = false
         // versions/<v>/src/main/generated, committed per version
         outputDirectory = project.file("src/main/generated")
     }
@@ -52,7 +54,7 @@ dependencies {
     // Energy API (jar-in-jar)
     modImplementation("teamreborn:energy:${property("team_reborn_energy_version")}")
     include("teamreborn:energy:${property("team_reborn_energy_version")}")
-    // Jade plugin (compat/jade): optional, not bundled; present in dev runs to try it
+    // Jade plugin (compat/jade, client/compat/jade): optional, not bundled; present in dev runs to try it
     modCompileOnly("maven.modrinth:jade:${property("jade_version")}")
     modLocalRuntime("maven.modrinth:jade:${property("jade_version")}")
 

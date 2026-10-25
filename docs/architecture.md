@@ -91,9 +91,9 @@ Packages below `omtteam.openmodularlighting` (main):
 | `registry` | `ModBlocks`, `ModItems` (the crafting items and the light debug tool are plain `Item`s; what the tool does is in `FloodlightInteraction` and `client.render.LightBlockDebugRenderer`), `ModBlockEntities`, `ModMenus`, `ModCreativeTabs`, `ModDamageTypes`, `RegistrationStep` |
 | `network` | `OMLPackets` (all packet types) and `ConfigSyncPacket` |
 | `config` | the JSON config: `ConfigData` (fields), `@Comment`, `@Range`, `ConfigWriter`, `ConfigRanges`, `ConfigValidator`, `OMLConfig` (load, save, sync) |
-| `compat` | every 1.20.1 / 1.21.1 difference (`VersionCompat`, `CompatBlockEntity`, `InteractiveBlock`, `MenuCompat`, `network/`), `CommonTags`, the recipe condition, and the optional Jade plugin (`compat/jade`) |
+| `compat` | every 1.20.1 / 1.21.1 difference (`VersionCompat`, `CompatBlockEntity`, `InteractiveBlock`, `MenuCompat`, `network/`), `CommonTags`, the recipe condition, and the server half of the optional Jade plugin (`compat/jade`; the tooltip is in `client.compat.jade`, because Jade's tooltip classes are client classes) |
 | `platform` | the loader services shared code calls (`Platform` holding `PlatformServices`: `LoaderInfo`, `Fuel`, `Network`, `Menus`, `Energy`); `platform.fabric`, `platform.neoforge` and `platform.forge` hold the entrypoints and implementations and only compile for their loader |
-| `datagen` | recipes, loot tables, tags, damage types (Fabric only, generated per version) |
+| `datagen` | recipes, loot tables, tags, damage types (Fabric only, generated per version in the server environment; the recipes are the same on every version, in `OMLRecipeProvider.Recipes`) |
 
 The block and block entity hierarchies mirror each other:
 
@@ -266,7 +266,7 @@ The table of known differences is in `CLAUDE.md`, section 5.
 
 ### Recipes, loot tables, tags
 
-Never handwrite files under `data/`: add them to the providers in `datagen` and run `./gradlew :1.21.1-fabric:runDatagen :1.20.1-fabric:runDatagen`.
+Never handwrite files under `data/`: add them to the providers in `datagen` and run `./gradlew :1.21.1-fabric:runDatagen :1.20.1-fabric:runDatagen` (plus `:1.21.11-fabric:runDatagen` once that node is in `settings.gradle.kts`).
 The output is committed per version.
 The NeoForge build converts the Fabric 1.21.1 output and the Forge build the Fabric 1.20.1 output at build time (`convertFabricData` in `buildSrc`), so nothing loader-specific is committed.
 
