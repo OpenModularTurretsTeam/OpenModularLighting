@@ -99,6 +99,7 @@ Check exact latest patch versions of Loader, API, Loom and Stonecutter when sett
 │       └── gradle.properties   # neoforge_version, minecraft_dependency (Maven range) …
 └── src/
     ├── main/java/omtteam/openmodularlighting/...
+    ├── main/mc<first>-<last>/java/  # version source folders: whole classes for a range of Minecraft versions (§4)
     ├── main/resources/         # SHARED assets + fabric.mod.json, META-INF/neoforge.mods.toml and META-INF/mods.toml (templated)
     ├── client/java/omtteam/openmodularlighting/...   # client-only code (split source sets)
     ├── test/java/omtteam/openmodularlighting/...      # JUnit tests (core/, config)
@@ -152,6 +153,10 @@ The Stonecutter DSL changes between releases. If this does not match the install
   Inactive branches must be wrapped in `/* … */` exactly as Stonecutter expects. Prefer letting Stonecutter generate this by switching versions over hand-writing it.
 - **Minimize conditional blocks.** Hide version differences behind small helpers in `omtteam.openmodularlighting.compat.VersionCompat` (or similar) rather than sprinkling `//? if` across gameplay code. Gameplay logic (beam shapes, energy use, growth) should be version-agnostic.
 - Constants can be compared in conditions: `//? if >=1.21 {`, `//? if <1.21 {`, `//? if 1.20.1 {`.
+- **Whole classes that differ between versions** (datagen providers, camo models) go into version source folders instead of large conditions: `src/<source set>/mc<first>-<last>/java` (e.g. `src/main/mc1.20.1-1.21.1/java`, `src/client/mc1.21.11-/java`; both ends included, no `<last>` = no upper bound).
+  `mod-common` adds the folders whose range contains the node's Minecraft version. Each variant keeps the same package and class name, so entrypoints and references stay the same; the ranges of one class's variants must not overlap.
+  Stonecutter does not process these folders, so they hold no `//?` conditions: loader differences inside them go into `platform/<loader>/` packages as usual (the exclusion applies there too).
+- **Renames** that Mojang applies everywhere are Stonecutter replacements in `stonecutter.gradle.kts` (`replacements`), not conditions: `ResourceLocation` → `Identifier` from 1.21.11. They work in both directions, so the replaced word (`Identifier`) must not be used for anything else.
 - Version-specific *properties* live in `versions/<v>/gradle.properties`. Read them in the build via `property("…")`.
 
 ### Loaders
@@ -298,7 +303,9 @@ Wrap each of these behind a helper where possible.
 | Difference | Helper |
 | --- | --- |
 | `ResourceLocation` | `OML.id(path)`, `VersionCompat.id(ns, path)` |
-| BlockEntity NBT + update tag | extend `compat.CompatBlockEntity`: override `readData` / `writeData` (+ optional `writeClientData`), call `syncToClient()`; data for the block model while meshing: override `renderData()` (Fabric render data, NeoForge `RENDER_DATA` model data), call `remesh()` on the client when it changed |
+| BlockEntity NBT + update tag | extend `compat.CompatBlockEntity`: override `readData` / `writeData` (+ optional `writeClientData`), call `syncToClient()`; data for the block model while meshing: override `renderData()` (Fabric render data, NeoForge `RENDER_DATA` model data), call `remesh()` on the client when it changed. On 1.21.11 it passes the whole compound through `ValueInput` / `ValueOutput`, so `readData` / `writeData` keep their `CompoundTag` and the saved format stays the same |
+| Reading NBT (1.21.11 getters return `Optional`) | `compat.nbt.NbtCompat.getInt` / `getLong` / `getBoolean` / `getString` (with a fallback), `getIntArray` / `getLongArray` / `getCompound` (empty if missing), `readBlockState`; never call the `CompoundTag` getters directly. It depends on Minecraft only, so packages outside the `compat` cycle (e.g. `camo`) may use it |
+| Block broken or replaced (`onRemove` is gone in 1.21.11) | override `CompatBlockEntity.onBlockRemoved(Level)` (server only, before the block entity is removed); on <1.21.11 the block's `onRemove` calls `CompatBlockEntity.handleRemove` (behind `//? if <1.21.11`), on 1.21.11 vanilla's `preRemoveSideEffects` calls it |
 | ItemStack NBT, slot lists | `VersionCompat.saveStack` / `loadStack`, `saveItems` / `loadItems` |
 | ItemStack extra data | `VersionCompat.hasCustomData` / `getCustomData` / `setCustomData` / `updateCustomData` |
 | Block interaction | implement `compat.InteractiveBlock#onUse`; `InteractiveBlock.handleUse` is called by the loader's block-use event (Fabric `UseBlockCallback`, NeoForge `PlayerInteractEvent.RightClickBlock`; same in both versions) |
@@ -383,7 +390,7 @@ omtteam.openmodularlighting
 ├── platform/                      loader-specific code (§4 "Loaders"); each node compiles only its own loader's package.
 │   │                              Platform (holder) + PlatformServices (record of all services): installed once,
 │   │                              first thing in the entrypoint; a getter before install or a second install throws
-│   │                              IllegalStateException. Services: LoaderInfo (configDir, isModLoaded), Fuel (burnTime, remainder), Network, Menus,
+│   │                              IllegalStateException. Services: LoaderInfo (configDir, isModLoaded), Fuel (burnTime(level, stack), remainder), Network, Menus,
 │   │                              Energy (isBattery, dischargeItem, pushToBlock)
 │   ├── fabric/                    OMLFabric (ModInitializer: install services, OML.init(), Fabric callbacks),
 │   │                              FabricBlockLookups (item + energy lookups), FabricItemStorages, FabricEnergyStorages (Team Reborn
@@ -455,7 +462,7 @@ Light is made by **phantom light blocks** placed in air along the beam. Each pha
 - **Floodlight placed** (or loaded without a cached shape): cast the beam and place a phantom light on every reachable air block, `LIT = false` unless the floodlight is already on. Remember the cast positions in the floodlight BE (see §6.7).
 - **Floodlight turns on / off:** walk the cached positions only, without re-walking rays or reading other blocks. Mark this source on/off in each phantom light. A phantom light is `LIT` if at least one of its sources is on, and it changes its blockstate only when that result changes.
 - **Mode change:** cast the new shape and **diff** it against the cached positions. Remove this source from positions that drop out, and add it to new ones (placing phantom lights where needed). Leave unchanged positions alone.
-- **Floodlight broken** (`onRemove` / `setRemoved`): remove this source from all cached positions. A phantom light with **no sources at all** removes itself (set to air). This is the only time phantom lights are removed in normal play.
+- **Floodlight broken** (`CompatBlockEntity.onBlockRemoved` / `setRemoved`): remove this source from all cached positions. A phantom light with **no sources at all** removes itself (set to air). This is the only time phantom lights are removed in normal play.
 
 #### Casting
 
@@ -519,7 +526,7 @@ The timeout still applies: toggling `LIT` is much cheaper than placing blocks, b
 - The carbon floodlight burns one furnace fuel item when `timeRemaining` reaches 0:
   `timeRemaining += carbonTime × burnTime / 1600 × 20` (coal = `carbonTime` seconds of straight light). The mode does not matter when refuelling; instead every tick the light runs uses up 1 (straight) or 2 (both cones, `CarbonFuel.drain`) of it, so cones burn fuel twice as fast. The GUI shows the time left in the current mode (`CarbonFuel.runTicks`). Refuelling happens even while the light is off.
   If the formula gives 0 ticks (tiny burn time, or `carbonTime = 0`), the item is **not** consumed (`FuelTimer.refuel` returns false).
-  Fuel is any furnace fuel of the loader (`platform.Fuel`: Fabric's `FuelRegistry`, NeoForge's burn time incl. its data map). The remainder stays in the slot like in a furnace (lava bucket → bucket, `Fuel.remainder`, the loader's stack-aware hook).
+  Fuel is any furnace fuel of the loader (`platform.Fuel`: Fabric's `FuelRegistry`, NeoForge's burn time incl. its data map; on 1.21.11 the level's fuel values, so `burnTime` takes the level). The remainder stays in the slot like in a furnace (lava bucket → bucket, `Fuel.remainder`, the loader's stack-aware hook).
 - Inventories (1 slot, a vanilla `SimpleContainer`) are exposed as `inventory.ItemAccess.insertOnly` (`FloodlightBlockEntity#getItemAccess`): Fabric `ItemStorage.SIDED` (`platform/fabric/FabricItemStorages`, slotted for Jade), NeoForge `IItemHandler` (`NeoForgeItemHandler`). Insertion only accepts valid fuel or energy items. Extraction is disabled.
 
 ### 6.6 Interaction
@@ -741,6 +748,16 @@ Update this checklist as work progresses.
 - [x] `platform/forge`: `OMLForge`, all five services, `ForgeLightCapabilities` (items, energy), `ForgeBlockEnabledCondition`; client `OMLForgeClient`, `ForgeClientNetwork`, `ForgeCamoModel`
 - [x] GameTests on Forge: `OMLForgeGameTests`, `ForgeTestTransfer`, `ForgeTestBattery`; `OMLGameTests.mockPlayer`; all 57 pass
 - [ ] Checked by hand in a Forge client (`:1.20.1-forge:runClient`): screens, tint, camouflage rendering, debug renderer, Jade, joining a dedicated server (config sync over the event channels)
+
+### Minecraft 1.21.11 (Fabric + NeoForge, same codebase; started 2026-10-25)
+
+- [x] Version source folders (`src/<set>/mc<first>-<last>/java`, `mod-common`) for whole per-version classes
+- [x] `ResourceLocation` → `Identifier` as a Stonecutter replacement
+- [x] NBT read helpers (`compat.nbt.NbtCompat`); `CompatBlockEntity` bridges `ValueInput` / `ValueOutput`; stack, slot and item block entity data helpers have 1.21.11 branches
+- [x] Removal hook `CompatBlockEntity.onBlockRemoved` (replaces the blocks' `onRemove` logic); `Fuel.burnTime(level, stack)`
+- [ ] Nodes `1.21.11-fabric` / `1.21.11-neoforge` in `settings.gradle.kts` (`versions/1.21.11-*/gradle.properties` exist; add the nodes once they compile)
+- [ ] Remaining main code: block callbacks and properties, registration (`setId`), datagen (version folders), NeoForge transfer rework, Jade 21.x, config sync
+- [ ] Client: camo models (`BlockStateModel`), screens, world render event; GameTests (new framework)
 
 ### Later / optional (ask first)
 

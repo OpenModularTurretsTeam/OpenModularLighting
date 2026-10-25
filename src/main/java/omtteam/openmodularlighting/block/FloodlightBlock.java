@@ -4,7 +4,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.Containers;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
@@ -28,6 +27,7 @@ import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.world.phys.BlockHitResult;
 import omtteam.openmodularlighting.blockentity.FloodlightBlockEntity;
+import omtteam.openmodularlighting.compat.CompatBlockEntity;
 import omtteam.openmodularlighting.compat.InteractiveBlock;
 import omtteam.openmodularlighting.compat.MenuCompat;
 import omtteam.openmodularlighting.compat.VersionCompat;
@@ -119,16 +119,14 @@ public abstract class FloodlightBlock extends BaseEntityBlock implements Interac
         return false;
     }
 
-    /** Removed: leave the phantom lights and drop the slot contents. */
+    //? if <1.21.11 {
+    /** Removed: {@link FloodlightBlockEntity#onBlockRemoved} leaves the phantom lights and drops the slot contents. */
     @Override
     public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
-        if (!state.is(newState.getBlock()) && !level.isClientSide()
-                && level.getBlockEntity(pos) instanceof FloodlightBlockEntity light) {
-            light.removeLights(level);
-            Containers.dropContents(level, pos, light.getInventory());
-        }
+        CompatBlockEntity.handleRemove(state, level, pos, newState);
         super.onRemove(state, level, pos, newState, movedByPiston);
     }
+    //?}
 
     /** The dropped block keeps mode, invert, colour and energy / burn time (1.7.10 {@code BlockFL.getDrops}). */
     @Override

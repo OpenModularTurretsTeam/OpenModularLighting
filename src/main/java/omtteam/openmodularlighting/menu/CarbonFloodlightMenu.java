@@ -6,6 +6,7 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.inventory.SimpleContainerData;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 import omtteam.openmodularlighting.blockentity.CarbonFloodlightBlockEntity;
 import omtteam.openmodularlighting.energy.FuelPower;
 import omtteam.openmodularlighting.registry.ModMenus;
@@ -16,14 +17,18 @@ import omtteam.openmodularlighting.registry.ModMenus;
 public class CarbonFloodlightMenu extends FloodlightMenu {
     private static final int DATA_TICKS_REMAINING = 0;
 
+    /** The player's level, for the fuel values (the light is only known on the server). */
+    private final Level level;
+
     private CarbonFloodlightMenu(int containerId, Inventory playerInventory, BlockPos pos,
                                  CarbonFloodlightBlockEntity light, SimpleContainer slot, ContainerData data) {
         super(ModMenus.CARBON_FLOODLIGHT, containerId, playerInventory, pos, light, slot, data);
+        this.level = playerInventory.player.level();
     }
 
     @Override
     protected boolean isValidItem(ItemStack stack) {
-        return FuelPower.burnTime(stack) > 0;
+        return FuelPower.burnTime(level, stack) > 0;
     }
 
     /** Client side. Uses its own container; the server keeps it in sync. */

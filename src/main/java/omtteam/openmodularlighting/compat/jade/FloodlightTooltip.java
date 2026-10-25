@@ -3,6 +3,7 @@ package omtteam.openmodularlighting.compat.jade;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import omtteam.openmodularlighting.blockentity.FloodlightBlockEntity;
+import omtteam.openmodularlighting.compat.nbt.NbtCompat;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,10 +34,10 @@ public final class FloodlightTooltip {
         List<Component> lines = new ArrayList<>();
         if (!tag.contains(INVERTED)) return lines;
         lines.add(Component.translatable("gui.openmodularlighting.invert").append(": ").append(Component.translatable(
-                tag.getBoolean(INVERTED) ? "gui.openmodularlighting.true" : "gui.openmodularlighting.false")));
+                NbtCompat.getBoolean(tag, INVERTED, false) ? "gui.openmodularlighting.true" : "gui.openmodularlighting.false")));
         if (tag.contains(MODE)) {
             lines.add(Component.translatable("gui.openmodularlighting.mode").append(": ")
-                    .append(Component.translatable(tag.getString(MODE))));
+                    .append(Component.translatable(NbtCompat.getString(tag, MODE, ""))));
         }
         return lines;
     }

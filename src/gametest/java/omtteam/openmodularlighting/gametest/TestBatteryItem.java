@@ -3,6 +3,7 @@ package omtteam.openmodularlighting.gametest;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import omtteam.openmodularlighting.compat.VersionCompat;
+import omtteam.openmodularlighting.compat.nbt.NbtCompat;
 
 /**
  * A battery for battery-slot tests: 100 000 E, any rate. The energy is kept in the item's custom data; each loader
@@ -17,7 +18,7 @@ public class TestBatteryItem extends Item {
     }
 
     public long getStoredEnergy(ItemStack stack) {
-        return VersionCompat.getCustomData(stack).getLong(ENERGY);
+        return NbtCompat.getLong(VersionCompat.getCustomData(stack), ENERGY, 0);
     }
 
     public void setStoredEnergy(ItemStack stack, long energy) {

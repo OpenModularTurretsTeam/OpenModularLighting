@@ -1,10 +1,9 @@
 package omtteam.openmodularlighting.camo;
 
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtUtils;
-import net.minecraft.nbt.Tag;
 import net.minecraft.world.level.block.state.BlockState;
+import omtteam.openmodularlighting.compat.nbt.NbtCompat;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -42,8 +41,9 @@ public final class CamoData {
      */
     public boolean read(CompoundTag tag) {
         BlockState state = null;
-        if (tag.contains(KEY, Tag.TAG_COMPOUND)) {
-            BlockState read = NbtUtils.readBlockState(BuiltInRegistries.BLOCK.asLookup(), tag.getCompound(KEY));
+        CompoundTag camoTag = NbtCompat.getCompound(tag, KEY);
+        if (!camoTag.isEmpty()) {
+            BlockState read = NbtCompat.readBlockState(camoTag);
             state = CamoRules.isValidDisguise(read) ? read : null;
         }
         return set(state);

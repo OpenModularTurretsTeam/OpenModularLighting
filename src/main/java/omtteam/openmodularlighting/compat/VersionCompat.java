@@ -3,6 +3,7 @@ package omtteam.openmodularlighting.compat;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.item.BlockItem;
@@ -18,9 +19,15 @@ import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
 //?}
 //? if >=1.21 {
 import net.minecraft.core.component.DataComponents;
-import net.minecraft.nbt.Tag;
 import net.minecraft.world.item.component.CustomData;
 //?}
+//? if >=1.21.11 {
+/*import com.mojang.serialization.MapCodec;
+import net.minecraft.nbt.NbtOps;
+import net.minecraft.util.ProblemReporter;
+import net.minecraft.world.level.storage.TagValueInput;
+import net.minecraft.world.level.storage.TagValueOutput;
+*///?}
 
 import java.util.function.Consumer;
 
@@ -33,6 +40,11 @@ import java.util.function.Consumer;
 public final class VersionCompat {
     private VersionCompat() {
     }
+
+    //? if >=1.21.11 {
+    /*/^* A whole compound as a map codec: 1.21.11 stores data through ValueOutput, our code still reads and writes NBT. ^/
+    static final MapCodec<CompoundTag> WHOLE_TAG = MapCodec.assumeMapUnsafe(CompoundTag.CODEC);
+    *///?}
 
     // ---- Resource locations ----
 
@@ -50,7 +62,11 @@ public final class VersionCompat {
      * Serializes a stack (empty stacks become an empty tag).
      */
     public static CompoundTag saveStack(ItemStack stack, HolderLookup.Provider registries) {
-        //? if >=1.21 {
+        //? if >=1.21.11 {
+        /*if (stack.isEmpty()) return new CompoundTag();
+        Tag tag = ItemStack.CODEC.encodeStart(registries.createSerializationContext(NbtOps.INSTANCE), stack).getOrThrow();
+        return tag instanceof CompoundTag compound ? compound : new CompoundTag();
+        *///?} else if >=1.21 {
         Tag tag = stack.saveOptional(registries);
         return tag instanceof CompoundTag compound ? compound : new CompoundTag();
         //?} else {
@@ -62,7 +78,10 @@ public final class VersionCompat {
      * Deserializes a stack written by {@link #saveStack}; returns {@link ItemStack#EMPTY} on invalid data.
      */
     public static ItemStack loadStack(CompoundTag tag, HolderLookup.Provider registries) {
-        //? if >=1.21 {
+        //? if >=1.21.11 {
+        /*return ItemStack.CODEC.parse(registries.createSerializationContext(NbtOps.INSTANCE), tag).result()
+                .orElse(ItemStack.EMPTY);
+        *///?} else if >=1.21 {
         return ItemStack.parseOptional(registries, tag);
         //?} else {
         /*return ItemStack.of(tag);
@@ -73,7 +92,11 @@ public final class VersionCompat {
      * Writes a slot list to {@code tag} under {@code "Items"} (vanilla container format).
      */
     public static void saveItems(CompoundTag tag, NonNullList<ItemStack> items, HolderLookup.Provider registries) {
-        //? if >=1.21 {
+        //? if >=1.21.11 {
+        /*TagValueOutput output = TagValueOutput.createWithContext(ProblemReporter.DISCARDING, registries);
+        ContainerHelper.saveAllItems(output, items);
+        tag.merge(output.buildResult());
+        *///?} else if >=1.21 {
         ContainerHelper.saveAllItems(tag, items, registries);
         //?} else {
         /*ContainerHelper.saveAllItems(tag, items);
@@ -84,7 +107,9 @@ public final class VersionCompat {
      * Reads a slot list written by {@link #saveItems}. {@code items} must already have the correct size.
      */
     public static void loadItems(CompoundTag tag, NonNullList<ItemStack> items, HolderLookup.Provider registries) {
-        //? if >=1.21 {
+        //? if >=1.21.11 {
+        /*ContainerHelper.loadAllItems(TagValueInput.create(ProblemReporter.DISCARDING, registries, tag), items);
+        *///?} else if >=1.21 {
         ContainerHelper.loadAllItems(tag, items, registries);
         //?} else {
         /*ContainerHelper.loadAllItems(tag, items);
@@ -151,7 +176,13 @@ public final class VersionCompat {
      * Stores block entity data on a block item; vanilla loads it into the block entity when the block is placed.
      */
     public static void setBlockEntityData(ItemStack stack, BlockEntityType<?> type, CompoundTag tag) {
+        //? if >=1.21.11 {
+        /*TagValueOutput output = TagValueOutput.createWithoutContext(ProblemReporter.DISCARDING);
+        output.store(WHOLE_TAG, tag);
+        BlockItem.setBlockEntityData(stack, type, output);
+        *///?} else {
         BlockItem.setBlockEntityData(stack, type, tag);
+        //?}
     }
 
     public static boolean hasBlockEntityData(ItemStack stack) {

@@ -10,7 +10,7 @@ import omtteam.openmodularlighting.registry.ModBlockEntities;
  * Carbon (non-electric) floodlight (1.7.10 {@code TileEntityCarbonFloodlight}): burns furnace fuel from its slot.
  */
 public class CarbonFloodlightBlockEntity extends BeamFloodlightBlockEntity {
-    private final FuelPower power = new FuelPower(this::getMode);
+    private final FuelPower power = new FuelPower(this::getMode, this::getLevel);
 
     public CarbonFloodlightBlockEntity(BlockPos pos, BlockState state) {
         super(ModBlockEntities.CARBON_FLOODLIGHT, pos, state);

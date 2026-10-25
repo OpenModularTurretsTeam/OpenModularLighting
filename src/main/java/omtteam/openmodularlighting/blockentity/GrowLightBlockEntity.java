@@ -8,6 +8,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BonemealableBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import omtteam.openmodularlighting.compat.VersionCompat;
+import omtteam.openmodularlighting.compat.nbt.NbtCompat;
 import omtteam.openmodularlighting.config.OMLConfig;
 import omtteam.openmodularlighting.core.beam.BeamShape;
 import omtteam.openmodularlighting.core.beam.GrowMode;
@@ -105,7 +106,7 @@ public class GrowLightBlockEntity extends PanelLightBlockEntity {
 
     @Override
     protected void readSettings(CompoundTag tag) {
-        mode = GrowMode.byOrdinal(tag.getInt(MODE));
+        mode = GrowMode.byOrdinal(NbtCompat.getInt(tag, MODE, 0));
         super.readSettings(tag);
     }
 }

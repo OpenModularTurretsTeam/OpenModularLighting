@@ -3,6 +3,7 @@ package omtteam.openmodularlighting.energy;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.item.ItemStack;
+import omtteam.openmodularlighting.compat.nbt.NbtCompat;
 import omtteam.openmodularlighting.core.energy.EnergyStore;
 
 import java.util.function.IntSupplier;
@@ -75,7 +76,7 @@ public final class ElectricPower implements LightPower {
 
     @Override
     public void read(CompoundTag tag) {
-        store.setAmountUnchecked(Math.min(store.getCapacity(), tag.getLong(ENERGY)));
+        store.setAmountUnchecked(Math.min(store.getCapacity(), NbtCompat.getLong(tag, ENERGY, 0)));
     }
 
     @Override

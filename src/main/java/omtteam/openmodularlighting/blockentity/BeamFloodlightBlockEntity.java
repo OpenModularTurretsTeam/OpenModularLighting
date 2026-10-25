@@ -4,6 +4,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import omtteam.openmodularlighting.compat.nbt.NbtCompat;
 import omtteam.openmodularlighting.config.ConfigData;
 import omtteam.openmodularlighting.config.OMLConfig;
 import omtteam.openmodularlighting.core.beam.BeamMode;
@@ -70,7 +71,7 @@ public abstract class BeamFloodlightBlockEntity extends FloodlightBlockEntity {
 
     @Override
     protected void readSettings(CompoundTag tag) {
-        mode = BeamMode.byOrdinal(tag.getInt(MODE));
+        mode = BeamMode.byOrdinal(NbtCompat.getInt(tag, MODE, 0));
         super.readSettings(tag);
     }
 }

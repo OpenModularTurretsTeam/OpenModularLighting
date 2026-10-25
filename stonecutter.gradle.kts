@@ -36,6 +36,11 @@ stonecutter active "1.21.1-fabric"
 // Prefer whole classes in platform/<loader>/ packages (left out of the other loaders' builds) over conditions.
 stonecutter parameters {
     constants.match(current.project.substringAfterLast('-'), "fabric", "neoforge", "forge")
+    // 1.21.11 renamed ResourceLocation to Identifier (same package). Both ways, so the word Identifier must not be used
+    // for anything else in the source.
+    replacements.regex(current.parsed >= "1.21.11") {
+        replace("\\bResourceLocation\\b", "Identifier", "\\bIdentifier\\b", "ResourceLocation")
+    }
 }
 
 // Builds every version in one go: ./gradlew chiseledBuild

@@ -10,6 +10,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import omtteam.openmodularlighting.compat.CompatBlockEntity;
+import omtteam.openmodularlighting.compat.nbt.NbtCompat;
 import omtteam.openmodularlighting.core.light.LightSources;
 import omtteam.openmodularlighting.core.light.LightSources.SourceStatus;
 import omtteam.openmodularlighting.core.math.Pos;
@@ -65,6 +66,12 @@ public abstract class LightBlockEntity extends CompatBlockEntity {
         return effect;
     }
 
+    /** Replaced (by a player, fluid, piston, …): the sources have to re-cast around the new block. */
+    @Override
+    protected void onBlockRemoved(Level level) {
+        requestRecastOfSources();
+    }
+
     /** Flags every source in a loaded chunk for a re-cast (this block was replaced or a neighbour changed). */
     public void requestRecastOfSources() {
         if (level == null) return;
@@ -104,10 +111,10 @@ public abstract class LightBlockEntity extends CompatBlockEntity {
     protected void readData(CompoundTag tag, HolderLookup.Provider registries) {
         LightSources loaded = new LightSources();
         Set<Long> active = new HashSet<>();
-        for (long pos : tag.getLongArray(ACTIVE_SOURCES)) {
+        for (long pos : NbtCompat.getLongArray(tag, ACTIVE_SOURCES)) {
             active.add(pos);
         }
-        for (long pos : tag.getLongArray(SOURCES)) {
+        for (long pos : NbtCompat.getLongArray(tag, SOURCES)) {
             loaded.add(Positions.toPos(BlockPos.of(pos)), active.contains(pos));
         }
         sources = loaded;

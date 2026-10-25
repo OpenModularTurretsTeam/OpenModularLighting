@@ -11,6 +11,7 @@ import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import omtteam.openmodularlighting.blockentity.LightBlockEntity;
+import omtteam.openmodularlighting.compat.CompatBlockEntity;
 import omtteam.openmodularlighting.world.LightBlocks;
 
 /**
@@ -58,13 +59,12 @@ public abstract class LightBlock extends Block implements EntityBlock {
         }
     }
 
-    /** Replaced (by a player, fluid, piston, …): the sources have to re-cast around the new block. */
+    //? if <1.21.11 {
+    /** Replaced: {@link LightBlockEntity#onBlockRemoved} flags the sources for a re-cast. */
     @Override
     public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
-        if (!state.is(newState.getBlock()) && !level.isClientSide()
-                && level.getBlockEntity(pos) instanceof LightBlockEntity light) {
-            light.requestRecastOfSources();
-        }
+        CompatBlockEntity.handleRemove(state, level, pos, newState);
         super.onRemove(state, level, pos, newState, movedByPiston);
     }
+    //?}
 }

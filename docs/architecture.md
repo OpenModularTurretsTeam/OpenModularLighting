@@ -185,7 +185,7 @@ Without that, every toggle would update the next light block and start re-cast c
 Light blocks do not tick (there can be thousands).
 Instead they react to the world:
 
-- `neighborChanged` and `onRemove` call `requestRecastOfSources()`, which only flags the sources; the light re-casts on its next tick, never inside the neighbour callback.
+- `neighborChanged` and `LightBlockEntity.onBlockRemoved` (the removal hook of `CompatBlockEntity`) call `requestRecastOfSources()`, which only flags the sources; the light re-casts on its next tick, never inside the neighbour callback.
 - `randomTick` calls `LightBlockEntity.refresh()`: sources whose block entity is gone, or no longer covers this position, are dropped, `LIT` is corrected and the block removes itself if nothing is left.
   Sources in unloaded chunks are left alone (`SourceStatus.UNKNOWN`).
 

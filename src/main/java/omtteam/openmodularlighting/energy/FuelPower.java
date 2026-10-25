@@ -3,11 +3,14 @@ package omtteam.openmodularlighting.energy;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
+import omtteam.openmodularlighting.compat.nbt.NbtCompat;
 import omtteam.openmodularlighting.config.OMLConfig;
 import omtteam.openmodularlighting.core.beam.BeamMode;
 import omtteam.openmodularlighting.core.formula.CarbonFuel;
 import omtteam.openmodularlighting.core.state.FuelTimer;
 import omtteam.openmodularlighting.platform.Platform;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Supplier;
 
@@ -19,16 +22,21 @@ public final class FuelPower implements LightPower {
 
     private final FuelTimer timer;
     private final Supplier<BeamMode> mode;
+    private final Supplier<Level> level;
 
-    /** @param mode the light's current mode, which decides how fast the burn time is used up */
-    public FuelPower(Supplier<BeamMode> mode) {
+    /**
+     * @param mode  the light's current mode, which decides how fast the burn time is used up
+     * @param level the light's level (fuel values), {@code null} while it is not placed
+     */
+    public FuelPower(Supplier<BeamMode> mode, Supplier<Level> level) {
         this.mode = mode;
+        this.level = level;
         this.timer = new FuelTimer(() -> CarbonFuel.drain(mode.get()));
     }
 
-    /** Furnace burn time of an item in ticks, 0 if it is no fuel. */
-    public static int burnTime(ItemStack stack) {
-        return Platform.fuel().burnTime(stack);
+    /** Furnace burn time of an item in ticks, 0 if it is no fuel (or there is no level yet). */
+    public static int burnTime(@Nullable Level level, ItemStack stack) {
+        return level == null ? 0 : Platform.fuel().burnTime(level, stack);
     }
 
     /** Stored burn time, in ticks of straight light. */
@@ -53,7 +61,7 @@ public final class FuelPower implements LightPower {
 
     @Override
     public boolean isValidItem(ItemStack stack) {
-        return burnTime(stack) > 0;
+        return burnTime(level.get(), stack) > 0;
     }
 
     /**
@@ -63,7 +71,7 @@ public final class FuelPower implements LightPower {
     public void prepare(SimpleContainer inventory) {
         if (!timer.needsFuel()) return;
         ItemStack stack = inventory.getItem(0);
-        int burnTime = burnTime(stack);
+        int burnTime = burnTime(level.get(), stack);
         if (burnTime <= 0 || !timer.refuel(CarbonFuel.ticks(burnTime, OMLConfig.get().general.carbonTime))) {
             return;
         }
@@ -83,7 +91,7 @@ public final class FuelPower implements LightPower {
 
     @Override
     public void read(CompoundTag tag) {
-        timer.setTicksRemaining(tag.getInt(TIME_REMAINING));
+        timer.setTicksRemaining(NbtCompat.getInt(tag, TIME_REMAINING, 0));
     }
 
     @Override

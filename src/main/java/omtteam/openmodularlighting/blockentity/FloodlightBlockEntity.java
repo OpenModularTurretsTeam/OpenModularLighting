@@ -7,6 +7,7 @@ import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.Containers;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -17,6 +18,7 @@ import omtteam.openmodularlighting.camo.CamoBlock;
 import omtteam.openmodularlighting.camo.CamoData;
 import omtteam.openmodularlighting.compat.CompatBlockEntity;
 import omtteam.openmodularlighting.compat.VersionCompat;
+import omtteam.openmodularlighting.compat.nbt.NbtCompat;
 import omtteam.openmodularlighting.config.OMLConfig;
 import omtteam.openmodularlighting.core.beam.BeamShape;
 import omtteam.openmodularlighting.core.light.LightType;
@@ -143,6 +145,13 @@ public abstract class FloodlightBlockEntity extends CompatBlockEntity implements
     /** The block was removed: leave all light blocks (removing those this light was the last source of). */
     public void removeLights(Level level) {
         beam.removeLights(level);
+    }
+
+    /** Broken or replaced: leave the light blocks and drop the slot contents. */
+    @Override
+    protected void onBlockRemoved(Level level) {
+        removeLights(level);
+        Containers.dropContents(level, worldPosition, inventory);
     }
 
     public Direction facing() {
@@ -289,7 +298,7 @@ public abstract class FloodlightBlockEntity extends CompatBlockEntity implements
 
     /** Reads what {@link #writeSettings} wrote. */
     protected void readSettings(CompoundTag tag) {
-        color = tag.contains(COLOR) ? tag.getInt(COLOR) : NO_COLOR;
+        color = NbtCompat.getInt(tag, COLOR, NO_COLOR);
         camo.read(tag);
         power().read(tag);
     }
@@ -307,7 +316,8 @@ public abstract class FloodlightBlockEntity extends CompatBlockEntity implements
     protected void readData(CompoundTag tag, HolderLookup.Provider registries) {
         int oldColor = color;
         BlockState oldCamo = camo.get();
-        controller.load(tag.getBoolean(INVERTED), tag.getBoolean(ON), tag.getInt(TIMEOUT));
+        controller.load(NbtCompat.getBoolean(tag, INVERTED, false), NbtCompat.getBoolean(tag, ON, false),
+                NbtCompat.getInt(tag, TIMEOUT, 0));
         readSettings(tag);
         NonNullList<ItemStack> items = NonNullList.withSize(1, ItemStack.EMPTY);
         VersionCompat.loadItems(tag, items, registries);
