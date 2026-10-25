@@ -199,9 +199,9 @@ The numbers are in `core.formula` (`EnergyCost`, `CarbonFuel`, `GrowChance`).
 
 Outside access goes through the loader:
 
-- Energy: `core.energy.EnergyAccess`, exposed as Team Reborn Energy on Fabric (`FabricEnergyStorages`) and as an FE capability on NeoForge (`NeoForgeEnergyHandler`) and Forge (`ForgeEnergyHandler`).
+- Energy: `core.energy.EnergyAccess`, exposed as Team Reborn Energy on Fabric (`FabricEnergyStorages`) and as an FE capability on NeoForge (`NeoForgeEnergyHandler`; on 1.21.11 an `EnergyHandler` of NeoForge's transfer API, in the version folder `src/main/mc1.21.11-`) and Forge (`ForgeEnergyHandler`).
   Only inserting is possible; there is no extraction.
-- Items: `inventory.ItemAccess.insertOnly`, exposed as `ItemStorage.SIDED` on Fabric (`FabricItemStorages`) and as `IItemHandler` on NeoForge and Forge.
+- Items: `inventory.ItemAccess.insertOnly`, exposed as `ItemStorage.SIDED` on Fabric (`FabricItemStorages`) and as `IItemHandler` on NeoForge and Forge (NeoForge 1.21.11: `ResourceHandler<ItemResource>`). The NeoForge capabilities are registered by `NeoForgeCapabilities`, one class per version folder.
 - Battery slot and fuel values: `platform.Energy` and `platform.Fuel`.
 
 ### Shared energy of panel lights

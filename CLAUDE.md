@@ -401,7 +401,9 @@ omtteam.openmodularlighting
 │   │                              Fabric… service implementations
 │   ├── neoforge/                  OMLNeoForge (@Mod entrypoint: services, OML.init, steps per RegisterEvent, capabilities,
 │   │                              events), NeoForgeBlockEnabledCondition, NeoForge… service implementations;
-│   │                              FML constructs a mod's common @Mod class before its client one (OMLNeoForgeClient)
+│   │                              FML constructs a mod's common @Mod class before its client one (OMLNeoForgeClient).
+│   │                              NeoForgeCapabilities, NeoForgeEnergy, NeoForgeEnergyHandler and NeoForgeItemHandler
+│   │                              are in the version folders (src/main/mc1.20.1-1.21.1, src/main/mc1.21.11-: transfer API)
 │   └── forge/                     OMLForge (@Mod entrypoint like OMLNeoForge, starts OMLForgeClient by name on a client),
 │                                  ForgeLightCapabilities (AttachCapabilitiesEvent), ForgeBlockEnabledCondition, Forge… services
 └── datagen/                       recipe, loot table, block tag, model providers (runs per version)
@@ -530,7 +532,7 @@ The timeout still applies: toggling `LIT` is much cheaper than placing blocks, b
   `timeRemaining += carbonTime × burnTime / 1600 × 20` (coal = `carbonTime` seconds of straight light). The mode does not matter when refuelling; instead every tick the light runs uses up 1 (straight) or 2 (both cones, `CarbonFuel.drain`) of it, so cones burn fuel twice as fast. The GUI shows the time left in the current mode (`CarbonFuel.runTicks`). Refuelling happens even while the light is off.
   If the formula gives 0 ticks (tiny burn time, or `carbonTime = 0`), the item is **not** consumed (`FuelTimer.refuel` returns false).
   Fuel is any furnace fuel of the loader (`platform.Fuel`: Fabric's `FuelRegistry`, NeoForge's burn time incl. its data map; on 1.21.11 the level's fuel values, so `burnTime` takes the level). The remainder stays in the slot like in a furnace (lava bucket → bucket, `Fuel.remainder`, the loader's stack-aware hook).
-- Inventories (1 slot, a vanilla `SimpleContainer`) are exposed as `inventory.ItemAccess.insertOnly` (`FloodlightBlockEntity#getItemAccess`): Fabric `ItemStorage.SIDED` (`platform/fabric/FabricItemStorages`, slotted for Jade), NeoForge `IItemHandler` (`NeoForgeItemHandler`). Insertion only accepts valid fuel or energy items. Extraction is disabled.
+- Inventories (1 slot, a vanilla `SimpleContainer`) are exposed as `inventory.ItemAccess.insertOnly` (`FloodlightBlockEntity#getItemAccess`): Fabric `ItemStorage.SIDED` (`platform/fabric/FabricItemStorages`, slotted for Jade), NeoForge `IItemHandler` (`NeoForgeItemHandler`; on 1.21.11 a `ResourceHandler<ItemResource>` of NeoForge's transfer API). Insertion only accepts valid fuel or energy items. Extraction is disabled.
 
 ### 6.6 Interaction
 
@@ -762,7 +764,8 @@ Update this checklist as work progresses.
 - [x] Registration: ids in the block and item properties, block entity types through `VersionCompat.blockEntityType`
 - [x] Block callbacks: `FACING` as `EnumProperty<Direction>`, `noCollision`, `neighborChanged` with `Orientation`, `BlockCompat` (state queries, `sidedSuccess`)
 - [ ] Nodes `1.21.11-fabric` / `1.21.11-neoforge` in `settings.gradle.kts` (`versions/1.21.11-*/gradle.properties` exist; add the nodes once they compile)
-- [ ] Remaining main code: datagen (version folders), NeoForge transfer rework, Jade 21.x, recipe condition (`FabricBlockEnabledCondition`)
+- [x] NeoForge transfer API: `NeoForgeEnergyHandler` (`EnergyHandler`, one `SnapshotJournal` per store), `NeoForgeItemHandler` (`ResourceHandler<ItemResource>`), `NeoForgeEnergy` and the capability registration (`NeoForgeCapabilities`) exist once per version folder (`mc1.20.1-1.21.1`: `IEnergyStorage` / `IItemHandler`, `mc1.21.11-`: transfer API); the NeoForge GameTest transfer code (`NeoForgeTestTransfer`, test battery) still uses the old API
+- [ ] Remaining main code: datagen (version folders), Jade 21.x, recipe condition (`FabricBlockEnabledCondition`)
 - [ ] Client: camo models (`BlockStateModel`), screens, world render event; GameTests (new framework)
 
 ### Later / optional (ask first)

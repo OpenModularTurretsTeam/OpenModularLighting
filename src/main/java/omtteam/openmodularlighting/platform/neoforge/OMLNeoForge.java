@@ -2,26 +2,20 @@ package omtteam.openmodularlighting.platform.neoforge;
 
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
-import net.neoforged.neoforge.capabilities.Capabilities;
-import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import net.neoforged.neoforge.registries.NeoForgeRegistries;
 import net.neoforged.neoforge.registries.RegisterEvent;
 import omtteam.openmodularlighting.OML;
-import omtteam.openmodularlighting.blockentity.FloodlightBlockEntity;
 import omtteam.openmodularlighting.compat.BlockEnabledCondition;
 import omtteam.openmodularlighting.compat.InteractiveBlock;
 import omtteam.openmodularlighting.config.OMLConfig;
-import omtteam.openmodularlighting.core.energy.EnergyAccess;
 import omtteam.openmodularlighting.platform.Platform;
 import omtteam.openmodularlighting.platform.PlatformServices;
-import omtteam.openmodularlighting.registry.ModBlockEntities;
 import omtteam.openmodularlighting.registry.RegistrationStep;
 
 import java.util.HashSet;
@@ -43,7 +37,7 @@ public final class OMLNeoForge {
         OML.init();
         modBus.addListener(this::onRegister);
         modBus.addListener(this::onCommonSetup);
-        modBus.addListener(OMLNeoForge::onRegisterCapabilities);
+        modBus.addListener(NeoForgeCapabilities::register);
         NeoForge.EVENT_BUS.addListener(OMLNeoForge::onRightClickBlock);
         NeoForge.EVENT_BUS.addListener(OMLNeoForge::onPlayerLoggedIn);
     }
@@ -65,22 +59,6 @@ public final class OMLNeoForge {
             List<RegistrationStep> missing = steps.stream().filter(step -> !done.contains(step)).toList();
             throw new IllegalStateException("Registration steps never ran: " + missing);
         }
-    }
-
-    private static void onRegisterCapabilities(RegisterCapabilitiesEvent event) {
-        for (BlockEntityType<? extends FloodlightBlockEntity> type : ModBlockEntities.lights()) {
-            registerCapabilities(event, type);
-        }
-    }
-
-    private static <T extends FloodlightBlockEntity> void registerCapabilities(RegisterCapabilitiesEvent event,
-                                                                                BlockEntityType<T> type) {
-        event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, type,
-                (light, side) -> new NeoForgeItemHandler(light.getItemAccess(side)));
-        event.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, type, (light, side) -> {
-            EnergyAccess access = light.getEnergyAccess(side);
-            return access == null ? null : new NeoForgeEnergyHandler(access);
-        });
     }
 
     private static void onRightClickBlock(PlayerInteractEvent.RightClickBlock event) {
