@@ -10,9 +10,9 @@ import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
+import omtteam.omlib.util.world.WorldUtil;
 import omtteam.openmodularlighting.tileentity.FloodlightTileEntity;
 import omtteam.openmodularlighting.tileentity.FluorescentLightTileEntity;
-import omtteam.openmodularlighting.world.Worlds;
 
 import java.util.Map;
 
@@ -46,7 +46,7 @@ public class FluorescentLightBlock extends PanelLightBlock {
     @Override
     @SuppressWarnings("deprecation")
     public IBlockState getActualState(IBlockState state, IBlockAccess world, BlockPos pos) {
-        TileEntity tile = Worlds.getTileEntity(world, pos);
+        TileEntity tile = WorldUtil.getTileEntity(world, pos);
         boolean rotated = small && tile instanceof FluorescentLightTileEntity
                 && ((FluorescentLightTileEntity) tile).isRotated();
         return state.withProperty(ROTATED, rotated);

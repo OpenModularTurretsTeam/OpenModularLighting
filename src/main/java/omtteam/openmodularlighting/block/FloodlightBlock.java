@@ -26,11 +26,11 @@ import net.minecraft.block.properties.IProperty;
 import net.minecraftforge.common.property.ExtendedBlockState;
 import net.minecraftforge.common.property.IExtendedBlockState;
 import net.minecraftforge.common.property.IUnlistedProperty;
+import omtteam.omlib.util.world.WorldUtil;
 import omtteam.openmodularlighting.OML;
 import omtteam.openmodularlighting.camo.CamoBlock;
 import omtteam.openmodularlighting.handler.OMLGuiHandler;
 import omtteam.openmodularlighting.tileentity.FloodlightTileEntity;
-import omtteam.openmodularlighting.world.Worlds;
 
 import javax.annotation.Nullable;
 
@@ -105,7 +105,7 @@ public abstract class FloodlightBlock extends Block {
     @Override
     public IBlockState getExtendedState(IBlockState state, IBlockAccess world, BlockPos pos) {
         if (!(state instanceof IExtendedBlockState)) return state;
-        TileEntity tile = Worlds.getTileEntity(world, pos);
+        TileEntity tile = WorldUtil.getTileEntity(world, pos);
         IBlockState camo = tile instanceof FloodlightTileEntity ? ((FloodlightTileEntity) tile).getCamo() : null;
         return ((IExtendedBlockState) state).withProperty(CamoBlock.CAMO, camo);
     }

@@ -8,10 +8,10 @@ import net.minecraft.item.EnumDyeColor;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IBlockAccess;
+import omtteam.omlib.util.world.WorldUtil;
 import omtteam.openmodularlighting.client.camo.CamoModels;
 import omtteam.openmodularlighting.registry.ModBlocks;
 import omtteam.openmodularlighting.tileentity.FloodlightTileEntity;
-import omtteam.openmodularlighting.world.Worlds;
 
 import javax.annotation.Nullable;
 
@@ -31,7 +31,7 @@ public final class FloodlightTint {
      */
     public static int color(IBlockState state, @Nullable IBlockAccess world, @Nullable BlockPos pos, int tintIndex) {
         if (world == null || pos == null) return NO_TINT;
-        TileEntity tile = Worlds.getTileEntity(world, pos);
+        TileEntity tile = WorldUtil.getTileEntity(world, pos);
         if (!(tile instanceof FloodlightTileEntity)) return NO_TINT;
         FloodlightTileEntity light = (FloodlightTileEntity) tile;
         IBlockState camo = light.getCamo();
