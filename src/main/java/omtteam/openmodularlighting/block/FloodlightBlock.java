@@ -10,7 +10,6 @@ import net.minecraft.block.state.BlockStateContainer;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.inventory.InventoryHelper;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
@@ -28,6 +27,7 @@ import net.minecraftforge.common.property.IExtendedBlockState;
 import net.minecraftforge.common.property.IUnlistedProperty;
 import omtteam.omlib.api.render.camo.RenderBlockStateContainer;
 import omtteam.omlib.block.BlockAbstractCamoTileEntity;
+import omtteam.omlib.util.inventory.InvUtil;
 import omtteam.omlib.util.world.WorldUtil;
 import omtteam.openmodularlighting.OML;
 import omtteam.openmodularlighting.handler.OMLGuiHandler;
@@ -176,11 +176,7 @@ public abstract class FloodlightBlock extends Block {
         if (tile instanceof FloodlightTileEntity) {
             FloodlightTileEntity light = (FloodlightTileEntity) tile;
             light.removeLights(world);
-            ItemStack slot = light.getInventory().getStackInSlot(0);
-            if (!slot.isEmpty()) {
-                InventoryHelper.spawnItemStack(world, pos.getX(), pos.getY(), pos.getZ(), slot.copy());
-                light.getInventory().setStackInSlot(0, ItemStack.EMPTY);
-            }
+            InvUtil.dropItems(world, pos, light.getInventory());
         }
         super.breakBlock(world, pos, state);
     }

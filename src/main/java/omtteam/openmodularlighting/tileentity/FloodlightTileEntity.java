@@ -19,6 +19,7 @@ import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.ItemStackHandler;
 import omtteam.omlib.api.render.camo.ICamoSupport;
 import omtteam.omlib.core.energy.EnergyAccess;
+import omtteam.omlib.inventory.AutomationItemHandler;
 import omtteam.omlib.power.EnergyAccessStorage;
 import omtteam.omlib.tileentity.TileEntitySynced;
 import omtteam.omlib.util.camo.CamoRules;
@@ -33,7 +34,6 @@ import omtteam.openmodularlighting.core.state.LightController;
 import omtteam.openmodularlighting.core.state.RecheckTimer;
 import omtteam.openmodularlighting.energy.ElectricPower;
 import omtteam.openmodularlighting.energy.LightPower;
-import omtteam.openmodularlighting.inventory.InsertOnlyItemHandler;
 import omtteam.openmodularlighting.registry.ModBlocks;
 import omtteam.openmodularlighting.world.LightBlocks;
 
@@ -80,7 +80,7 @@ public abstract class FloodlightTileEntity extends TileEntitySynced
         }
     };
     /** Hoppers and pipes may insert valid items only and cannot extract (1.7.10). */
-    private final IItemHandler itemAccess = new InsertOnlyItemHandler(inventory);
+    private final IItemHandler itemAccess = new AutomationItemHandler(inventory, stack -> false);
     /** Forge Energy view of the last energy access handed out (the access objects do not change). */
     @Nullable
     private EnergyAccessStorage energyAdapter;
