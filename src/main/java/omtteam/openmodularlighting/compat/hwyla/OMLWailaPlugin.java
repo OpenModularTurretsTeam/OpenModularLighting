@@ -11,6 +11,7 @@ import omtteam.openmodularlighting.tileentity.FloodlightTileEntity;
  * {@link WailaPlugin} and only loaded if Hwyla is installed. Replaces the 1.7.10 WAILA handler.
  */
 @WailaPlugin
+@SuppressWarnings("unused") // loaded by Hwyla through @WailaPlugin
 public class OMLWailaPlugin implements IWailaPlugin {
     @Override
     public void register(IWailaRegistrar registrar) {
