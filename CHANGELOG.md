@@ -9,10 +9,13 @@ turns *Unreleased* into the release section; `chiseledPublish` uploads exactly t
 
 ## [Unreleased]
 
+## [1.0.0-beta.7] - 2026-10-26
+
 ### Changed
 
 - Forge 1.12.2: the jar files are named `openmodularlighting-<version>-mc1.12.2-forge.jar`, as in the other OpenModularTurretsTeam 1.12.2 mods
 - Forge 1.12.2: the electric, carbon and UV floodlights are disguised in OMLib's camouflage menu (Camouflage button in their GUI) instead of a slot in the GUI, as OMT's turret bases and OMPD's camouflage trap; existing disguises are kept
+- Forge 1.12.2: requires OMLib 4.0.0-beta.2 or newer
 
 ## [1.0.0-beta.6] - 2026-10-24
 
