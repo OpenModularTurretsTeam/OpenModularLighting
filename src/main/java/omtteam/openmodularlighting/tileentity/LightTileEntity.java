@@ -5,7 +5,7 @@ import net.minecraft.network.play.server.SPacketUpdateTileEntity;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
-import omtteam.openmodularlighting.compat.CompatTileEntity;
+import omtteam.omlib.tileentity.TileEntitySynced;
 import omtteam.openmodularlighting.core.light.LightSources;
 import omtteam.openmodularlighting.core.light.LightSources.SourceStatus;
 import omtteam.openmodularlighting.core.math.Pos;
@@ -24,7 +24,7 @@ import java.util.Set;
  * <p>
  * Nothing is synced to clients: the on/off state is the {@code LIT} blockstate.
  */
-public abstract class LightTileEntity extends CompatTileEntity {
+public abstract class LightTileEntity extends TileEntitySynced {
     private static final String SOURCES = "sources";
     private static final String ACTIVE_SOURCES = "active_sources";
 

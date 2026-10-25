@@ -20,12 +20,12 @@ import net.minecraftforge.items.ItemStackHandler;
 import omtteam.omlib.api.render.camo.ICamoSupport;
 import omtteam.omlib.core.energy.EnergyAccess;
 import omtteam.omlib.power.EnergyAccessStorage;
+import omtteam.omlib.tileentity.TileEntitySynced;
 import omtteam.omlib.util.camo.CamoRules;
 import omtteam.omlib.util.camo.CamoSettings;
 import omtteam.omlib.util.world.BlockUtil;
 import omtteam.openmodularlighting.block.FloodlightBlock;
 import omtteam.openmodularlighting.block.LightBlock;
-import omtteam.openmodularlighting.compat.CompatTileEntity;
 import omtteam.openmodularlighting.config.OMLConfig;
 import omtteam.openmodularlighting.core.beam.BeamShape;
 import omtteam.openmodularlighting.core.light.LightType;
@@ -49,7 +49,7 @@ import java.util.Locale;
  * Lights whose block {@link FloodlightBlock#supportsCamo() supports camouflage} are OMLib camouflage hosts: the disguise
  * is set in OMLib's camouflage menu, by anyone who may open the light's GUI; light value and opacity stay the light's.
  */
-public abstract class FloodlightTileEntity extends CompatTileEntity
+public abstract class FloodlightTileEntity extends TileEntitySynced
         implements LightSourceTileEntity, ITickable, ICamoSupport {
     /** 1.7.10 colour value for "not dyed". Other values are {@code EnumDyeColor} metadata. */
     public static final int NO_COLOR = 16;

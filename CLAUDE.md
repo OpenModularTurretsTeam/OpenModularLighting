@@ -25,13 +25,13 @@ Core gameplay (the same as on the main branch):
 
 - `core/` and `config/` (and their unit tests) should stay identical to the main branch except for Java 8 syntax (no records, switch expressions, `instanceof` patterns, `List.of`, `RandomGenerator`; core takes `java.util.Random`). When a change lands on one branch, port it to the other, and tell the user.
   Exception: `core.energy` (`EnergyStore`, `EnergyAccess`) comes from OMLib (`omtteam.omlib.core.energy`, the same classes) and is not part of this mod.
-- Gameplay changes on the main branch usually belong here too; the Minecraft-facing classes have the same names and packages, except that this branch uses the MCP-style names of the OMTTeam 1.12 workspace (decided by the user, 2026-10-25): `blockentity` → `tileentity` (`…BlockEntity` → `…TileEntity`, `ModBlockEntities` → `ModTileEntities`, `CompatBlockEntity` → `CompatTileEntity`), `menu` → `container` (`…Menu` → `…Container`, `OMLGuiHandler` in `handler`), `client.screen` → `client.gui` (`…Screen` → `…Gui`).
+- Gameplay changes on the main branch usually belong here too; the Minecraft-facing classes have the same names and packages, except that this branch uses the MCP-style names of the OMTTeam 1.12 workspace (decided by the user, 2026-10-25): `blockentity` → `tileentity` (`…BlockEntity` → `…TileEntity`, `ModBlockEntities` → `ModTileEntities`, `CompatBlockEntity` → OMLib's `tileentity.TileEntitySynced`), `menu` → `container` (`…Menu` → `…Container`, `OMLGuiHandler` in `handler`), `client.screen` → `client.gui` (`…Screen` → `…Gui`).
 - Never merge this branch into `1.20.1+` or the other way round: the build and most of `main` differ completely. Cherry-pick or port by hand.
 
 ### Allowed dependencies
 
 - **Forge 1.12.2** (14.23.5.x, chosen by RetroFuturaGradle) and **Forge Energy** (`CapabilityEnergy`, part of Forge; replaces Team Reborn Energy / NeoForge FE, 1 E = 1 FE).
-- **OMLib** (required, `required-after:omlib`): the shared library of the OpenModularTurretsTeam mods (`../OMLib` in the OMTTeam 1.12 workspace). Code it already has is used from there, not duplicated: the energy buffer (`core.energy`) and its Forge Energy adapter (`power.EnergyAccessStorage`), its wrench (`ItemMultiTool`, accepted by `CommonTags.isWrench`), the chunk-safe tile entity lookup (`util.world.WorldUtil.getTileEntity`) the camouflage (`ICamoSupport`, the camouflage menu, `CamoRules`, §6.11) and the server → client config sync (`config.ConfigSync`, §5).
+- **OMLib** (required, `required-after:omlib`): the shared library of the OpenModularTurretsTeam mods (`../OMLib` in the OMTTeam 1.12 workspace). Code it already has is used from there, not duplicated: the energy buffer (`core.energy`) and its Forge Energy adapter (`power.EnergyAccessStorage`), its wrench (`ItemMultiTool`, accepted by `CommonTags.isWrench`), the chunk-safe tile entity lookup (`util.world.WorldUtil.getTileEntity`) the camouflage (`ICamoSupport`, the camouflage menu, `CamoRules`, §6.11) the server → client config sync (`config.ConfigSync`, §5) and the tile entity base (`tileentity.TileEntitySynced`, §5).
 - Build-time only: **RetroFuturaGradle** (`com.gtnewhorizons.retrofuturagradle`, the maintained 1.12.2 toolchain, from the GTNH maven), the mod publish plugin, Spotless, JUnit 5 (5.13: the last line that runs on Java 8), EqualsVerifier (3.x: the last line that runs on Java 8) and PIT (1.17, likewise).
 - **Hwyla** (optional, compile-only; the mod from CurseMaven, maven.tehnut.info no longer serves it): the block info overlay instead of Jade, which does not exist on 1.12.2 (requested by the user on 2026-10-24). `compat.hwyla.OMLWailaPlugin` (`@WailaPlugin`, only loaded by Hwyla) registers `FloodlightWailaProvider`; the content is `FloodlightTooltip` (invert and mode, as the main branch's Jade tooltip), switchable in Hwyla's config (`option.openmodularlighting.light`).
 - Nothing else without asking the user first. No mixins, no Jabel, no CTM/TOP dependency. A The One Probe integration would be optional and is not done; ask the user first.
@@ -126,7 +126,7 @@ Differences to the main branch, and the 1.12.2 pitfalls the code handles. Keep t
 | --- | --- |
 | Registration | `Registration` handles `RegistryEvent.Register<Block/Item>` (fired after pre-init); block entity classes via `GameRegistry.registerTileEntity` in `ModTileEntities`. Blocks and items are created statically in `ModBlocks` / `ModItems` (registry name + translation key there) |
 | Blockstate | metadata: facing index in bits 0–2, `LIT` in bit 3 (`FloodlightBlock`); light blocks: `LIT` only. The small fluorescent light's `ROTATED` does not fit and lives in its block entity (`getActualState`) |
-| Tile entities | `CompatTileEntity` (`readData` / `writeData` / `writeClientData`, update packets, `syncToClient`, `remesh`). **It overrides `shouldRefresh`**: Forge otherwise recreates a mod tile entity on every state change, which would wipe a light whenever `LIT` switches |
+| Tile entities | OMLib's `tileentity.TileEntitySynced` (OML's former `CompatTileEntity`, moved to OMLib on 2026-10-25; `readData` / `writeData` / `writeClientData`, update packets, `syncToClient`, `remesh`). **It overrides `shouldRefresh`**: Forge otherwise recreates a mod tile entity on every state change, which would wipe a light whenever `LIT` switches |
 | Ticking | `ITickable` on the floodlights and the UV light; the phantom light's block entity does not tick (random ticks on the block) |
 | Block flags | `LightBlocks.FLAGS` = 2 \| 16 (clients, no observers, no neighbour notification); `UPDATE_ALL` = 3 for the UV light's removal |
 | Phantom light | `Material.AIR` (so `isAir` is true, as in 1.7.10): falling blocks, trees, pistons and explosions treat it as air. Random ticks still work (1.12 counts them per block). `LevelLightWorld` and `LightBlocks.join` check the light blocks **before** `isAir` |
@@ -177,7 +177,7 @@ omtteam.openmodularlighting
 ├── energy/             ElectricPower, FuelPower, LightPower, ClusterEnergy, Batteries
 ├── world/              LightBlocks, LevelLightWorld, Positions, PosArrays
 ├── config/             as on the main branch (Java 8)
-├── compat/             CompatTileEntity, CommonTags, BlockEnabledCondition
+├── compat/             CommonTags, BlockEnabledCondition
 └── client/             ClientProxy, ClientEvents (models, colours, tooltip, debug renderer),
                         camo/ (CamoModel, CamoModels), render/ (FloodlightTint, LightBlockDebugRenderer), gui/
 ```
@@ -314,7 +314,7 @@ Base data (`FloodlightTileEntity`): `inverted`, `mode`, `color`, the disguise (�
 Subclasses add the energy buffer, the 1-slot inventory, `timeRemaining` (carbon), `rotationState` (fluorescent) and `nextGrowTick` (grow light).
 Every floodlight caches the positions of its current shape (the phantom or UV light blocks it placed or joined) as a `long[]` (`BlockPos.asLong`). It is saved with the BE so that turning on and off after a reload does not need a re-cast. A floodlight saved without it (or with a different mode) re-casts on its first tick.
 Phantom and UV light BEs store their sources as two `long` lists, `sources` (all) and `activeSources` (those currently on). `LIT` follows `!activeSources.isEmpty()`, and the block is removed when `sources` is empty.
-The client needs `color` and the disguise (and later `rotationState`) for rendering: send them in the update tag. On the client, a colour or disguise change re-renders the block (`CompatTileEntity.remesh()`), because the tint and the disguise are read from the block entity (`client.render.FloodlightTint`: the dye's map colour × a brightness factor of the block).
+The client needs `color` and the disguise (and later `rotationState`) for rendering: send them in the update tag. On the client, a colour or disguise change re-renders the block (`TileEntitySynced.remesh()`), because the tint and the disguise are read from the block entity (`client.render.FloodlightTint`: the dye's map colour × a brightness factor of the block).
 
 **Dropped item.** A broken floodlight keeps mode, invert, colour, disguise and energy / burn time on the item (block entity data, `VersionCompat.setBlockEntityData`). Vanilla loads it back when the item is placed, and the tooltip shows "Configured". Also:
 - the data is only added if something differs from a new light, so unconfigured drops still stack;
@@ -404,7 +404,7 @@ Design them step by step, together with the user:
 
 ### Code shared with OpenModularTurrets
 
-The camo model and `CompatTileEntity` follow OpenModularTurrets (`../OMT1.20.1+`) on the main branch; on 1.12.2 they are rewritten for the 1.12 APIs, and the rest of the camouflage is OMLib's (§6.11).
+The camo model and the tile entity base (OMLib's `TileEntitySynced`, the main branch's `CompatBlockEntity`) follow OpenModularTurrets (`../OMT1.20.1+`) on the main branch; on 1.12.2 they are rewritten for the 1.12 APIs, and the rest of the camouflage is OMLib's (§6.11).
 The camo differences to OpenModularTurrets stay limited to the lamp overlay.
 When you change one of these, tell the user whether the same change belongs in the other mod or the main branch (do not edit other repositories unasked).
 
