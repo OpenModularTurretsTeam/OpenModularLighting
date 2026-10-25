@@ -15,7 +15,9 @@ import omtteam.openmodularlighting.blockentity.FloodlightBlockEntity;
 import omtteam.openmodularlighting.blockentity.FluorescentLightBlockEntity;
 import omtteam.openmodularlighting.registry.ModBlockEntities;
 //? if >=1.21 {
+import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.world.level.block.BaseEntityBlock;
 import org.jetbrains.annotations.NotNull;
 //?}
@@ -30,7 +32,10 @@ public class FluorescentLightBlock extends PanelLightBlock {
     public static final BooleanProperty ROTATED = BooleanProperty.create("rotated");
 
     //? if >=1.21 {
-    private static final MapCodec<FluorescentLightBlock> CODEC = simpleCodec(properties -> new FluorescentLightBlock(properties, true));
+    private static final MapCodec<FluorescentLightBlock> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+            propertiesCodec(),
+            Codec.BOOL.fieldOf("small").forGetter(block -> block.small)
+    ).apply(instance, FluorescentLightBlock::new));
     //?}
 
     private static final Map<Direction, VoxelShape> SQUARE = PanelShapes.of(0, 0, 0, 16, 3, 16);

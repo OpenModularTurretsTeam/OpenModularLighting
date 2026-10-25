@@ -79,9 +79,10 @@ public class UvLightBlock extends LightBlock {
         return Shapes.empty();
     }
 
+    /** {@code uvLightRendered} is the player's own setting: read from the local config, not the server's. */
     @Override
     public @NotNull RenderShape getRenderShape(BlockState state) {
-        return state.getValue(LIT) && OMLConfig.get().general.uvLightRendered ? RenderShape.MODEL : RenderShape.INVISIBLE;
+        return state.getValue(LIT) && OMLConfig.local().general.uvLightRendered ? RenderShape.MODEL : RenderShape.INVISIBLE;
     }
 
     /** Hide faces between UV light blocks, like glass (1.7.10 {@code shouldSideBeRendered}). */

@@ -34,9 +34,35 @@ public abstract class LightBlockEntity extends CompatBlockEntity {
         super(type, pos, state);
     }
 
-    /** The sources of this block. Call {@link #setChanged()} after changing them. */
+    /** The sources of this block, for reading; change them through the methods below, which save only real changes. */
     public LightSources sources() {
         return sources;
+    }
+
+    public LightSources.Effect addSource(Pos source, boolean on) {
+        long before = sources.changeCount();
+        return savedIfChanged(before, sources.add(source, on));
+    }
+
+    public LightSources.Effect removeSource(Pos source) {
+        long before = sources.changeCount();
+        return savedIfChanged(before, sources.remove(source));
+    }
+
+    public LightSources.Effect setSourceActive(Pos source, boolean on) {
+        long before = sources.changeCount();
+        return savedIfChanged(before, sources.setActive(source, on));
+    }
+
+    /**
+     * Marks the block entity dirty only if the sources changed since {@code before}: re-casts join every position again
+     * and random ticks refresh every light block, and most of these calls change nothing.
+     */
+    private LightSources.Effect savedIfChanged(long before, LightSources.Effect effect) {
+        if (sources.changeCount() != before) {
+            setChanged();
+        }
+        return effect;
     }
 
     /** Flags every source in a loaded chunk for a re-cast (this block was replaced or a neighbour changed). */
@@ -56,6 +82,7 @@ public abstract class LightBlockEntity extends CompatBlockEntity {
     public LightSources.Effect refresh() {
         if (level == null) return LightSources.Effect.NONE;
         Level world = level;
+        long before = sources.changeCount();
         LightSources.Effect effect = sources.refresh(source -> {
             BlockPos sourcePos = Positions.toBlockPos(source);
             if (!world.hasChunkAt(sourcePos)) return SourceStatus.UNKNOWN;
@@ -65,8 +92,7 @@ public abstract class LightBlockEntity extends CompatBlockEntity {
             }
             return light.isLightOn() ? SourceStatus.ON : SourceStatus.OFF;
         });
-        setChanged();
-        return effect;
+        return savedIfChanged(before, effect);
     }
 
     /** The block entity at {@code pos}, without loading its chunk. */

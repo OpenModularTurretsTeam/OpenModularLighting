@@ -17,6 +17,8 @@ import java.util.function.Function;
 public final class LightSources {
     private final Set<Pos> sources = new LinkedHashSet<>();
     private final Set<Pos> activeSources = new LinkedHashSet<>();
+    /** Counts real changes, so {@code main} only saves the block entity when something changed. */
+    private long changes;
 
     /** What has to happen to the light block after a change. */
     public enum Effect {
@@ -42,14 +44,14 @@ public final class LightSources {
     /** Adds a source (or updates its on/off state if it is already known). */
     public Effect add(Pos source, boolean on) {
         boolean wasLit = isLit();
-        sources.add(source);
+        if (sources.add(source)) changes++;
         setActiveInternal(source, on);
         return effect(wasLit);
     }
 
     public Effect remove(Pos source) {
         boolean wasLit = isLit();
-        sources.remove(source);
+        if (sources.remove(source)) changes++;
         activeSources.remove(source);
         return effect(wasLit);
     }
@@ -71,11 +73,12 @@ public final class LightSources {
         boolean wasLit = isLit();
         for (Pos source : Set.copyOf(sources)) {
             switch (status.apply(source)) {
-                case ON -> activeSources.add(source);
-                case OFF -> activeSources.remove(source);
+                case ON -> setActiveInternal(source, true);
+                case OFF -> setActiveInternal(source, false);
                 case GONE -> {
                     sources.remove(source);
                     activeSources.remove(source);
+                    changes++;
                 }
                 case UNKNOWN -> {
                 }
@@ -92,6 +95,14 @@ public final class LightSources {
         return sources.isEmpty();
     }
 
+    /**
+     * Grows with every change of the sources or of their on/off state (not with calls that change nothing); compare
+     * two values to see whether anything changed in between.
+     */
+    public long changeCount() {
+        return changes;
+    }
+
     public Set<Pos> sources() {
         return Collections.unmodifiableSet(sources);
     }
@@ -101,10 +112,8 @@ public final class LightSources {
     }
 
     private void setActiveInternal(Pos source, boolean on) {
-        if (on) {
-            activeSources.add(source);
-        } else {
-            activeSources.remove(source);
+        if (on ? activeSources.add(source) : activeSources.remove(source)) {
+            changes++;
         }
     }
 

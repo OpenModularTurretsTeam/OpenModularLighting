@@ -40,8 +40,7 @@ public final class LightBlocks {
         }
         LightBlockEntity light = lightAt(level, pos, block);
         if (light == null) return false;
-        apply(level, pos, light.sources().add(Positions.toPos(source), on));
-        light.setChanged();
+        apply(level, pos, light.addSource(Positions.toPos(source), on));
         return true;
     }
 
@@ -49,18 +48,14 @@ public final class LightBlocks {
     public static void leave(Level level, BlockPos pos, LightBlock block, BlockPos source) {
         LightBlockEntity light = lightAt(level, pos, block);
         if (light == null) return;
-        LightSources.Effect effect = light.sources().remove(Positions.toPos(source));
-        light.setChanged();
-        apply(level, pos, effect);
+        apply(level, pos, light.removeSource(Positions.toPos(source)));
     }
 
     /** Switches {@code source} on or off at the light block at {@code pos}. */
     public static void setActive(Level level, BlockPos pos, LightBlock block, BlockPos source, boolean on) {
         LightBlockEntity light = lightAt(level, pos, block);
         if (light == null) return;
-        LightSources.Effect effect = light.sources().setActive(Positions.toPos(source), on);
-        light.setChanged();
-        apply(level, pos, effect);
+        apply(level, pos, light.setSourceActive(Positions.toPos(source), on));
     }
 
     /** Carries out an {@link LightSources.Effect} on the light block at {@code pos}. */

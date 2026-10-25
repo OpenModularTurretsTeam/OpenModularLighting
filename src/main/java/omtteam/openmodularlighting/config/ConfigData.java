@@ -83,7 +83,7 @@ public class ConfigData {
         @Comment("Damage per second dealt by UV light to living entities.")
         @Range(min = 1, max = 16)
         public double damageUVFloodlight = 4.0D;
-        @Comment("Whether UV light blocks are visible.")
+        @Comment("Client: whether UV light blocks are visible. Each player's own setting; a server's value is not used.")
         public boolean uvLightRendered = true;
     }
 }

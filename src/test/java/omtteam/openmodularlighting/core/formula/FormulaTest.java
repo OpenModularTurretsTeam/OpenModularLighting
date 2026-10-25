@@ -32,6 +32,13 @@ class FormulaTest {
     }
 
     @Test
+    void hugeBurnTimesAreCappedInsteadOfOverflowing() {
+        // 1000 * 3_000_000 does not fit in an int
+        assertEquals(1000L * 3_000_000 / 1600 * 20, CarbonFuel.ticks(3_000_000, 1000));
+        assertEquals(Integer.MAX_VALUE, CarbonFuel.ticks(Integer.MAX_VALUE, 1000));
+    }
+
+    @Test
     void growDelayStaysInTheOldBounds() {
         RandomGenerator random = new Random(1);
         long sum = 0;

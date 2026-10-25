@@ -42,12 +42,15 @@ final class FloodlightInteraction {
         return InteractionResult.sidedSuccess(level.isClientSide());
     }
 
-    /** Sneaking: empty hand toggles invert, a wrench dismantles, anything else lets the held item act. */
+    /**
+     * Sneaking: empty hand toggles invert, a wrench dismantles (only for players who may build: the block-use events
+     * also run in adventure mode), anything else lets the held item act.
+     */
     private static InteractionResult useSneaking(Level level, BlockPos pos, Player player, FloodlightBlockEntity light,
                                                  ItemStack held) {
         if (held.isEmpty()) {
             if (!level.isClientSide()) toggleInverted(level, player, light);
-        } else if (held.is(CommonTags.WRENCHES)) {
+        } else if (held.is(CommonTags.WRENCHES) && player.mayBuild()) {
             if (!level.isClientSide()) level.destroyBlock(pos, true, player); // dismantle
         } else {
             return InteractionResult.PASS; // e.g. place a block

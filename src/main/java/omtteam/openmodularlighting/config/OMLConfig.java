@@ -48,6 +48,14 @@ public final class OMLConfig {
     }
 
     /**
+     * This instance's own config file, also while connected to a remote server. Only for client settings that each
+     * player chooses ({@code uvLightRendered}); gameplay values come from {@link #get()}. Do not modify it.
+     */
+    public static ConfigData local() {
+        return local;
+    }
+
+    /**
      * Loads the config file (writing defaults if it is missing).
      */
     public static void init() {

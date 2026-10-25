@@ -568,6 +568,7 @@ Unlike phantom lights, UV light BEs have to tick for the damage. They do nothing
 - Fields are documented with `@Comment` and range-checked with `@Range` (package `config`). `ConfigWriter` writes them as `//` comments (JSONC) above each key, together with the default, and `ConfigRanges` clamps on load. Add both annotations to every new config field.
 - Server-authoritative values that clients need (e.g. for tooltips) are synced on join.
 - Read values with `OMLConfig.get()` (for example `OMLConfig.get().general.rangeStraightFloodlight`). Never cache them: on a client connected to a server, `get()` returns the server's config, and after disconnecting it returns the local one again.
+  Client settings that each player chooses (`uvLightRendered`) are read with `OMLConfig.local()`, the instance's own file, so a server's value never overrides them.
 - **Versioning** (as in OpenModularTurrets): the file records `configVersion`; files without it are version 1. On load, `ConfigMigration` replaces values that still equal an old default with the new one, then saves the file with the current version, so it runs once per file and values an owner chose stay.
   **When you change a default, raise `CURRENT_VERSION` and add a step** (with a test in `ConfigMigrationTest`).
 - New fields go into `ConfigData` (sections `blocks` and `general`). Only `int`, `double`, `boolean` and `List<String>` are supported. Unknown keys are removed and wrong types reset to the default on load.
@@ -590,7 +591,7 @@ Fields (defaults and ranges are only in `ConfigData`, in `@Range` and the field 
 | `chanceGrowLight` | growth chance per second |
 | `timeoutFloodlights` | ticks before a light can turn on again |
 | `damageUVFloodlight` | UV damage per second |
-| `uvLightRendered` | client: show UV light blocks |
+| `uvLightRendered` | client: show UV light blocks (each player's own setting, read with `OMLConfig.local()`) |
 
 `IGWNotifierEnabled` is dropped.
 

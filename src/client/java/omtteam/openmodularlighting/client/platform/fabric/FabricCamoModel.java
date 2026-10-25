@@ -1,6 +1,7 @@
 package omtteam.openmodularlighting.client.platform.fabric;
 
 import net.fabricmc.fabric.api.client.model.loading.v1.ModelLoadingPlugin;
+import net.fabricmc.fabric.api.renderer.v1.Renderer;
 import net.fabricmc.fabric.api.renderer.v1.RendererAccess;
 import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 import net.fabricmc.fabric.api.renderer.v1.material.MaterialFinder;
@@ -62,12 +63,15 @@ public final class FabricCamoModel extends ForwardingBakedModel {
     public void emitBlockQuads(BlockAndTintGetter view, BlockState state, BlockPos pos, Supplier<RandomSource> randomSupplier,
                                RenderContext context) {
         BlockState camo = camoAt(view, pos);
-        if (camo == null) {
+        Renderer renderer = RendererAccess.INSTANCE.getRenderer();
+        if (camo == null || renderer == null) {
+            // no renderer implementation (e.g. Sodium on 1.20.1 without Indium): the light's own look
             super.emitBlockQuads(view, state, pos, randomSupplier, context);
             return;
         }
         BakedModel camoModel = Minecraft.getInstance().getBlockRenderer().getBlockModel(camo);
-        context.pushTransform(new DisguiseTransform(view, pos, camo, Minecraft.getInstance().getBlockColors()));
+        context.pushTransform(new DisguiseTransform(view, pos, camo, Minecraft.getInstance().getBlockColors(),
+                renderer.materialFinder()));
         try {
             camoModel.emitBlockQuads(view, camo, pos, randomSupplier, context);
         } finally {
@@ -96,14 +100,16 @@ public final class FabricCamoModel extends ForwardingBakedModel {
         private final BlockPos pos;
         private final BlockState camo;
         private final BlockColors colors;
-        private final MaterialFinder finder = RendererAccess.INSTANCE.getRenderer().materialFinder();
+        private final MaterialFinder finder;
         private final BlendMode blendMode;
 
-        private DisguiseTransform(BlockAndTintGetter view, BlockPos pos, BlockState camo, BlockColors colors) {
+        private DisguiseTransform(BlockAndTintGetter view, BlockPos pos, BlockState camo, BlockColors colors,
+                                  MaterialFinder finder) {
             this.view = view;
             this.pos = pos;
             this.camo = camo;
             this.colors = colors;
+            this.finder = finder;
             this.blendMode = BlendMode.fromRenderLayer(ItemBlockRenderTypes.getChunkRenderType(camo));
         }
 

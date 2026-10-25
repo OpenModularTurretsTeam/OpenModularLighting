@@ -17,13 +17,16 @@ public final class ElectricPower implements LightPower {
 
     private final EnergyStore store;
     private final IntSupplier cost;
-    /** True while the light pays its own cost, which does not mark the block entity dirty (every tick). */
+    /**
+     * True while the light pays its own cost. That change skips {@code onChange}, because
+     * {@code FloodlightBlockEntity.serverTick} marks the block entity dirty once on every tick the light runs.
+     */
     private boolean running;
 
     /**
      * @param cost     energy per tick (read every tick, so config changes apply at once)
      * @param onChange called when energy came in or went to another light (marks the block entity dirty); not for the
-     *                 light's own cost per tick
+     *                 light's own cost per tick, see {@link #running}
      */
     public ElectricPower(IntSupplier cost, Runnable onChange) {
         this.cost = cost;

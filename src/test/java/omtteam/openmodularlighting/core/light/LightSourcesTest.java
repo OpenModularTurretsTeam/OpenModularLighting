@@ -71,4 +71,28 @@ class LightSourcesTest {
         assertEquals(Effect.TURN_OFF, sources.refresh(Map.of(B, SourceStatus.OFF, C, SourceStatus.OFF)::get));
         assertEquals(Effect.REMOVE, sources.refresh(pos -> SourceStatus.GONE));
     }
+
+    @Test
+    void changeCountOnlyGrowsWhenSomethingChanged() {
+        LightSources sources = new LightSources();
+        long start = sources.changeCount();
+        sources.add(A, false);
+        long added = sources.changeCount();
+        assertTrue(added > start, "new source");
+        sources.add(A, false);
+        sources.setActive(A, false);
+        sources.setActive(B, true); // unknown source
+        sources.remove(C);
+        sources.refresh(source -> SourceStatus.OFF);
+        sources.refresh(source -> SourceStatus.UNKNOWN);
+        assertEquals(added, sources.changeCount(), "nothing changed");
+        sources.setActive(A, true);
+        long switched = sources.changeCount();
+        assertTrue(switched > added, "switched on");
+        sources.refresh(source -> SourceStatus.OFF);
+        long refreshed = sources.changeCount();
+        assertTrue(refreshed > switched, "refresh switched it off");
+        sources.refresh(source -> SourceStatus.GONE);
+        assertTrue(sources.changeCount() > refreshed, "refresh dropped it");
+    }
 }
