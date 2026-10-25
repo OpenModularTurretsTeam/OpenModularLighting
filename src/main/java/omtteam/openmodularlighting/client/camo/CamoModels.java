@@ -4,11 +4,12 @@ import net.minecraft.block.Block;
 import net.minecraft.client.renderer.block.model.ModelResourceLocation;
 import net.minecraftforge.fml.common.registry.ForgeRegistries;
 import omtteam.openmodularlighting.OML;
-import omtteam.openmodularlighting.camo.CamoBlock;
+import omtteam.openmodularlighting.block.FloodlightBlock;
 
 /**
- * Which models show a disguise: the block models of the {@link CamoBlock}s (as in OpenModularTurrets). The client
- * wraps them in {@link CamoModel}; the block hands the disguise to the model in its extended state.
+ * Which models show a disguise: the block models of the lights that {@link FloodlightBlock#supportsCamo() can be
+ * disguised}. The client wraps them in {@link CamoModel}; the block hands the disguise to the model in its extended
+ * state.
  * <p>
  * A disguised light shows the disguise's model and, of its own model, only the lamp: the quads with
  * {@link #LAMP_TINT_INDEX} (a cut-out overlay on the front face, see {@code models/block/floodlight.json}).
@@ -25,6 +26,6 @@ public final class CamoModels {
     public static boolean isCamoModel(ModelResourceLocation id) {
         if (!id.getNamespace().equals(OML.MOD_ID) || INVENTORY.equals(id.getVariant())) return false;
         Block block = ForgeRegistries.BLOCKS.getValue(OML.id(id.getPath()));
-        return block instanceof CamoBlock;
+        return block instanceof FloodlightBlock && ((FloodlightBlock) block).supportsCamo();
     }
 }

@@ -6,7 +6,6 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import omtteam.openmodularlighting.OML;
-import omtteam.openmodularlighting.camo.CamoBlock;
 import omtteam.openmodularlighting.handler.OMLGuiHandler;
 import omtteam.openmodularlighting.tileentity.BeamFloodlightTileEntity;
 import omtteam.openmodularlighting.tileentity.CarbonFloodlightTileEntity;
@@ -15,9 +14,15 @@ import omtteam.openmodularlighting.tileentity.FloodlightTileEntity;
 /**
  * Carbon (non-electric) floodlight: the same modes as the electric one, powered by furnace fuel.
  */
-public class CarbonFloodlightBlock extends FloodlightBlock implements CamoBlock {
+public class CarbonFloodlightBlock extends FloodlightBlock {
     public CarbonFloodlightBlock() {
         super(Material.ROCK);
+    }
+
+    /** Can be disguised (OMLib's camouflage menu). */
+    @Override
+    public boolean supportsCamo() {
+        return true;
     }
 
     @Override

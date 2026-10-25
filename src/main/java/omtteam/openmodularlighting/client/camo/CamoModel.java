@@ -11,7 +11,8 @@ import net.minecraft.util.BlockRenderLayer;
 import net.minecraft.util.EnumFacing;
 import net.minecraftforge.client.MinecraftForgeClient;
 import net.minecraftforge.common.property.IExtendedBlockState;
-import omtteam.openmodularlighting.camo.CamoBlock;
+import omtteam.omlib.api.render.camo.RenderBlockStateContainer;
+import omtteam.omlib.block.BlockAbstractCamoTileEntity;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -22,8 +23,11 @@ import java.util.List;
  * Model of a light that can be disguised (the 1.12.2 counterpart of the main branch's camouflage models): without a
  * disguise it is the light's own model in the cutout layer; with one it returns the quads of the disguise's model for
  * each layer the disguise is drawn in, plus the lamp quads of the light's own model
- * ({@link CamoModels#LAMP_TINT_INDEX}) in the cutout layer. The disguise comes from {@link CamoBlock#CAMO} in the
- * extended state; the block renders in every layer a valid disguise may use.
+ * ({@link CamoModels#LAMP_TINT_INDEX}) in the cutout layer. The disguise comes from OMLib's
+ * {@link BlockAbstractCamoTileEntity#RENDERBLOCKSTATE} in the extended state; the block renders in every layer a valid
+ * disguise may use.
+ * <p>
+ * Not OMLib's {@code CamoBakedModel}: that one draws the disguise only, without the lamp on top.
  */
 public final class CamoModel implements IBakedModel {
     private final IBakedModel original;
@@ -55,7 +59,10 @@ public final class CamoModel implements IBakedModel {
 
     @Nullable
     private static IBlockState camo(@Nullable IBlockState state) {
-        return state instanceof IExtendedBlockState ? ((IExtendedBlockState) state).getValue(CamoBlock.CAMO) : null;
+        if (!(state instanceof IExtendedBlockState)) return null;
+        RenderBlockStateContainer camo =
+                ((IExtendedBlockState) state).getValue(BlockAbstractCamoTileEntity.RENDERBLOCKSTATE);
+        return camo == null ? null : camo.getRenderState();
     }
 
     private static IBakedModel model(IBlockState camo) {

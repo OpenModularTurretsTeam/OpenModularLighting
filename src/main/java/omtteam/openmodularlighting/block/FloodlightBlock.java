@@ -26,9 +26,10 @@ import net.minecraft.block.properties.IProperty;
 import net.minecraftforge.common.property.ExtendedBlockState;
 import net.minecraftforge.common.property.IExtendedBlockState;
 import net.minecraftforge.common.property.IUnlistedProperty;
+import omtteam.omlib.api.render.camo.RenderBlockStateContainer;
+import omtteam.omlib.block.BlockAbstractCamoTileEntity;
 import omtteam.omlib.util.world.WorldUtil;
 import omtteam.openmodularlighting.OML;
-import omtteam.openmodularlighting.camo.CamoBlock;
 import omtteam.openmodularlighting.handler.OMLGuiHandler;
 import omtteam.openmodularlighting.tileentity.FloodlightTileEntity;
 
@@ -92,22 +93,36 @@ public abstract class FloodlightBlock extends Block {
                 .appendSibling(new TextComponentTranslation(modeKey)), false);
     }
 
-    /** Lights that can be disguised also carry the disguise in their extended state, for the model. */
+    /**
+     * Whether this light can be disguised (OMLib's camouflage menu, see {@link FloodlightTileEntity}): the electric,
+     * carbon and UV floodlights. Not the panel lights (no full face to disguise) and not the cube light (no front, it
+     * would vanish completely). Called from the constructor (through {@link #createBlockState()}): return a constant.
+     */
+    public boolean supportsCamo() {
+        return false;
+    }
+
+    /**
+     * Lights that can be disguised also carry the disguise in their extended state, for the model (OMLib's
+     * {@link BlockAbstractCamoTileEntity#RENDERBLOCKSTATE}).
+     */
     @Override
     protected BlockStateContainer createBlockState() {
-        if (this instanceof CamoBlock) {
+        if (supportsCamo()) {
             return new ExtendedBlockState(this, new IProperty<?>[]{FACING, LIT},
-                    new IUnlistedProperty<?>[]{CamoBlock.CAMO});
+                    new IUnlistedProperty<?>[]{BlockAbstractCamoTileEntity.RENDERBLOCKSTATE});
         }
         return new BlockStateContainer(this, FACING, LIT);
     }
 
+    /** The disguise, absent (null) for the light's own look. */
     @Override
     public IBlockState getExtendedState(IBlockState state, IBlockAccess world, BlockPos pos) {
         if (!(state instanceof IExtendedBlockState)) return state;
         TileEntity tile = WorldUtil.getTileEntity(world, pos);
         IBlockState camo = tile instanceof FloodlightTileEntity ? ((FloodlightTileEntity) tile).getCamo() : null;
-        return ((IExtendedBlockState) state).withProperty(CamoBlock.CAMO, camo);
+        return ((IExtendedBlockState) state).withProperty(BlockAbstractCamoTileEntity.RENDERBLOCKSTATE,
+                camo == null ? null : new RenderBlockStateContainer(camo));
     }
 
     /**
@@ -116,7 +131,7 @@ public abstract class FloodlightBlock extends Block {
      */
     @Override
     public boolean canRenderInLayer(IBlockState state, BlockRenderLayer layer) {
-        if (this instanceof CamoBlock) return layer != BlockRenderLayer.TRANSLUCENT;
+        if (supportsCamo()) return layer != BlockRenderLayer.TRANSLUCENT;
         return layer == getRenderLayer();
     }
 

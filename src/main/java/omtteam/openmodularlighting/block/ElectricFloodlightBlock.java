@@ -5,7 +5,6 @@ import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
-import omtteam.openmodularlighting.camo.CamoBlock;
 import omtteam.openmodularlighting.tileentity.BeamFloodlightTileEntity;
 import omtteam.openmodularlighting.tileentity.ElectricFloodlightTileEntity;
 import omtteam.openmodularlighting.tileentity.FloodlightTileEntity;
@@ -13,9 +12,15 @@ import omtteam.openmodularlighting.tileentity.FloodlightTileEntity;
 /**
  * Electric floodlight: straight, narrow cone or wide cone, powered by Forge Energy.
  */
-public class ElectricFloodlightBlock extends FloodlightBlock implements CamoBlock {
+public class ElectricFloodlightBlock extends FloodlightBlock {
     public ElectricFloodlightBlock() {
         super(Material.ROCK);
+    }
+
+    /** Can be disguised (OMLib's camouflage menu). */
+    @Override
+    public boolean supportsCamo() {
+        return true;
     }
 
     @Override

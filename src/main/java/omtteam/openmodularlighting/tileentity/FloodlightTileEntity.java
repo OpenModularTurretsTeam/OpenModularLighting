@@ -1,23 +1,30 @@
 package omtteam.openmodularlighting.tileentity;
 
 import net.minecraft.block.state.IBlockState;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTUtil;
+import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.ITickable;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraftforge.common.capabilities.Capability;
+import net.minecraftforge.common.util.Constants;
 import net.minecraftforge.energy.CapabilityEnergy;
 import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.ItemStackHandler;
+import omtteam.omlib.api.render.camo.ICamoSupport;
 import omtteam.omlib.core.energy.EnergyAccess;
 import omtteam.omlib.power.EnergyAccessStorage;
+import omtteam.omlib.util.camo.CamoRules;
+import omtteam.omlib.util.camo.CamoSettings;
+import omtteam.omlib.util.world.BlockUtil;
 import omtteam.openmodularlighting.block.FloodlightBlock;
 import omtteam.openmodularlighting.block.LightBlock;
-import omtteam.openmodularlighting.camo.CamoBlock;
-import omtteam.openmodularlighting.camo.CamoData;
 import omtteam.openmodularlighting.compat.CompatTileEntity;
 import omtteam.openmodularlighting.config.OMLConfig;
 import omtteam.openmodularlighting.core.beam.BeamShape;
@@ -38,8 +45,12 @@ import java.util.Locale;
  * Base of every light (1.7.10 {@code TileEntityMetaFloodlight}): invert, colour, one item slot with its
  * {@link LightPower}, and the cached beam of light blocks (CLAUDE.md §6.3, §6.4). Subclasses define the beam shape and
  * may add a mode.
+ * <p>
+ * Lights whose block {@link FloodlightBlock#supportsCamo() supports camouflage} are OMLib camouflage hosts: the disguise
+ * is set in OMLib's camouflage menu, by anyone who may open the light's GUI; light value and opacity stay the light's.
  */
-public abstract class FloodlightTileEntity extends CompatTileEntity implements LightSourceTileEntity, ITickable {
+public abstract class FloodlightTileEntity extends CompatTileEntity
+        implements LightSourceTileEntity, ITickable, ICamoSupport {
     /** 1.7.10 colour value for "not dyed". Other values are {@code EnumDyeColor} metadata. */
     public static final int NO_COLOR = 16;
 
@@ -48,12 +59,15 @@ public abstract class FloodlightTileEntity extends CompatTileEntity implements L
     private static final String TIMEOUT = "timeout";
     private static final String COLOR = "color";
     private static final String INVENTORY = "inventory";
+    /** Key of the disguise up to 1.0.0-beta.6 (a block state compound); read, no longer written. */
+    private static final String LEGACY_CAMO = "camo";
 
     private final LightController controller = new LightController();
     /** Periodic re-cast (every ~20 s) for world changes that sent no block update. */
     private final RecheckTimer recheck = new RecheckTimer();
     private int color = NO_COLOR;
-    private final CamoData camo = new CamoData();
+    /** The disguise ({@code null}: the light's own look); only the block state is used. */
+    private final CamoSettings camoSettings = new CamoSettings();
     protected final ItemStackHandler inventory = new ItemStackHandler(1) {
         @Override
         public boolean isItemValid(int slot, ItemStack stack) {
@@ -204,22 +218,75 @@ public abstract class FloodlightTileEntity extends CompatTileEntity implements L
         syncToClient();
     }
 
-    /** Whether this light can be disguised ({@link CamoBlock}: the electric, carbon and UV floodlights). */
+    /** Whether this light can be disguised (the electric, carbon and UV floodlights). */
     public boolean supportsCamo() {
-        return world != null && world.getBlockState(pos).getBlock() instanceof CamoBlock;
+        if (world == null) return false;
+        IBlockState state = world.getBlockState(pos);
+        return state.getBlock() instanceof FloodlightBlock && ((FloodlightBlock) state.getBlock()).supportsCamo();
     }
 
     /** The disguise, or {@code null} for the light's own look. */
     @Nullable
     public IBlockState getCamo() {
-        return camo.get();
+        return camoSettings.getCamoBlockState();
     }
 
-    /** Sets the disguise ({@code null} removes it); the caller checked {@code CamoRules.isValidDisguise}. */
-    public void setCamo(@Nullable IBlockState state) {
-        if (supportsCamo() && camo.set(state)) {
-            syncToClient();
-        }
+    // ---- ICamoSupport (OMLib's camouflage menu) ----
+
+    @Override
+    public IBlockState getCamoState() {
+        IBlockState camo = getCamo();
+        return camo != null ? camo : getDefaultCamoState();
+    }
+
+    /**
+     * Sets the disguise; the light's own block (the menu's reset) removes it. On the server the client copies get it
+     * through the update packet, on the client the block is redrawn.
+     */
+    @Override
+    public void setCamoState(IBlockState state) {
+        IBlockState camo = state.getBlock() == getDefaultCamoState().getBlock() ? null : state;
+        if (!supportsCamo() || camo == getCamo()) return;
+        camoSettings.setCamoBlockState(camo);
+        syncToClient();
+        remesh();
+    }
+
+    @Override
+    public IBlockState getDefaultCamoState() {
+        return world == null ? Blocks.AIR.getDefaultState() : world.getBlockState(pos).getBlock().getDefaultState();
+    }
+
+    @Override
+    public CamoSettings getCamoSettings() {
+        return camoSettings;
+    }
+
+    @Override
+    public TileEntity getCamoTileEntity() {
+        return this;
+    }
+
+    @Override
+    public boolean isCamoEnabled() {
+        return supportsCamo();
+    }
+
+    /** The light value is the light's own (on/off); no sliders. */
+    @Override
+    public boolean supportsLight() {
+        return false;
+    }
+
+    /** Lights have no owner: whoever may open the light's GUI may disguise it (as with the former disguise slot). */
+    @Override
+    public boolean canSetCamo(EntityPlayer player) {
+        return true;
+    }
+
+    @Override
+    public boolean canChangeLight(EntityPlayer player) {
+        return false;
     }
 
     public ItemStackHandler getInventory() {
@@ -296,7 +363,7 @@ public abstract class FloodlightTileEntity extends CompatTileEntity implements L
 
     /** Whether the dropped item keeps this light's settings ("Configured" tooltip). */
     public boolean hasCustomSettings() {
-        return controller.isInverted() || color != NO_COLOR || camo.get() != null || power().hasStored();
+        return controller.isInverted() || color != NO_COLOR || getCamo() != null || power().hasStored();
     }
 
     /**
@@ -313,15 +380,36 @@ public abstract class FloodlightTileEntity extends CompatTileEntity implements L
     protected void writeSettings(NBTTagCompound tag) {
         tag.setBoolean(INVERTED, controller.isInverted());
         tag.setInteger(COLOR, color);
-        camo.write(tag);
+        writeCamo(tag);
         power().write(tag);
     }
 
     /** Reads what {@link #writeSettings} wrote. */
     protected void readSettings(NBTTagCompound tag) {
         color = tag.hasKey(COLOR) ? tag.getInteger(COLOR) : NO_COLOR;
-        camo.read(tag);
+        camoSettings.setCamoBlockState(readCamo(tag));
         power().read(tag);
+    }
+
+    /** The disguise in OMLib's format ({@code camoBlockRegName}, {@code camoBlockMeta}), if there is one. */
+    private void writeCamo(NBTTagCompound tag) {
+        IBlockState camo = getCamo();
+        if (camo != null) {
+            BlockUtil.writeBlockFromStateToNBT(tag, camo);
+        }
+    }
+
+    /**
+     * Reads what {@link #writeCamo} wrote, or the {@link #LEGACY_CAMO} compound of 1.0.0-beta.6 and older; no disguise
+     * if there is none or it is no longer valid (the block was removed, or the rules changed).
+     */
+    @Nullable
+    private static IBlockState readCamo(NBTTagCompound tag) {
+        IBlockState state = BlockUtil.getBlockStateFromNBT(tag);
+        if (state == null && tag.hasKey(LEGACY_CAMO, Constants.NBT.TAG_COMPOUND)) {
+            state = NBTUtil.readBlockState(tag.getCompoundTag(LEGACY_CAMO));
+        }
+        return state != null && CamoRules.isValidDisguise(state) ? state : null;
     }
 
     @Override
@@ -336,14 +424,14 @@ public abstract class FloodlightTileEntity extends CompatTileEntity implements L
     @Override
     protected void readData(NBTTagCompound tag) {
         int oldColor = color;
-        IBlockState oldCamo = camo.get();
+        IBlockState oldCamo = getCamo();
         controller.load(tag.getBoolean(INVERTED), tag.getBoolean(ON), tag.getInteger(TIMEOUT));
         readSettings(tag);
         if (tag.hasKey(INVENTORY)) {
             inventory.deserializeNBT(tag.getCompoundTag(INVENTORY));
         }
         beam.read(tag);
-        if (oldColor != color || oldCamo != camo.get()) {
+        if (oldColor != color || oldCamo != getCamo()) {
             remesh(); // tint and disguise come from the block entity (client only)
         }
     }
@@ -352,6 +440,6 @@ public abstract class FloodlightTileEntity extends CompatTileEntity implements L
     @Override
     protected void writeClientData(NBTTagCompound tag) {
         tag.setInteger(COLOR, color);
-        camo.write(tag);
+        writeCamo(tag);
     }
 }
