@@ -7,6 +7,7 @@ import net.minecraft.world.level.EmptyBlockGetter;
 import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.state.BlockState;
+import omtteam.openmodularlighting.compat.block.BlockCompat;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -22,7 +23,7 @@ public final class CamoRules {
     public static boolean isValidDisguise(BlockState state) {
         if (state.isAir() || state.getBlock() instanceof EntityBlock) return false;
         if (state.getRenderShape() != RenderShape.MODEL) return false;
-        return state.isSolidRender(EmptyBlockGetter.INSTANCE, BlockPos.ZERO);
+        return BlockCompat.isSolidRender(state, EmptyBlockGetter.INSTANCE, BlockPos.ZERO);
     }
 
     /** The disguise a held stack stands for (the item's block in its default state), if it is a valid one. */

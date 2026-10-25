@@ -156,7 +156,7 @@ The Stonecutter DSL changes between releases. If this does not match the install
 - **Whole classes that differ between versions** (datagen providers, camo models) go into version source folders instead of large conditions: `src/<source set>/mc<first>-<last>/java` (e.g. `src/main/mc1.20.1-1.21.1/java`, `src/client/mc1.21.11-/java`; both ends included, no `<last>` = no upper bound).
   `mod-common` adds the folders whose range contains the node's Minecraft version. Each variant keeps the same package and class name, so entrypoints and references stay the same; the ranges of one class's variants must not overlap.
   Stonecutter does not process these folders, so they hold no `//?` conditions: loader differences inside them go into `platform/<loader>/` packages as usual (the exclusion applies there too).
-- **Renames** that Mojang applies everywhere are Stonecutter replacements in `stonecutter.gradle.kts` (`replacements`), not conditions: `ResourceLocation` → `Identifier` from 1.21.11. They work in both directions, so the replaced word (`Identifier`) must not be used for anything else.
+- **Renames** that Mojang applies everywhere are Stonecutter replacements in `stonecutter.gradle.kts` (`replacements`), not conditions: `ResourceLocation` → `Identifier` and `noCollission(` → `noCollision(` from 1.21.11. They work in both directions, so the new names must not be used for anything else.
 - Version-specific *properties* live in `versions/<v>/gradle.properties`. Read them in the build via `property("…")`.
 
 ### Loaders
@@ -305,6 +305,7 @@ Wrap each of these behind a helper where possible.
 | `ResourceLocation` | `OML.id(path)`, `VersionCompat.id(ns, path)` |
 | BlockEntity NBT + update tag | extend `compat.CompatBlockEntity`: override `readData` / `writeData` (+ optional `writeClientData`), call `syncToClient()`; data for the block model while meshing: override `renderData()` (Fabric render data, NeoForge `RENDER_DATA` model data), call `remesh()` on the client when it changed. On 1.21.11 it passes the whole compound through `ValueInput` / `ValueOutput`, so `readData` / `writeData` keep their `CompoundTag` and the saved format stays the same |
 | Reading NBT (1.21.11 getters return `Optional`) | `compat.nbt.NbtCompat.getInt` / `getLong` / `getBoolean` / `getString` (with a fallback), `getIntArray` / `getLongArray` / `getCompound` (empty if missing), `readBlockState`; never call the `CompoundTag` getters directly. It depends on Minecraft only, so packages outside the `compat` cycle (e.g. `camo`) may use it |
+| Block state queries, interaction result | `compat.block.BlockCompat.isSolidRender` / `lightBlock` (1.21.11 caches them per state), `sidedSuccess` (gone in 1.21.11, `SUCCESS` there); Minecraft only like `NbtCompat`. `neighborChanged` takes an `Orientation` on 1.21.11: two overrides behind a condition that call one shared method (`LightBlock`) |
 | Block broken or replaced (`onRemove` is gone in 1.21.11) | override `CompatBlockEntity.onBlockRemoved(Level)` (server only, before the block entity is removed); on <1.21.11 the block's `onRemove` calls `CompatBlockEntity.handleRemove` (behind `//? if <1.21.11`), on 1.21.11 vanilla's `preRemoveSideEffects` calls it |
 | ItemStack NBT, slot lists | `VersionCompat.saveStack` / `loadStack`, `saveItems` / `loadItems` |
 | ItemStack extra data | `VersionCompat.hasCustomData` / `getCustomData` / `setCustomData` / `updateCustomData` |
@@ -755,8 +756,9 @@ Update this checklist as work progresses.
 - [x] `ResourceLocation` → `Identifier` as a Stonecutter replacement
 - [x] NBT read helpers (`compat.nbt.NbtCompat`); `CompatBlockEntity` bridges `ValueInput` / `ValueOutput`; stack, slot and item block entity data helpers have 1.21.11 branches
 - [x] Removal hook `CompatBlockEntity.onBlockRemoved` (replaces the blocks' `onRemove` logic); `Fuel.burnTime(level, stack)`
+- [x] Block callbacks: `FACING` as `EnumProperty<Direction>`, `noCollision`, `neighborChanged` with `Orientation`, `BlockCompat` (state queries, `sidedSuccess`)
 - [ ] Nodes `1.21.11-fabric` / `1.21.11-neoforge` in `settings.gradle.kts` (`versions/1.21.11-*/gradle.properties` exist; add the nodes once they compile)
-- [ ] Remaining main code: block callbacks and properties, registration (`setId`), datagen (version folders), NeoForge transfer rework, Jade 21.x, config sync
+- [ ] Remaining main code: registration (block/item properties need `setId`, `BlockEntityType` builder), damage type lookup, datagen (version folders), NeoForge transfer rework, Jade 21.x, config sync
 - [ ] Client: camo models (`BlockStateModel`), screens, world render event; GameTests (new framework)
 
 ### Later / optional (ask first)

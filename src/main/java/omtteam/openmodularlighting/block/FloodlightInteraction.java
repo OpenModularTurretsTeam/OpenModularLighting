@@ -13,6 +13,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import omtteam.openmodularlighting.blockentity.FloodlightBlockEntity;
 import omtteam.openmodularlighting.compat.CommonTags;
+import omtteam.openmodularlighting.compat.block.BlockCompat;
 import omtteam.openmodularlighting.energy.ElectricPower;
 import omtteam.openmodularlighting.registry.ModItems;
 
@@ -39,7 +40,7 @@ final class FloodlightInteraction {
         ElectricPower power = light.electricPower();
         if (power == null) return InteractionResult.PASS;
         if (!level.isClientSide()) power.store().generate(power.store().getCapacity());
-        return InteractionResult.sidedSuccess(level.isClientSide());
+        return BlockCompat.sidedSuccess(level.isClientSide());
     }
 
     /**
@@ -55,7 +56,7 @@ final class FloodlightInteraction {
         } else {
             return InteractionResult.PASS; // e.g. place a block
         }
-        return InteractionResult.sidedSuccess(level.isClientSide());
+        return BlockCompat.sidedSuccess(level.isClientSide());
     }
 
     /** "Inverted: …", and when the light will turn on if it now waits for its timeout. */

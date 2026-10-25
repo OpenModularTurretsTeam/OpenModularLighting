@@ -13,6 +13,10 @@ import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import omtteam.openmodularlighting.blockentity.LightBlockEntity;
 import omtteam.openmodularlighting.compat.CompatBlockEntity;
 import omtteam.openmodularlighting.world.LightBlocks;
+//? if >=1.21.11 {
+/*import net.minecraft.world.level.redstone.Orientation;
+import org.jetbrains.annotations.Nullable;
+*///?}
 
 /**
  * A block placed by a light along its beam (phantom light, UV light). It stays while one of its sources exists and is
@@ -49,11 +53,24 @@ public abstract class LightBlock extends Block implements EntityBlock {
         }
     }
 
-    /** A block next to the beam changed: the beam may now reach further or be blocked earlier. */
+    //? if >=1.21.11 {
+    /*@Override
+    public void neighborChanged(BlockState state, Level level, BlockPos pos, Block neighbourBlock,
+                                @Nullable Orientation orientation, boolean movedByPiston) {
+        super.neighborChanged(state, level, pos, neighbourBlock, orientation, movedByPiston);
+        onNeighborChanged(level, pos);
+    }
+    *///?} else {
     @Override
     public void neighborChanged(BlockState state, Level level, BlockPos pos, Block neighbourBlock, BlockPos neighbourPos,
                                 boolean movedByPiston) {
         super.neighborChanged(state, level, pos, neighbourBlock, neighbourPos, movedByPiston);
+        onNeighborChanged(level, pos);
+    }
+    //?}
+
+    /** A block next to the beam changed: the beam may now reach further or be blocked earlier. */
+    private static void onNeighborChanged(Level level, BlockPos pos) {
         if (!level.isClientSide() && level.getBlockEntity(pos) instanceof LightBlockEntity light) {
             light.requestRecastOfSources();
         }

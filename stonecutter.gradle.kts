@@ -36,10 +36,14 @@ stonecutter active "1.21.1-fabric"
 // Prefer whole classes in platform/<loader>/ packages (left out of the other loaders' builds) over conditions.
 stonecutter parameters {
     constants.match(current.project.substringAfterLast('-'), "fabric", "neoforge", "forge")
-    // 1.21.11 renamed ResourceLocation to Identifier (same package). Both ways, so the word Identifier must not be used
-    // for anything else in the source.
+    // Renames from 1.21.11. They work both ways, so the new names (Identifier, noCollision) must not be used for anything
+    // else in the source. 1.21.11 renamed ResourceLocation to Identifier (same package).
     replacements.regex(current.parsed >= "1.21.11") {
         replace("\\bResourceLocation\\b", "Identifier", "\\bIdentifier\\b", "ResourceLocation")
+    }
+    // 1.21.11 fixed the spelling of BlockBehaviour.Properties#noCollission
+    replacements.regex(current.parsed >= "1.21.11") {
+        replace("\\bnoCollission\\(", "noCollision(", "\\bnoCollision\\(", "noCollission(")
     }
 }
 
