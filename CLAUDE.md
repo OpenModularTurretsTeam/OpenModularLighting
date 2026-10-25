@@ -31,7 +31,7 @@ Core gameplay (the same as on the main branch):
 ### Allowed dependencies
 
 - **Forge 1.12.2** (14.23.5.x, chosen by RetroFuturaGradle) and **Forge Energy** (`CapabilityEnergy`, part of Forge; replaces Team Reborn Energy / NeoForge FE, 1 E = 1 FE).
-- **OMLib** (required, `required-after:omlib`): the shared library of the OpenModularTurretsTeam mods (`../OMLib` in the OMTTeam 1.12 workspace). Code it already has is used from there, not duplicated: the energy buffer (`core.energy`) and its Forge Energy adapter (`power.EnergyAccessStorage`), its wrench (`ItemMultiTool`, accepted by `CommonTags.isWrench`), the chunk-safe tile entity lookup (`util.world.WorldUtil.getTileEntity`) and the camouflage (`ICamoSupport`, the camouflage menu, `CamoRules`, §6.11).
+- **OMLib** (required, `required-after:omlib`): the shared library of the OpenModularTurretsTeam mods (`../OMLib` in the OMTTeam 1.12 workspace). Code it already has is used from there, not duplicated: the energy buffer (`core.energy`) and its Forge Energy adapter (`power.EnergyAccessStorage`), its wrench (`ItemMultiTool`, accepted by `CommonTags.isWrench`), the chunk-safe tile entity lookup (`util.world.WorldUtil.getTileEntity`) the camouflage (`ICamoSupport`, the camouflage menu, `CamoRules`, §6.11) and the server → client config sync (`config.ConfigSync`, §5).
 - Build-time only: **RetroFuturaGradle** (`com.gtnewhorizons.retrofuturagradle`, the maintained 1.12.2 toolchain, from the GTNH maven), the mod publish plugin, Spotless, JUnit 5 (5.13: the last line that runs on Java 8), EqualsVerifier (3.x: the last line that runs on Java 8) and PIT (1.17, likewise).
 - **Hwyla** (optional, compile-only; the mod from CurseMaven, maven.tehnut.info no longer serves it): the block info overlay instead of Jade, which does not exist on 1.12.2 (requested by the user on 2026-10-24). `compat.hwyla.OMLWailaPlugin` (`@WailaPlugin`, only loaded by Hwyla) registers `FloodlightWailaProvider`; the content is `FloodlightTooltip` (invert and mode, as the main branch's Jade tooltip), switchable in Hwyla's config (`option.openmodularlighting.light`).
 - Nothing else without asking the user first. No mixins, no Jabel, no CTM/TOP dependency. A The One Probe integration would be optional and is not done; ask the user first.
@@ -138,7 +138,7 @@ Differences to the main branch, and the 1.12.2 pitfalls the code handles. Keep t
 | Energy, items | capabilities on the tile entities: OMLib's `power.EnergyAccessStorage` wraps the core `EnergyAccess` (insert only, `extractable = false`), `InsertOnlyItemHandler` wraps the slot's `ItemStackHandler`; batteries are items with extractable FE |
 | Fuel | `TileEntityFurnace.getItemBurnTime` and the item's container item |
 | Menus | `OMLGuiHandler` (`IGuiHandler`, ids `ELECTRIC` / `CARBON`); screens come from `ClientProxy.createGui`. `FloodlightContainer` syncs long values as two 16-bit window properties |
-| Network | `OMLNetwork.CHANNEL` (`SimpleNetworkWrapper`); `ConfigSyncPacket` on login (`OMLConfig.onPlayerJoin`); back to the local config on `ClientDisconnectionFromServerEvent` |
+| Network | no channel of its own: the config goes through OMLib's `config.ConfigSync` (registered in `OML.preInit` as one value: `OMLConfig.toJson` sent on login, `OMLConfig.applyServerConfig` on the client; OMLib applies the local config's JSON again after disconnecting); the camouflage menu uses OMLib's messages |
 | Disguise | OMLib's `BlockAbstractCamoTileEntity.RENDERBLOCKSTATE` is an unlisted property in the floodlights' `ExtendedBlockState` (`FloodlightBlock.supportsCamo`); `client.camo.CamoModel` wraps their blockstate models in `ModelBakeEvent` and returns quads per render layer (`MinecraftForgeClient.getRenderLayer()`); camo blocks render in every layer but translucent |
 | Damage | `UvLightTileEntity.UV_LIGHT` (`DamageSource("openmodularlighting.uv_light")`) |
 | Config | Gson 2.2.4 ships with 1.12: `new JsonParser().parse(...)` (lenient, reads the `//` comments), no `keySet()`; config folder from `FMLPreInitializationEvent` |
@@ -176,10 +176,9 @@ omtteam.openmodularlighting
 ├── registry/           ModBlocks, ModItems, ModTileEntities, ModCreativeTabs, ModRecipes, Registration
 ├── energy/             ElectricPower, FuelPower, LightPower, ClusterEnergy, Batteries
 ├── world/              LightBlocks, LevelLightWorld, Positions, PosArrays
-├── network/            OMLNetwork, ConfigSyncPacket
 ├── config/             as on the main branch (Java 8)
 ├── compat/             CompatTileEntity, CommonTags, BlockEnabledCondition
-└── client/             ClientProxy, ClientEvents (models, colours, tooltip, debug renderer, disconnect),
+└── client/             ClientProxy, ClientEvents (models, colours, tooltip, debug renderer),
                         camo/ (CamoModel, CamoModels), render/ (FloodlightTint, LightBlockDebugRenderer), gui/
 ```
 
@@ -339,7 +338,7 @@ Unlike phantom lights, UV light BEs have to tick for the damage. They do nothing
 - No config library. Write a minimal Gson-based JSON config at `config/openmodularlighting.json`.
 - Load it on init, write defaults if missing, and validate ranges.
 - Fields are documented with `@Comment` and range-checked with `@Range` (package `config`). `ConfigWriter` writes them as `//` comments (JSONC) above each key, together with the default, and `ConfigRanges` clamps on load. Add both annotations to every new config field.
-- Server-authoritative values that clients need (e.g. for tooltips) are synced on join.
+- Server-authoritative values that clients need (e.g. for tooltips) are synced on join (on this branch through OMLib's `ConfigSync`, §5).
 - Read values with `OMLConfig.get()` (for example `OMLConfig.get().general.rangeStraightFloodlight`). Never cache them: on a client connected to a server, `get()` returns the server's config, and after disconnecting it returns the local one again.
 - **Versioning** (as in OpenModularTurrets): the file records `configVersion`; files without it are version 1. On load, `ConfigMigration` replaces values that still equal an old default with the new one, then saves the file with the current version, so it runs once per file and values an owner chose stay.
   **When you change a default, raise `CURRENT_VERSION` and add a step** (with a test in `ConfigMigrationTest`).
@@ -445,7 +444,7 @@ Update this checklist as work progresses.
 - [x] Blocks, block entities, registration, creative tab, interaction, drops with settings
 - [x] Phantom and UV light blocks (persistent, `LIT` toggle, random-tick cleanup, neighbour re-cast), light debug tool
 - [x] Forge Energy (insert only, cluster sharing of panel and cube lights), batteries, fuel, insert-only item capability
-- [x] GUIs (`IGuiHandler`, container sync, Camouflage button), config sync on login
+- [x] GUIs (`IGuiHandler`, container sync, Camouflage button), config sync on login (OMLib's `ConfigSync` since 2026-10-25)
 - [x] Disguise model (`CamoModel`, extended state), dye tint, "Configured" tooltip
 - [x] Assets adapted (blockstates, square panel textures, `.lang` files), recipes as JSON with the `block_enabled` condition, smelting in code
 - [x] Dev client starts with no model, texture or recipe errors (checked 2026-10-24)

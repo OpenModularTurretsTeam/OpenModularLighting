@@ -15,13 +15,11 @@ import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.client.model.ModelLoader;
 import net.minecraftforge.event.entity.player.ItemTooltipEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import net.minecraftforge.fml.common.network.FMLNetworkEvent;
 import omtteam.openmodularlighting.block.FloodlightBlock;
 import omtteam.openmodularlighting.client.camo.CamoModel;
 import omtteam.openmodularlighting.client.camo.CamoModels;
 import omtteam.openmodularlighting.client.render.FloodlightTint;
 import omtteam.openmodularlighting.client.render.LightBlockDebugRenderer;
-import omtteam.openmodularlighting.config.OMLConfig;
 import omtteam.openmodularlighting.registry.ModBlocks;
 import omtteam.openmodularlighting.registry.ModItems;
 
@@ -29,7 +27,7 @@ import java.util.Objects;
 
 /**
  * The client events of the mod: models (item models, state mappers, the disguise wrapper), the dye tint, the
- * "Configured" tooltip, the light debug tool and the switch back to the local config after leaving a server.
+ * "Configured" tooltip and the light debug tool.
  */
 public final class ClientEvents {
     private ClientEvents() {
@@ -80,11 +78,5 @@ public final class ClientEvents {
     @SubscribeEvent
     public static void renderDebugWireframes(RenderWorldLastEvent event) {
         LightBlockDebugRenderer.render(event.getPartialTicks());
-    }
-
-    /** Back to the local config after leaving a server (runs on the network thread; a single volatile write). */
-    @SubscribeEvent
-    public static void onDisconnect(FMLNetworkEvent.ClientDisconnectionFromServerEvent event) {
-        OMLConfig.useLocalConfig();
     }
 }

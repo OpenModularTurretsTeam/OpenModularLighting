@@ -7,10 +7,10 @@ import net.minecraftforge.fml.common.SidedProxy;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.fml.common.network.NetworkRegistry;
+import omtteam.omlib.config.ConfigSync;
 import omtteam.openmodularlighting.block.FloodlightInteraction;
 import omtteam.openmodularlighting.config.OMLConfig;
 import omtteam.openmodularlighting.handler.OMLGuiHandler;
-import omtteam.openmodularlighting.network.OMLNetwork;
 import omtteam.openmodularlighting.registry.ModRecipes;
 import omtteam.openmodularlighting.registry.Registration;
 import org.apache.logging.log4j.LogManager;
@@ -47,17 +47,20 @@ public final class OML {
     }
 
     /**
-     * Loads the config (block switches and recipes depend on it) and registers the packets and event handlers.
+     * Loads the config (block switches and recipes depend on it), registers it with OMLib's config sync and registers
+     * the event handlers.
      * Forge fires the registry events after this.
      */
     @Mod.EventHandler
     public void preInit(FMLPreInitializationEvent event) {
         LOGGER.info("Initializing Open Modular Lighting");
         OMLConfig.init(event.getModConfigurationDirectory().toPath());
-        OMLNetwork.init();
+        // OMLib sends the server's config on login and puts the local one back after disconnecting
+        ConfigSync.register(MOD_ID);
+        ConfigSync.registerValue(MOD_ID, OMLConfig.FILE_NAME, String.class, OMLConfig::toJson,
+                OMLConfig::applyServerConfig);
         MinecraftForge.EVENT_BUS.register(Registration.class);
         MinecraftForge.EVENT_BUS.register(FloodlightInteraction.class);
-        MinecraftForge.EVENT_BUS.register(OMLConfig.class);
         proxy.preInit();
     }
 

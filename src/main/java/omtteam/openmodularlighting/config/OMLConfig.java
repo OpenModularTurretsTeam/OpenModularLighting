@@ -6,13 +6,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
-import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.server.MinecraftServer;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import net.minecraftforge.fml.common.gameevent.PlayerEvent;
 import omtteam.openmodularlighting.OML;
-import omtteam.openmodularlighting.network.ConfigSyncPacket;
-import omtteam.openmodularlighting.network.OMLNetwork;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -22,7 +16,9 @@ import java.nio.file.Path;
 import java.util.Map;
 
 /**
- * Loads, validates and saves {@code config/openmodularlighting.json}, and syncs it from the server to clients.
+ * Loads, validates and saves {@code config/openmodularlighting.json}. The server's config reaches clients through
+ * OMLib's config sync ({@code ConfigSync}, registered by {@code OML}): {@link #toJson()} is sent on login,
+ * {@link #applyServerConfig} applies it, and after disconnecting OMLib applies the local config again the same way.
  * <p>
  * Missing keys are filled in with defaults, unknown keys are dropped and out-of-range values are clamped; the file
  * is rewritten whenever that happens. The file is JSON with {@code //} comments (read leniently): every key is
@@ -32,7 +28,7 @@ import java.util.Map;
  */
 public final class OMLConfig {
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
-    private static final String FILE_NAME = OML.MOD_ID + ".json";
+    public static final String FILE_NAME = OML.MOD_ID + ".json";
 
     /** Config loaded from this instance's own file. */
     private static ConfigData local = new ConfigData();
@@ -58,18 +54,9 @@ public final class OMLConfig {
         load();
     }
 
-    /**
-     * Sends the server's config to a joining player.
-     */
-    @SubscribeEvent
-    public static void onPlayerJoin(PlayerEvent.PlayerLoggedInEvent event) {
-        if (!(event.player instanceof EntityPlayerMP)) return;
-        EntityPlayerMP player = (EntityPlayerMP) event.player;
-        MinecraftServer server = player.server;
-        // The singleplayer host already uses this config
-        if (server != null && (server.isDedicatedServer() || !player.getName().equals(server.getServerOwner()))) {
-            OMLNetwork.CHANNEL.sendTo(new ConfigSyncPacket(GSON.toJson(local)), player);
-        }
+    /** The config in effect as JSON, the form {@link #applyServerConfig} reads (server: the local config). */
+    public static String toJson() {
+        return GSON.toJson(active);
     }
 
     public static void load() {
@@ -117,21 +104,19 @@ public final class OMLConfig {
     }
 
     /**
-     * Client side: use the config received from the server.
+     * Client side: use the config received from the server; the local one's JSON (OMLib's restore after
+     * disconnecting) switches back to the local config itself.
      */
     public static void applyServerConfig(String json) {
+        if (json.equals(GSON.toJson(local))) {
+            active = local;
+            return;
+        }
         try {
             active = parse(new JsonParser().parse(json)).data;
         } catch (Exception e) {
             OML.LOGGER.error("Received an invalid config from the server, keeping the local one", e);
         }
-    }
-
-    /**
-     * Client side: go back to the local config, e.g. after disconnecting.
-     */
-    public static void useLocalConfig() {
-        active = local;
     }
 
     private static final class ParseResult {
