@@ -8,6 +8,7 @@ import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 import net.minecraft.server.level.ServerPlayer;
 import omtteam.openmodularlighting.OML;
+import omtteam.openmodularlighting.compat.VersionCompat;
 import omtteam.openmodularlighting.compat.network.NetworkCompat;
 import omtteam.openmodularlighting.network.ConfigSyncPacket;
 import omtteam.openmodularlighting.network.OMLPackets;
@@ -67,7 +68,7 @@ public final class OMLConfig {
      */
     public static void onPlayerJoin(ServerPlayer player) {
         // The singleplayer host already uses this config
-        if (!player.server.isSingleplayerOwner(player.getGameProfile()) && NetworkCompat.canSend(player, OMLPackets.CONFIG_SYNC)) {
+        if (!VersionCompat.isSingleplayerOwner(player) && NetworkCompat.canSend(player, OMLPackets.CONFIG_SYNC)) {
             NetworkCompat.sendToPlayer(player, OMLPackets.CONFIG_SYNC, new ConfigSyncPacket(GSON.toJson(local)));
         }
     }

@@ -3,11 +3,14 @@ package omtteam.openmodularlighting.compat;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.ContainerHelper;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.ItemStack;
@@ -225,6 +228,26 @@ public final class VersionCompat {
         //?} else {
         /*return block.isValidBonemealTarget(level, pos, state, false);
         *///?}
+    }
+
+    // ---- Entities and players ----
+
+    /** Damages an entity (server side; 1.21.11 replaced {@code Entity#hurt} with {@code hurtServer}). */
+    public static boolean hurt(Entity entity, DamageSource source, float amount) {
+        //? if >=1.21.11 {
+        /*return entity.hurtOrSimulate(source, amount);
+        *///?} else {
+        return entity.hurt(source, amount);
+        //?}
+    }
+
+    /** Whether the player hosts the integrated (singleplayer or LAN) server it is on. */
+    public static boolean isSingleplayerOwner(ServerPlayer player) {
+        //? if >=1.21.11 {
+        /*return player.level().getServer().isSingleplayerOwner(player.nameAndId());
+        *///?} else {
+        return player.server.isSingleplayerOwner(player.getGameProfile());
+        //?}
     }
 
     // ---- Block entity data on block items (BlockEntityTag on 1.20.1, BLOCK_ENTITY_DATA component on 1.21+) ----
