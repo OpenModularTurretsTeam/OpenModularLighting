@@ -9,11 +9,13 @@ import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.items.SlotItemHandler;
+import omtteam.omlib.container.WindowValues;
 import omtteam.openmodularlighting.block.CarbonFloodlightBlock;
 import omtteam.openmodularlighting.block.ElectricFloodlightBlock;
 import omtteam.openmodularlighting.block.FloodlightBlock;
 import omtteam.openmodularlighting.tileentity.FloodlightTileEntity;
 
+import java.util.function.IntSupplier;
 import java.util.function.LongSupplier;
 
 /**
@@ -27,18 +29,13 @@ public abstract class FloodlightContainer extends Container {
     private static final double MAX_DISTANCE_SQR = 64.0;
     /** Index of the light's slot, after the 36 player slots. */
     private static final int LIGHT_SLOT = 36;
-    /** Window properties are sent as shorts: each long value goes as two 16-bit halves. */
-    private static final int HALF_BITS = 16;
-    private static final int HALF_MASK = 0xFFFF;
 
     private final BlockPos pos;
     private final FloodlightTileEntity light;
     private final boolean camoButton;
     private final boolean timeoutHint;
-    /** The synced values (read on the server only, clamped to {@code 0..Integer.MAX_VALUE}). */
-    private final LongSupplier[] values;
-    /** Last sent (server) or received (client) halves of {@link #values}. */
-    private final int[] halves;
+    /** The values of the status line as window properties (OMLib), clamped to {@code 0..Integer.MAX_VALUE}. */
+    private final WindowValues values;
 
     /**
      * @param light  the light's block entity (on the client the client's copy, kept in sync by the slots)
@@ -47,8 +44,12 @@ public abstract class FloodlightContainer extends Container {
     protected FloodlightContainer(InventoryPlayer playerInventory, FloodlightTileEntity light, LongSupplier... values) {
         this.pos = light.getPos();
         this.light = light;
-        this.values = values;
-        this.halves = new int[values.length * 2];
+        IntSupplier[] clamped = new IntSupplier[values.length];
+        for (int i = 0; i < values.length; i++) {
+            LongSupplier value = values[i];
+            clamped[i] = () -> (int) Math.max(0, Math.min(Integer.MAX_VALUE, value.getAsLong()));
+        }
+        this.values = new WindowValues(clamped);
         // the block at pos: the same on both sides, so both create the same slots
         Block block = light.getWorld().getBlockState(pos).getBlock();
         this.camoButton = block instanceof FloodlightBlock && ((FloodlightBlock) block).supportsCamo();
@@ -85,42 +86,24 @@ public abstract class FloodlightContainer extends Container {
 
     /** Synced value number {@code index} (client side: as last received). */
     protected long value(int index) {
-        return (halves[index * 2] & HALF_MASK) | ((long) (halves[index * 2 + 1] & HALF_MASK) << HALF_BITS);
-    }
-
-    private int currentHalf(int half) {
-        long value = Math.max(0, Math.min(Integer.MAX_VALUE, values[half / 2].getAsLong()));
-        return (int) ((half % 2 == 0 ? value : value >> HALF_BITS) & HALF_MASK);
+        return values.get(index);
     }
 
     @Override
     public void addListener(IContainerListener listener) {
         super.addListener(listener);
-        for (int half = 0; half < halves.length; half++) {
-            halves[half] = currentHalf(half);
-            listener.sendWindowProperty(this, half, halves[half]);
-        }
+        values.addListener(this, listener);
     }
 
     @Override
     public void detectAndSendChanges() {
         super.detectAndSendChanges();
-        for (int half = 0; half < halves.length; half++) {
-            int current = currentHalf(half);
-            if (current != halves[half]) {
-                halves[half] = current;
-                for (IContainerListener listener : listeners) {
-                    listener.sendWindowProperty(this, half, current);
-                }
-            }
-        }
+        values.detectAndSendChanges(this, listeners);
     }
 
     @Override
     public void updateProgressBar(int id, int data) {
-        if (id >= 0 && id < halves.length) {
-            halves[id] = data & HALF_MASK;
-        }
+        values.updateProgressBar(id, data);
     }
 
     @Override
