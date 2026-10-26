@@ -18,12 +18,14 @@ turns *Unreleased* into the release section; `chiseledPublish` uploads exactly t
 - Jar files are named `openmodularlighting-<version>-mc<minecraft version>-<loader>.jar` (`-mc` instead of the `+` before the Minecraft version)
 - Releases on CurseForge and Modrinth are titled like the jar file (`openmodularlighting-<version>-mc<minecraft version>-<loader>`)
 - `uvLightRendered` is now each player's own setting: on a server, the client's config decides whether UV light blocks are visible
+- The floodlight GUIs have a dark grey background like the turret GUIs instead of the vanilla light grey
 
 ### Fixed
 
 - Players in adventure mode can no longer dismantle lights with a wrench
 - Fuels with a huge burn time (modded) no longer get stuck in the carbon floodlight's slot
 - No crash when rendering a disguised floodlight on Fabric without a renderer implementation (e.g. Sodium without Indium on 1.20.1)
+- No stray black line below the left corner of the floodlight GUIs
 
 ## [1.0.0-beta.5] - 2026-10-24
 

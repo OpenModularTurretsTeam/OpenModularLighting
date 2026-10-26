@@ -27,7 +27,7 @@ public abstract class FloodlightScreen<M extends FloodlightMenu> extends Abstrac
     private static final int HINT_Y = 6;
     /** Text colours with alpha: from 1.21.6 on, text without alpha is not drawn. */
     private static final int STATUS_COLOR = 0xFF000000;
-    private static final int LABEL_COLOR = 0xFF404040;
+    private static final int LABEL_COLOR = 0xFF000000;
     private static final int HINT_HOVER_COLOR = 0xFFFFFFFF;
 
     private final ResourceLocation texture;
