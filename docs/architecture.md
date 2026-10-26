@@ -69,6 +69,9 @@ Source sets (Loom split source sets on Fabric, the same split built by hand on N
 | `src/test` | JUnit tests of the core and the config, and the architecture rules (`ArchitectureTest`) | no |
 | `src/gametest` | in-world GameTests as a separate test mod (own mod id), shared by all loaders and versions (from 1.21.11 on the test mod registers them itself, `GameTestCases`) | no |
 
+`src/main`, `src/client` and `src/gametest` each have two version source folders next to `java`: `mc1.20.1-1.21.1` and `mc1.21.11-`.
+They hold whole classes that differ between Minecraft versions (same package and class name, one variant per range), and `mod-common` adds the ones whose range contains the node's version.
+
 Packages below `omtteam.openmodularlighting` (main):
 
 | Package | Responsibility |
