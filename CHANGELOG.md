@@ -9,6 +9,8 @@ turns *Unreleased* into the release section; `chiseledPublish` uploads exactly t
 
 ## [Unreleased]
 
+## [1.0.0-beta.8] - 2026-10-26
+
 ### Added
 
 - Minecraft 1.21.11 support for Fabric and NeoForge
