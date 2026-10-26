@@ -12,36 +12,23 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import omtteam.openmodularlighting.blockentity.FloodlightBlockEntity;
 import omtteam.openmodularlighting.blockentity.GrowLightBlockEntity;
 import omtteam.openmodularlighting.registry.ModBlockEntities;
-//? if >=1.21 {
-import com.mojang.serialization.MapCodec;
-import net.minecraft.world.level.block.BaseEntityBlock;
-import org.jetbrains.annotations.NotNull;
-//?}
 
 import java.util.Map;
+import omtteam.omlib.compat.BlockCodec;
 
 /**
  * Grow light (1.7.10 {@code BlockGrowLight}): a square panel that always hangs from the ceiling, shining down; a
  * stick or wrench switches between normal lighting and black light.
  */
 public class GrowLightBlock extends PanelLightBlock {
-    //? if >=1.21 {
-    private static final MapCodec<GrowLightBlock> CODEC = simpleCodec(GrowLightBlock::new);
-    //?}
+    private static final BlockCodec<GrowLightBlock> CODEC = codecOf(GrowLightBlock::new);
 
     private static final Map<Direction, VoxelShape> SHAPES = PanelShapes.of(0, 0, 0, 16, 3, 16);
 
     public GrowLightBlock(Properties properties) {
-        super(properties);
+        super(CODEC, properties);
         registerDefaultState(defaultBlockState().setValue(FACING, Direction.DOWN));
     }
-
-    //? if >=1.21 {
-    @Override
-    protected @NotNull MapCodec<? extends BaseEntityBlock> codec() {
-        return CODEC;
-    }
-    //?}
 
     /** 1.7.10 {@code onBlockPlacedBy}: always facing down. */
     @Override

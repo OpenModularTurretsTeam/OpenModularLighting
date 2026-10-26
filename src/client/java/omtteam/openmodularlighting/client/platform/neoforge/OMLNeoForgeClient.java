@@ -5,7 +5,6 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
-import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
 import net.neoforged.neoforge.client.event.RegisterColorHandlersEvent;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
@@ -16,7 +15,6 @@ import omtteam.openmodularlighting.client.OMLClient;
 import omtteam.omlib.client.compat.ClientCompat;
 import omtteam.openmodularlighting.client.render.FloodlightTint;
 import omtteam.openmodularlighting.client.render.LightBlockDebugRenderer;
-import omtteam.openmodularlighting.config.OMLConfig;
 import omtteam.omlib.platform.Platform;
 //? if >=1.21.11 {
 /*import omtteam.omlib.camo.CamoBlock;
@@ -34,8 +32,6 @@ public final class OMLNeoForgeClient {
         modBus.addListener((RegisterMenuScreensEvent event) -> OMLClient.registerScreens(event::register));
         modBus.addListener((RegisterColorHandlersEvent.Block event) ->
                 event.register(FloodlightTint::color, FloodlightTint.tintedBlocks()));
-        // back to the local config after leaving a server
-        NeoForge.EVENT_BUS.addListener((ClientPlayerNetworkEvent.LoggingOut event) -> OMLConfig.useLocalConfig());
         NeoForge.EVENT_BUS.addListener((ItemTooltipEvent event) ->
                 OMLClient.appendTooltip(event.getItemStack(), event.getFlags(), event.getToolTip()));
         NeoForge.EVENT_BUS.addListener(OMLNeoForgeClient::onRenderLevelStage);

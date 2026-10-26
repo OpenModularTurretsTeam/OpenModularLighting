@@ -2,7 +2,6 @@ package omtteam.openmodularlighting.client.platform.fabric;
 
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.item.v1.ItemTooltipCallback;
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.ColorProviderRegistry;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.world.level.block.Block;
@@ -10,7 +9,6 @@ import omtteam.openmodularlighting.client.OMLClient;
 import omtteam.omlib.client.camo.CamoModels;
 import omtteam.openmodularlighting.client.render.FloodlightTint;
 import omtteam.openmodularlighting.client.render.LightBlockDebugRenderer;
-import omtteam.openmodularlighting.config.OMLConfig;
 import omtteam.openmodularlighting.registry.ModBlocks;
 //? if >=1.21.11 {
 /*import net.fabricmc.fabric.api.client.rendering.v1.BlockRenderLayerMap;
@@ -32,8 +30,6 @@ public final class OMLFabricClient implements ClientModInitializer {
     public void onInitializeClient() {
         OMLClient.init();
         OMLClient.registerScreens(MenuScreens::register);
-        // back to the local config after leaving a server
-        ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> OMLConfig.useLocalConfig());
         ColorProviderRegistry.BLOCK.register(FloodlightTint::color, FloodlightTint.tintedBlocks());
         // NeoForge reads these from "render_type" in the block models; Fabric ignores that field.
         // The lamp overlay of the floodlights (drawn alone over a disguise) is cut out.

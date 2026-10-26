@@ -6,7 +6,6 @@ import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import omtteam.openmodularlighting.block.FloodlightBlock;
-import omtteam.openmodularlighting.client.network.ClientPacketHandlers;
 import omtteam.openmodularlighting.client.screen.CarbonFloodlightScreen;
 import omtteam.openmodularlighting.client.screen.ElectricFloodlightScreen;
 import omtteam.omlib.compat.VersionCompat;
@@ -26,7 +25,6 @@ public final class OMLClient {
      * Packet handlers; called first thing after the client platform services are installed.
      */
     public static void init() {
-        ClientPacketHandlers.init();
     }
 
     /**

@@ -37,9 +37,8 @@ class ArchitectureTest {
      * so does a cycle that shrank or disappeared until it is updated here, so the list always shows the real state.
      */
     private static final List<Set<String>> KNOWN_CYCLES = List.of(
-            // registry, blocks, block entities, menus, config and network all reach each other
-            Set.of("(root)", "block", "blockentity", "compat", "config", "energy", "menu", "network", "registry",
-                    "world"));
+            // registry, blocks, block entities, menus, energy and the world helpers all reach each other
+            Set.of("(root)", "block", "blockentity", "energy", "menu", "registry", "world"));
 
     private static JavaClasses classes;
 

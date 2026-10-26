@@ -95,9 +95,9 @@ Packages below `omtteam.openmodularlighting` (main):
 | `menu` | the container menus (with the disguise slot) and `LongContainerData` |
 | `camo` | disguise of the floodlights: `CamoBlock` (marker of the lights that can be disguised), `CamoRules` (which blocks are valid), `CamoData` (the disguise and its NBT) |
 | `registry` | `ModBlocks`, `ModItems` (the crafting items and the light debug tool are plain `Item`s; what the tool does is in `FloodlightInteraction` and `client.render.LightBlockDebugRenderer`), `ModBlockEntities`, `ModMenus`, `ModCreativeTabs`, `ModDamageTypes`, `RegistrationStep` |
-| `network` | `OMLPackets` (all packet types) and `ConfigSyncPacket` |
+| `network` | `OMLPackets` (the mod's packet types; the config sync is OMLib's) |
 | `config` | the JSON config: `ConfigData` (fields), `@Comment`, `@Range`, `ConfigWriter`, `ConfigRanges`, `ConfigValidator`, `OMLConfig` (load, save, sync) |
-| `compat` | every 1.20.1 / 1.21.1 difference (`VersionCompat`, `CompatBlockEntity`, `InteractiveBlock`, `MenuCompat`, `network/`), `CommonTags`, the recipe condition, and the server half of the optional Jade plugin (`compat/jade`; the tooltip is in `client.compat.jade`, because Jade's tooltip classes are client classes) |
+| `compat` | every 1.20.1 / 1.21.1 difference (`VersionCompat`, `BlockEnabledCondition`), `CommonTags`, the recipe condition, and the server half of the optional Jade plugin (`compat/jade`; the tooltip is in `client.compat.jade`, because Jade's tooltip classes are client classes) |
 | `platform` | the loader services shared code calls (`Platform` holding `PlatformServices`: `LoaderInfo`, `Fuel`, `Network`, `Menus`, `Energy`); `platform.fabric`, `platform.neoforge` and `platform.forge` hold the entrypoints and implementations and only compile for their loader |
 | `datagen` | recipes, loot tables, tags, damage types (Fabric only, generated per version in the server environment; the recipes are the same on every version, in `OMLRecipeProvider.Recipes`) |
 
@@ -231,7 +231,7 @@ The disguise is drawn by the loader's model wrapper: the block entity hands it o
 
 ### Config
 
-`OMLConfig.get()` is the only way to read a value, and the value is never cached by the caller: on a client connected to a server it returns the server's config (synced by `ConfigSyncPacket` when the player joins).
+`OMLConfig.get()` is the only way to read a value, and the value is never cached by the caller: on a client connected to a server it returns the server's config (OMLib's `ConfigManager` receives it when the player joins).
 See "A config value" below for adding one.
 
 ## How to add …

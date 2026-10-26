@@ -8,14 +8,15 @@ import net.minecraft.world.level.material.MapColor;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.NotNull;
+import omtteam.omlib.compat.BlockCodec;
 
 /**
  * A light that is a thin panel (3 px) on the face behind it: fluorescent lights and the grow light. No collision
  * (1.7.10 {@code getCollisionBoundingBoxFromPool} returned null), only an outline.
  */
 public abstract class PanelLightBlock extends FloodlightBlock {
-    protected PanelLightBlock(Properties properties) {
-        super(properties);
+    protected PanelLightBlock(BlockCodec<?> codec, Properties properties) {
+        super(codec, properties);
     }
 
     /** 1.7.10: rock, metal sound, hardness 2.5. */

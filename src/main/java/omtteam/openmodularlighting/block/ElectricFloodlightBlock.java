@@ -11,22 +11,16 @@ import omtteam.openmodularlighting.blockentity.ElectricFloodlightBlockEntity;
 import omtteam.openmodularlighting.blockentity.FloodlightBlockEntity;
 import omtteam.omlib.camo.CamoBlock;
 import omtteam.openmodularlighting.registry.ModBlockEntities;
-//? if >=1.21 {
-import com.mojang.serialization.MapCodec;
-import net.minecraft.world.level.block.BaseEntityBlock;
-import org.jetbrains.annotations.NotNull;
-//?}
+import omtteam.omlib.compat.BlockCodec;
 
 /**
  * Electric floodlight: straight, narrow cone or wide cone, powered by Team Reborn Energy.
  */
 public class ElectricFloodlightBlock extends FloodlightBlock implements CamoBlock {
-    //? if >=1.21 {
-    private static final MapCodec<ElectricFloodlightBlock> CODEC = simpleCodec(ElectricFloodlightBlock::new);
-    //?}
+    private static final BlockCodec<ElectricFloodlightBlock> CODEC = codecOf(ElectricFloodlightBlock::new);
 
     public ElectricFloodlightBlock(Properties properties) {
-        super(properties);
+        super(CODEC, properties);
     }
 
     /** A disguised floodlight still shows its lamp ({@link #LAMP_TINT_INDEX}). */
@@ -34,13 +28,6 @@ public class ElectricFloodlightBlock extends FloodlightBlock implements CamoBloc
     public int overlayTintIndex() {
         return LAMP_TINT_INDEX;
     }
-
-    //? if >=1.21 {
-    @Override
-    protected @NotNull MapCodec<? extends BaseEntityBlock> codec() {
-        return CODEC;
-    }
-    //?}
 
     @Override
     public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {

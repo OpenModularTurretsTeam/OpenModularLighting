@@ -2,12 +2,8 @@ package omtteam.openmodularlighting.platform.fabric;
 
 import omtteam.omlib.platform.fabric.FabricBlockLookups;
 import net.fabricmc.api.ModInitializer;
-import net.fabricmc.fabric.api.event.player.UseBlockCallback;
-import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import omtteam.openmodularlighting.OML;
 import omtteam.openmodularlighting.registry.ModBlockEntities;
-import omtteam.openmodularlighting.compat.InteractiveBlock;
-import omtteam.openmodularlighting.config.OMLConfig;
 
 /**
  * Fabric entrypoint: installs the platform services, starts the mod and wires Fabric's callbacks to the shared code.
@@ -19,7 +15,5 @@ public final class OMLFabric implements ModInitializer {
         OML.registrationSteps().forEach(step -> step.register().run());
         FabricBlockLookups.register(ModBlockEntities.transferTypes());
         FabricBlockEnabledCondition.register();
-        UseBlockCallback.EVENT.register(InteractiveBlock::handleUse);
-        ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> OMLConfig.onPlayerJoin(handler.getPlayer()));
     }
 }

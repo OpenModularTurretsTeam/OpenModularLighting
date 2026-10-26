@@ -3,14 +3,10 @@ package omtteam.openmodularlighting.platform.neoforge;
 import omtteam.omlib.platform.neoforge.NeoForgeNetwork;
 import omtteam.omlib.platform.neoforge.NeoForgeCapabilities;
 import omtteam.omlib.platform.neoforge.NeoForgeCapabilities;
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.InteractionResult;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.neoforge.common.NeoForge;
-import net.neoforged.neoforge.event.entity.player.PlayerEvent;
-import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import net.neoforged.neoforge.registries.NeoForgeRegistries;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
@@ -18,8 +14,6 @@ import net.neoforged.neoforge.registries.RegisterEvent;
 import omtteam.openmodularlighting.OML;
 import omtteam.openmodularlighting.registry.ModBlockEntities;
 import omtteam.openmodularlighting.compat.BlockEnabledCondition;
-import omtteam.openmodularlighting.compat.InteractiveBlock;
-import omtteam.openmodularlighting.config.OMLConfig;
 import omtteam.omlib.platform.Platform;
 import omtteam.omlib.registry.RegistrationStep;
 
@@ -44,8 +38,6 @@ public final class OMLNeoForge {
                 NeoForgeCapabilities.register(event, ModBlockEntities.transferTypes()));
         modBus.addListener((RegisterPayloadHandlersEvent event) ->
                 ((NeoForgeNetwork) Platform.network()).applyRegistrations(event, OML.MOD_ID));
-        NeoForge.EVENT_BUS.addListener(OMLNeoForge::onRightClickBlock);
-        NeoForge.EVENT_BUS.addListener(OMLNeoForge::onPlayerLoggedIn);
     }
 
     private void onRegister(RegisterEvent event) {
@@ -64,21 +56,6 @@ public final class OMLNeoForge {
         if (done.size() != steps.size()) {
             List<RegistrationStep> missing = steps.stream().filter(step -> !done.contains(step)).toList();
             throw new IllegalStateException("Registration steps never ran: " + missing);
-        }
-    }
-
-    private static void onRightClickBlock(PlayerInteractEvent.RightClickBlock event) {
-        InteractionResult result = InteractiveBlock.handleUse(event.getEntity(), event.getLevel(), event.getHand(),
-                event.getHitVec());
-        if (result != InteractionResult.PASS) {
-            event.setCanceled(true);
-            event.setCancellationResult(result);
-        }
-    }
-
-    private static void onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) {
-        if (event.getEntity() instanceof ServerPlayer player) {
-            OMLConfig.onPlayerJoin(player);
         }
     }
 }

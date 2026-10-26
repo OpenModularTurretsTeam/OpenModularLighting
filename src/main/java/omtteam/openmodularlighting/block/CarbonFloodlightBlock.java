@@ -15,22 +15,16 @@ import omtteam.omlib.camo.CamoBlock;
 import omtteam.omlib.compat.MenuCompat;
 import omtteam.openmodularlighting.menu.CarbonFloodlightMenu;
 import omtteam.openmodularlighting.registry.ModBlockEntities;
-//? if >=1.21 {
-import com.mojang.serialization.MapCodec;
-import net.minecraft.world.level.block.BaseEntityBlock;
-import org.jetbrains.annotations.NotNull;
-//?}
+import omtteam.omlib.compat.BlockCodec;
 
 /**
  * Carbon (non-electric) floodlight: the same modes as the electric one, powered by furnace fuel.
  */
 public class CarbonFloodlightBlock extends FloodlightBlock implements CamoBlock {
-    //? if >=1.21 {
-    private static final MapCodec<CarbonFloodlightBlock> CODEC = simpleCodec(CarbonFloodlightBlock::new);
-    //?}
+    private static final BlockCodec<CarbonFloodlightBlock> CODEC = codecOf(CarbonFloodlightBlock::new);
 
     public CarbonFloodlightBlock(Properties properties) {
-        super(properties);
+        super(CODEC, properties);
     }
 
     /** A disguised floodlight still shows its lamp ({@link #LAMP_TINT_INDEX}). */
@@ -38,13 +32,6 @@ public class CarbonFloodlightBlock extends FloodlightBlock implements CamoBlock 
     public int overlayTintIndex() {
         return LAMP_TINT_INDEX;
     }
-
-    //? if >=1.21 {
-    @Override
-    protected @NotNull MapCodec<? extends BaseEntityBlock> codec() {
-        return CODEC;
-    }
-    //?}
 
     @Override
     public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {

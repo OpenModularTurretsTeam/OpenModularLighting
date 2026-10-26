@@ -4,7 +4,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
-import net.minecraftforge.client.event.ClientPlayerNetworkEvent;
 import net.minecraftforge.client.event.RegisterColorHandlersEvent;
 import net.minecraftforge.client.event.RenderLevelStageEvent;
 import net.minecraftforge.common.MinecraftForge;
@@ -14,7 +13,6 @@ import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import omtteam.openmodularlighting.client.OMLClient;
 import omtteam.openmodularlighting.client.render.FloodlightTint;
 import omtteam.openmodularlighting.client.render.LightBlockDebugRenderer;
-import omtteam.openmodularlighting.config.OMLConfig;
 import omtteam.omlib.platform.Platform;
 
 /**
@@ -31,8 +29,6 @@ public final class OMLForgeClient {
                 event.enqueueWork(() -> OMLClient.registerScreens(MenuScreens::register)));
         modBus.addListener((RegisterColorHandlersEvent.Block event) ->
                 event.register(FloodlightTint::color, FloodlightTint.tintedBlocks()));
-        // back to the local config after leaving a server
-        MinecraftForge.EVENT_BUS.addListener((ClientPlayerNetworkEvent.LoggingOut event) -> OMLConfig.useLocalConfig());
         MinecraftForge.EVENT_BUS.addListener((ItemTooltipEvent event) ->
                 OMLClient.appendTooltip(event.getItemStack(), event.getFlags(), event.getToolTip()));
         MinecraftForge.EVENT_BUS.addListener(OMLForgeClient::onRenderLevelStage);

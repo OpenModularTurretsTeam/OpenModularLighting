@@ -14,15 +14,10 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import omtteam.openmodularlighting.blockentity.FloodlightBlockEntity;
 import omtteam.openmodularlighting.blockentity.FluorescentLightBlockEntity;
 import omtteam.openmodularlighting.registry.ModBlockEntities;
-//? if >=1.21 {
-import com.mojang.serialization.Codec;
-import com.mojang.serialization.MapCodec;
-import com.mojang.serialization.codecs.RecordCodecBuilder;
-import net.minecraft.world.level.block.BaseEntityBlock;
-import org.jetbrains.annotations.NotNull;
-//?}
 
 import java.util.Map;
+import com.mojang.serialization.Codec;
+import omtteam.omlib.compat.BlockCodec;
 
 /**
  * Small and square fluorescent lights (1.7.10 {@code BlockSmallElectricFloodlight}, metadata 0 and 1). The small
@@ -31,12 +26,8 @@ import java.util.Map;
 public class FluorescentLightBlock extends PanelLightBlock {
     public static final BooleanProperty ROTATED = BooleanProperty.create("rotated");
 
-    //? if >=1.21 {
-    private static final MapCodec<FluorescentLightBlock> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-            propertiesCodec(),
-            Codec.BOOL.fieldOf("small").forGetter(block -> block.small)
-    ).apply(instance, FluorescentLightBlock::new));
-    //?}
+    private static final BlockCodec<FluorescentLightBlock> CODEC = codecOf("small", Codec.BOOL, block -> block.small,
+            (small, properties) -> new FluorescentLightBlock(properties, small));
 
     private static final Map<Direction, VoxelShape> SQUARE = PanelShapes.of(0, 0, 0, 16, 3, 16);
     private static final Map<Direction, VoxelShape> SMALL = PanelShapes.of(0, 0, 5, 16, 3, 11);
@@ -46,17 +37,10 @@ public class FluorescentLightBlock extends PanelLightBlock {
 
     /** @param small the 6 px strip (rotatable) instead of the full square */
     public FluorescentLightBlock(Properties properties, boolean small) {
-        super(properties);
+        super(CODEC, properties);
         this.small = small;
         registerDefaultState(defaultBlockState().setValue(ROTATED, false));
     }
-
-    //? if >=1.21 {
-    @Override
-    protected @NotNull MapCodec<? extends BaseEntityBlock> codec() {
-        return CODEC;
-    }
-    //?}
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {

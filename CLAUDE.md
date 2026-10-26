@@ -180,7 +180,7 @@ The Stonecutter DSL changes between releases. If this does not match the install
 Requested by the user on 2026-10-27: the code that OpenModularLighting and OpenModularTurrets used to share lives in the library OMLib (`../OMLib1.20.1+`, a mod of its own with the id `omlib`, package `omtteam.omlib`), which both mods bundle jar-in-jar.
 Its README and `CLAUDE.md` describe the layout and the rules (no mod knowledge in the library, public API only where a mod needs it).
 
-- **Where things are:** the platform layer (`Platform`, `LoaderInfo`, `Fuel`, `Network`, `Menus`, `Energy` and their loader classes), the compat helpers (`VersionCompat`, `NbtCompat`, `BlockCompat`, `NetworkCompat`, `MenuCompat`, `CompatBlockEntity`, `CommonTags`, `ClientCompat`), `core.energy`, `inventory.ItemAccess`, `TransferHost`, the config machinery (`@Comment`, `@Range`, `ConfigWriter`, `ConfigRanges`, `ConfigValidator`, `ConfigMigration`), `RegistrationStep` and the camouflage menu with its screen, packets and models are in the `omtteam.omlib` packages.
+- **Where things are:** the platform layer (`Platform`, `LoaderInfo`, `Fuel`, `Network`, `Menus`, `Energy` and their loader classes), the compat helpers (`VersionCompat`, `NbtCompat`, `BlockCompat`, `NetworkCompat`, `MenuCompat`, `CompatBlockEntity`, `CommonTags`, `ClientCompat`), `core.energy`, `inventory.ItemAccess`, `TransferHost`, the config machinery (`@Comment`, `@Range`, `ConfigWriter`, `ConfigRanges`, `ConfigValidator`, `ConfigMigration`), `RegistrationStep`, the block base `CompatEntityBlock` with `BlockCodec`, the single right-click handling `InteractiveBlock` (with interceptors), `ConfigManager` (with the config sync) and the camouflage menu with its screen, packets and models are in the `omtteam.omlib` packages.
   Wherever the rest of this file names those classes under `omtteam.openmodularlighting`, read `omtteam.omlib`; they kept their names and package layout.
 - **Build:** the settings script runs `omlib/tools/bootstrap.sh` first (inside `pluginManagement`), which builds the library for all six nodes into `omlib/build/maven` when its sources changed (Loom resolves mod dependencies while it configures, so a task is too late).
   `mod-common` adds that repository and exposes `project.extra["omlibCoordinates"]` / `["omlibVersion"]`; the loader scripts declare the dependency and bundle it, and the metadata templates declare it (`${omlib_version}`).
@@ -350,7 +350,7 @@ Wrap each of these behind a helper where possible.
 | Block broken or replaced (`onRemove` is gone in 1.21.11) | override `CompatBlockEntity.onBlockRemoved(Level)` (server only, before the block entity is removed); on <1.21.11 the block's `onRemove` calls `CompatBlockEntity.handleRemove` (behind `//? if <1.21.11`), on 1.21.11 vanilla's `preRemoveSideEffects` calls it |
 | ItemStack NBT, slot lists | `VersionCompat.saveStack` / `loadStack`, `saveItems` / `loadItems` |
 | ItemStack extra data | `VersionCompat.hasCustomData` / `getCustomData` / `setCustomData` / `updateCustomData` |
-| Block interaction | implement `compat.InteractiveBlock#onUse`; `InteractiveBlock.handleUse` is called by the loader's block-use event (Fabric `UseBlockCallback`, NeoForge `PlayerInteractEvent.RightClickBlock`; same in both versions) |
+| Block interaction | implement OMLib's `InteractiveBlock#onUse`; `InteractiveBlock.handleUse` is called by the loader's block-use event, which OMLib registers once (Fabric `UseBlockCallback`, NeoForge `PlayerInteractEvent.RightClickBlock`; same in both versions) |
 | Registering blocks, items, block entity types | create blocks and items with `VersionCompat.blockProperties` / `itemProperties` / `blockItemProperties(properties, id)` (1.21.11 needs the id before construction; block items keep the `block.` name), block entity types with `VersionCompat.blockEntityType(factory, blocks…)` (no `BlockEntityType.Builder` on 1.21.11). Also in the test mod |
 | Damaging entities, singleplayer host | `VersionCompat.hurt(entity, source, amount)` (1.21.11 has `hurtServer` / `hurtOrSimulate` instead of `hurt`), `VersionCompat.isSingleplayerOwner(player)`; damage types through `registryAccess().lookupOrThrow(Registries.DAMAGE_TYPE).getOrThrow(key)` (works on every version) |
 | Creative tab builder | `VersionCompat.creativeTabBuilder()` (Fabric `FabricItemGroup`, NeoForge vanilla builder) |
@@ -430,7 +430,7 @@ omtteam.openmodularlighting
 ├── network/                       OMLPackets (all packet types), ConfigSyncPacket
 ├── config/                        OMLConfig (load, validate, save, sync), ConfigData (the fields), @Comment, @Range,
 │                                  ConfigWriter, ConfigRanges, ConfigValidator
-├── compat/                        every 1.20.1/1.21.1 difference: VersionCompat, CompatBlockEntity, InteractiveBlock,
+├── compat/                        every 1.20.1/1.21.1 difference: VersionCompat, CompatBlockEntity,
 │                                  MenuCompat, network/ (NetworkCompat, PacketType); jade/ (optional Jade plugin, server
 │                                  half: OMLJadePlugin, FloodlightJadeProvider; FloodlightTooltip has the content, no Jade)
 ├── platform/                      loader-specific code (§4 "Loaders"); each node compiles only its own loader's package.
@@ -466,9 +466,7 @@ src/client/java/omtteam/openmodularlighting/client
 │                                  (light debug tool: wireframes around light blocks while held; called from the
 │                                  loader's world render event, not a block entity renderer, so it costs nothing while
 │                                  not held)
-├── compat/                        ClientCompat, ClientNetworkCompat; jade/ (client half of the Jade plugin: OMLJadeClientPlugin,
-│                                  FloodlightJadeComponent)
-└── network/                       ClientPacketHandlers (config sync handler)
+└── compat/                        jade/ (client half of the Jade plugin: OMLJadeClientPlugin, FloodlightJadeComponent)
 ```
 
 Dependency direction: `client → main → core`. `core` depends on nothing. `main` never references `client`.
@@ -590,7 +588,7 @@ The timeout still applies: toggling `LIT` is much cheaper than placing blocks, b
 | Right-click (anything else) | open the GUI: carbon GUI for the carbon floodlight, the shared electric GUI (energy + battery slot) for all electric lights; the electric, carbon and UV floodlights also get a "Camouflage" button that opens the camouflage menu (§6.11) |
 
 Use the convention tag `compat.CommonTags.WRENCHES` (`c:wrenches` on 1.20.1, `c:tools/wrench` on 1.21) instead of mod-specific wrench checks. A stick always works for the mode, but only a wrench dismantles. Sneaking with any other item passes, so the item can be used (e.g. placing a block). Dye is not consumed; any wool resets the colour. Messages go to chat (`displayClientMessage(…, false)`).
-Interaction goes through `compat.InteractiveBlock`, so it is the same on both versions.
+Interaction goes through OMLib's `InteractiveBlock`, so it is the same on both versions.
 
 ### 6.7 Block entity data
 

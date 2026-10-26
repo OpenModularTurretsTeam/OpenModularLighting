@@ -9,32 +9,19 @@ import net.minecraft.world.level.block.state.BlockState;
 import omtteam.openmodularlighting.blockentity.CubeLightBlockEntity;
 import omtteam.openmodularlighting.blockentity.FloodlightBlockEntity;
 import omtteam.openmodularlighting.registry.ModBlockEntities;
-//? if >=1.21 {
-import com.mojang.serialization.MapCodec;
-import net.minecraft.world.level.block.BaseEntityBlock;
-import org.jetbrains.annotations.NotNull;
-//?}
+import omtteam.omlib.compat.BlockCodec;
 
 /**
  * Cube light: a full block that lights all 6 blocks around it. It looks the same from every side, so {@link #FACING}
  * is fixed (the light has no front).
  */
 public class CubeLightBlock extends FloodlightBlock {
-    //? if >=1.21 {
-    private static final MapCodec<CubeLightBlock> CODEC = simpleCodec(CubeLightBlock::new);
-    //?}
+    private static final BlockCodec<CubeLightBlock> CODEC = codecOf(CubeLightBlock::new);
 
     public CubeLightBlock(Properties properties) {
-        super(properties);
+        super(CODEC, properties);
         registerDefaultState(defaultBlockState().setValue(FACING, Direction.DOWN));
     }
-
-    //? if >=1.21 {
-    @Override
-    protected @NotNull MapCodec<? extends BaseEntityBlock> codec() {
-        return CODEC;
-    }
-    //?}
 
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {

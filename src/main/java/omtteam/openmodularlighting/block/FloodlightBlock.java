@@ -10,7 +10,6 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.SoundType;
@@ -28,7 +27,7 @@ import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.world.phys.BlockHitResult;
 import omtteam.openmodularlighting.blockentity.FloodlightBlockEntity;
 import omtteam.omlib.compat.CompatBlockEntity;
-import omtteam.openmodularlighting.compat.InteractiveBlock;
+import omtteam.omlib.block.InteractiveBlock;
 import omtteam.omlib.compat.MenuCompat;
 import omtteam.omlib.compat.VersionCompat;
 import omtteam.openmodularlighting.energy.ElectricPower;
@@ -37,20 +36,22 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import omtteam.omlib.compat.BlockCodec;
+import omtteam.omlib.compat.CompatEntityBlock;
 
 /**
  * Base of every light block (floodlights, UV floodlight, fluorescent and grow lights). {@link #FACING} is the
  * direction the light shines (the front), {@link #LIT} is set while it is on. Interaction as in 1.7.10 (CLAUDE.md
  * §6.6); subclasses decide what a stick or wrench does ({@link #configure}).
  */
-public abstract class FloodlightBlock extends BaseEntityBlock implements InteractiveBlock {
+public abstract class FloodlightBlock extends CompatEntityBlock implements InteractiveBlock {
     public static final EnumProperty<Direction> FACING = BlockStateProperties.FACING;
     /** Tint index of the lamp quads of the floodlights' models: the lamp stays visible on a disguised light and gets the dye colour. */
     public static final int LAMP_TINT_INDEX = 1;
     public static final BooleanProperty LIT = BlockStateProperties.LIT;
 
-    protected FloodlightBlock(Properties properties) {
-        super(properties);
+    protected FloodlightBlock(BlockCodec<?> codec, Properties properties) {
+        super(codec, properties);
         registerDefaultState(stateDefinition.any().setValue(FACING, Direction.SOUTH).setValue(LIT, false));
     }
 
