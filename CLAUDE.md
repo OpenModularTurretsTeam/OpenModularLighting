@@ -220,6 +220,7 @@ The node `1.20.1-forge` follows the NeoForge setup; these are the differences:
 - **Recipe condition:** `ForgeBlockEnabledCondition` (`ICondition` + `IConditionSerializer`, registered with `CraftingHelper.register` in the recipe serializer `RegisterEvent`).
 - **Client:** screens are registered with `MenuScreens.register` in `FMLClientSetupEvent` (no screen event); `ForgeCamoModel` is `NeoForgeCamoModel` without the ambient occlusion override (Forge 1.20.1 does not pass model data there).
 - **GameTests:** `runGameTestServer` with `forge.enabledGameTestNamespaces`; the same annotations as NeoForge (`net.minecraftforge.gametest`). Vanilla 1.20.1's `makeMockServerPlayerInLevel` gives the connection no netty channel, which Forge's login handling needs: use `OMLGameTests.mockPlayer(helper)` instead (an `EmbeddedChannel` on Forge, as in vanilla 1.20.5+).
+  The library jar the client and game test source sets use is the one with the dev names (classifier `dev`, published by OMLib next to the SRG-named one): the game test run has no remapping, and a Forge game test server whose mod fails to load still exits normally, so `check` also requires the "All N required tests passed" line in `run/logs/latest.log` (Forge and NeoForge build scripts).
 - `DamageSources#source` is private in vanilla 1.20.1 (only Fabric API widens it): build a `DamageSource` from the damage type holder instead.
 
 ### Commands
