@@ -24,7 +24,8 @@ loom {
 
     runConfigs.all {
         generateRunConfig = true
-        runDirectory = rootProject.file("run") // shared run directory for all Fabric versions
+        // versions/<v>/run: one per node, so mods added by hand to run/mods and worlds stay with their version
+        runDirectory = project.file("run")
     }
 }
 

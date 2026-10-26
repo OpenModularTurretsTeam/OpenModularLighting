@@ -208,7 +208,7 @@ The node `1.20.1-forge` follows the NeoForge setup; these are the differences:
 ./gradlew "Set active project to 1.21.1-fabric"   # switch back (VCS state)
 ./gradlew chiseledBuild                           # build ALL nodes (custom task in stonecutter.gradle.kts)
 ./gradlew :1.20.1-fabric:build                    # build a single node
-./gradlew :1.21.1-fabric:runClient                # run client for a node
+./gradlew :1.21.1-fabric:runClient                # run client for a node (run dir versions/<node>/run, one per node)
 ./gradlew :1.21.1-fabric:runServer
 ./gradlew spotlessApply                           # fix formatting (spotlessCheck verifies it)
 ./gradlew :1.21.1-fabric:runGameTest              # in-world GameTests for one node (also part of check/build)
@@ -345,6 +345,7 @@ Wrap each of these behind a helper where possible.
   - Textures can be reused from `oldmod/src/main/resources/assets/floodlights/textures/`. Rename them to snake_case.
   - Lang: convert `oldmod/.../lang/*.lang` (en_US, de_DE, ru_RU) to `en_us.json`, `de_de.json` and `ru_ru.json` with the new keys.
   - Connected textures of `lightproof_glass`: `assets/openmodularlighting/optifine/ctm/lightproof_glass/` holds a `ctm_compact` properties file (Continuity / OptiFine format, no dependency) and the 5 tiles `0.png`–`4.png`, cut from `textures/block/lightproof_glass.png` (32 × 32, 2 px frame): 0 unconnected, 1 fully connected, 2 up/down, 3 left/right, 4 only the frame corners. Cut them again if the base texture changes.
+  - Every item needs an item model definition in `items/<id>.json` (read from 1.21.4 on; older versions ignore the folder) that points at its `models/item/<id>.json`; without one, 1.21.11 shows the missing texture and logs nothing. A new item gets both files.
   - The old IGW wiki text (`wiki/`) is not ported.
 - **`data/`** (recipes, loot tables, tags, advancements): folder names and JSON formats differ. **Generate them with Fabric Datagen.**
   - Run datagen per version. It runs in the server environment (`client = false`): the providers need no client classes, so a new version's data can be generated before its client code is ported.
