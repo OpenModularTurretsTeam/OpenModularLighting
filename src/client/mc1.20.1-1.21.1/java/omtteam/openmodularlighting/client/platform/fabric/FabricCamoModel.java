@@ -21,15 +21,15 @@ import org.jetbrains.annotations.Nullable;
 import java.util.function.Supplier;
 
 /**
- * Model of a light that can be disguised on Fabric (taken over from OpenModularTurrets; the NeoForge counterpart is
- * {@code NeoForgeCamoModel}): without a disguise it is the light's own model, with one it emits the quads of the
- * disguise's model into the normal chunk mesh, followed by the lamp quads of the light's own model
- * ({@link CamoModels#LAMP_TINT_INDEX}, cutout layer). The disguise gets proper ambient occlusion and face culling.
+ * Model of a camouflage host ({@code CamoHost}) on Fabric (the NeoForge counterpart is {@code NeoForgeCamoModel}):
+ * without a disguise it is the block's own model, with one it emits
+ * the quads of the disguise's model into the normal chunk mesh. That gives the disguise proper ambient occlusion and
+ * face culling, and transparent blocks (glass, leaves, ice) are drawn in their own render layer.
  * <p>
- * Tinted quads of the disguise (grass, ...) get its colour at the light's position, taken from the level view of the
- * chunk being meshed, so the client's biome blend setting applies like on the real block.
+ * Tinted quads (grass, leaves, water...) get the colour of the disguise at the host's position, taken from the
+ * level view of the chunk being meshed, so the client's biome blend setting applies like on the real block.
  * <p>
- * The variant for 1.20.1 and 1.21.1 (Fabric's baked model API); {@code OMLFabricClient} wraps the models.
+ * The variant up to 1.21.1 (baked models); {@code OMLFabricClient} wraps the models.
  */
 public final class FabricCamoModel extends ForwardingBakedModel {
     public FabricCamoModel(BakedModel wrapped) {
@@ -47,7 +47,7 @@ public final class FabricCamoModel extends ForwardingBakedModel {
         BlockState camo = camoAt(view, pos);
         Renderer renderer = RendererAccess.INSTANCE.getRenderer();
         if (camo == null || renderer == null) {
-            // no renderer implementation (e.g. Sodium on 1.20.1 without Indium): the light's own look
+            // no renderer implementation (e.g. Sodium on 1.20.1 without Indium): the block's own look
             super.emitBlockQuads(view, state, pos, randomSupplier, context);
             return;
         }
@@ -59,8 +59,10 @@ public final class FabricCamoModel extends ForwardingBakedModel {
         } finally {
             context.popTransform();
         }
-        // the lamp on top, in the light's own (cutout) layer and with its dye colour
-        context.pushTransform(quad -> quad.colorIndex() == CamoModels.LAMP_TINT_INDEX);
+        // what stays of the block's own model on top (e.g. a lamp), in its own layer
+        int overlay = CamoModels.overlayTintIndex(state);
+        if (overlay < 0) return;
+        context.pushTransform(quad -> quad.colorIndex() == overlay);
         try {
             super.emitBlockQuads(view, state, pos, randomSupplier, context);
         } finally {
@@ -74,8 +76,8 @@ public final class FabricCamoModel extends ForwardingBakedModel {
     }
 
     /**
-     * Puts the quads of the disguise into the render layer of the disguise (the light's layer is the cutout one) and
-     * applies its tint.
+     * Puts the quads of the disguise into the render layer of the disguise (the host block's layer is the solid
+     * one) and applies its tint.
      */
     private static final class DisguiseTransform implements RenderContext.QuadTransform {
         private final BlockAndTintGetter view;
@@ -106,7 +108,7 @@ public final class FabricCamoModel extends ForwardingBakedModel {
                         quad.color(vertex, multiply(quad.color(vertex), 0xFF000000 | tint));
                     }
                 }
-                // the tint is applied; the light's colour provider would apply the dye colour instead
+                // the tint is applied; the colour provider of the block would apply its own colour instead
                 quad.colorIndex(-1);
             }
             return true;

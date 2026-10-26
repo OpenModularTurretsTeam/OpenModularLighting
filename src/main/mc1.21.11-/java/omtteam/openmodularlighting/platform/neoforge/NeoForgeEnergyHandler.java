@@ -6,15 +6,15 @@ import net.neoforged.neoforge.transfer.energy.EnergyHandler;
 import net.neoforged.neoforge.transfer.transaction.SnapshotJournal;
 import net.neoforged.neoforge.transfer.transaction.TransactionContext;
 import omtteam.openmodularlighting.core.energy.EnergyAccess;
+import omtteam.openmodularlighting.core.energy.EnergyGroup;
 import omtteam.openmodularlighting.core.energy.EnergyStore;
-import omtteam.openmodularlighting.energy.ClusterEnergy;
 
 import java.util.Map;
 
 /**
  * NeoForge views ({@link EnergyHandler}, FE, {@code int}) of {@link EnergyAccess}; 1 E = 1 FE, larger amounts are
  * clamped to {@link Integer#MAX_VALUE}. A store gets one {@link SnapshotJournal} for exact rollback in transactions; a
- * cluster view distributes into its members' store handlers (like {@code FabricEnergyStorages}).
+ * group distributes into the handlers of its stores (like {@code FabricEnergyStorages}).
  */
 public final class NeoForgeEnergyHandler {
     /**
@@ -30,8 +30,8 @@ public final class NeoForgeEnergyHandler {
         if (access instanceof EnergyStore store) {
             return STORES.computeIfAbsent(store, StoreHandler::new);
         }
-        if (access instanceof ClusterEnergy.View view) {
-            return new ClusterHandler(view);
+        if (access instanceof EnergyGroup group) {
+            return new GroupHandler(group);
         }
         throw new IllegalArgumentException("No NeoForge energy handler for " + access.getClass());
     }
@@ -90,28 +90,28 @@ public final class NeoForgeEnergyHandler {
         }
     }
 
-    /** Insert only, emptiest light first ({@link ClusterEnergy.View#fill}). */
-    private static final class ClusterHandler implements EnergyHandler {
-        private final ClusterEnergy.View view;
+    /** Insert only: distributes through {@link EnergyGroup#fill}. */
+    private static final class GroupHandler implements EnergyHandler {
+        private final EnergyGroup group;
 
-        ClusterHandler(ClusterEnergy.View view) {
-            this.view = view;
+        GroupHandler(EnergyGroup group) {
+            this.group = group;
         }
 
         @Override
         public long getAmountAsLong() {
-            return view.getAmount();
+            return group.getAmount();
         }
 
         @Override
         public long getCapacityAsLong() {
-            return view.getCapacity();
+            return group.getCapacity();
         }
 
         @Override
         public int insert(int amount, TransactionContext transaction) {
             TransferPreconditions.checkNonNegative(amount);
-            return clamp(view.fill(amount, (store, part) -> of(store).insert(clamp(part), transaction)));
+            return clamp(group.fill(amount, (store, part) -> of(store).insert(clamp(part), transaction)));
         }
 
         @Override

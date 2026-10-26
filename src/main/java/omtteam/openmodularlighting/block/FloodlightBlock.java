@@ -45,6 +45,8 @@ import java.util.List;
  */
 public abstract class FloodlightBlock extends BaseEntityBlock implements InteractiveBlock {
     public static final EnumProperty<Direction> FACING = BlockStateProperties.FACING;
+    /** Tint index of the lamp quads of the floodlights' models: the lamp stays visible on a disguised light and gets the dye colour. */
+    public static final int LAMP_TINT_INDEX = 1;
     public static final BooleanProperty LIT = BlockStateProperties.LIT;
 
     protected FloodlightBlock(Properties properties) {
@@ -60,7 +62,7 @@ public abstract class FloodlightBlock extends BaseEntityBlock implements Interac
     protected abstract BlockEntityType<? extends FloodlightBlockEntity> blockEntityType();
 
     /** Opens the GUI of this light: the shared electric GUI (energy, battery slot) for electric lights. */
-    protected void openMenu(ServerPlayer player, FloodlightBlockEntity light) {
+    public void openMenu(ServerPlayer player, FloodlightBlockEntity light) {
         ElectricPower power = light.electricPower();
         if (power != null) {
             MenuCompat.open(player, Component.translatable(getDescriptionId()), light.getBlockPos(),

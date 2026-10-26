@@ -7,7 +7,6 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.crafting.CraftingHelper;
-import net.minecraftforge.event.AttachCapabilitiesEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
@@ -17,7 +16,6 @@ import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.fml.loading.FMLEnvironment;
 import net.minecraftforge.registries.RegisterEvent;
 import omtteam.openmodularlighting.OML;
-import omtteam.openmodularlighting.blockentity.FloodlightBlockEntity;
 import omtteam.openmodularlighting.compat.InteractiveBlock;
 import omtteam.openmodularlighting.config.OMLConfig;
 import omtteam.openmodularlighting.platform.Platform;
@@ -48,7 +46,7 @@ public final class OMLForge {
         OML.init();
         modBus.addListener(this::onRegister);
         modBus.addListener(this::onCommonSetup);
-        MinecraftForge.EVENT_BUS.addGenericListener(BlockEntity.class, OMLForge::onAttachCapabilities);
+        MinecraftForge.EVENT_BUS.addGenericListener(BlockEntity.class, ForgeBlockCapabilities::attach);
         MinecraftForge.EVENT_BUS.addListener(OMLForge::onRightClickBlock);
         MinecraftForge.EVENT_BUS.addListener(OMLForge::onPlayerLoggedIn);
         if (FMLEnvironment.dist == Dist.CLIENT) {
@@ -81,15 +79,6 @@ public final class OMLForge {
         if (done.size() != steps.size()) {
             List<RegistrationStep> missing = steps.stream().filter(step -> !done.contains(step)).toList();
             throw new IllegalStateException("Registration steps never ran: " + missing);
-        }
-    }
-
-    /** Items and energy of every light (as the Fabric lookups and the NeoForge capabilities). */
-    private static void onAttachCapabilities(AttachCapabilitiesEvent<BlockEntity> event) {
-        if (event.getObject() instanceof FloodlightBlockEntity light) {
-            ForgeLightCapabilities capabilities = new ForgeLightCapabilities(light);
-            event.addCapability(OML.id("light"), capabilities);
-            event.addListener(capabilities::invalidate);
         }
     }
 

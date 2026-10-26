@@ -29,6 +29,12 @@ public class ElectricFloodlightBlock extends FloodlightBlock implements CamoBloc
         super(properties);
     }
 
+    /** A disguised floodlight still shows its lamp ({@link #LAMP_TINT_INDEX}). */
+    @Override
+    public int overlayTintIndex() {
+        return LAMP_TINT_INDEX;
+    }
+
     //? if >=1.21 {
     @Override
     protected @NotNull MapCodec<? extends BaseEntityBlock> codec() {

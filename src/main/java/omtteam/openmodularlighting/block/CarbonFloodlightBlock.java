@@ -33,6 +33,12 @@ public class CarbonFloodlightBlock extends FloodlightBlock implements CamoBlock 
         super(properties);
     }
 
+    /** A disguised floodlight still shows its lamp ({@link #LAMP_TINT_INDEX}). */
+    @Override
+    public int overlayTintIndex() {
+        return LAMP_TINT_INDEX;
+    }
+
     //? if >=1.21 {
     @Override
     protected @NotNull MapCodec<? extends BaseEntityBlock> codec() {
@@ -65,7 +71,7 @@ public class CarbonFloodlightBlock extends FloodlightBlock implements CamoBlock 
     }
 
     @Override
-    protected void openMenu(ServerPlayer player, FloodlightBlockEntity light) {
+    public void openMenu(ServerPlayer player, FloodlightBlockEntity light) {
         if (light instanceof CarbonFloodlightBlockEntity carbon) {
             MenuCompat.open(player, Component.translatable(getDescriptionId()), light.getBlockPos(),
                     (containerId, inventory, menuPlayer) -> CarbonFloodlightMenu.server(containerId, inventory, carbon));

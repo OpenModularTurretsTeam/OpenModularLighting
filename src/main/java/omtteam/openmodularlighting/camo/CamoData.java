@@ -6,14 +6,25 @@ import net.minecraft.world.level.block.state.BlockState;
 import omtteam.openmodularlighting.compat.nbt.NbtCompat;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.function.Predicate;
+
 /**
- * The disguise of a light and its NBT form (as in OpenModularTurrets).
+ * The disguise of a {@link CamoHost} and its NBT form, shared by all hosts of a mod.
  */
 public final class CamoData {
-    private static final String KEY = "camo";
-
+    private final String key;
+    private final Predicate<BlockState> valid;
     @Nullable
     private BlockState camo;
+
+    /**
+     * @param key   the name of the disguise in the block entity's NBT
+     * @param valid which stored disguises are still accepted when read (air never is)
+     */
+    public CamoData(String key, Predicate<BlockState> valid) {
+        this.key = key;
+        this.valid = valid;
+    }
 
     @Nullable
     public BlockState get() {
@@ -29,22 +40,16 @@ public final class CamoData {
 
     public void write(CompoundTag tag) {
         if (camo != null) {
-            tag.put(KEY, NbtUtils.writeBlockState(camo));
+            tag.put(key, NbtUtils.writeBlockState(camo));
         }
     }
 
-    /**
-     * Reads what {@link #write} wrote; no disguise if the tag has none, or if it is no longer valid (the block was
-     * removed, or the rules changed).
-     *
-     * @return whether the disguise changed
-     */
+    /** @return whether the disguise changed */
     public boolean read(CompoundTag tag) {
         BlockState state = null;
-        CompoundTag camoTag = NbtCompat.getCompound(tag, KEY);
-        if (!camoTag.isEmpty()) {
-            BlockState read = NbtCompat.readBlockState(camoTag);
-            state = CamoRules.isValidDisguise(read) ? read : null;
+        if (NbtCompat.hasCompound(tag, key)) {
+            BlockState read = NbtCompat.readBlockState(NbtCompat.getCompound(tag, key));
+            state = !read.isAir() && valid.test(read) ? read : null;
         }
         return set(state);
     }

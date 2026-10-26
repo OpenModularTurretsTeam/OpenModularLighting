@@ -3,7 +3,7 @@
   Code quality report: only rules about how hard code is to read and change (complexity, size, nesting,
   coupling), not style. Report only for now (build.fabric.gradle.kts: isIgnoreFailures); once the limits are agreed,
   switch that off so new code above them fails the build.
-  Thresholds are PMD defaults unless noted. Same rules as OpenModularTurrets' copy.
+  Thresholds are PMD defaults unless noted.
 -->
 <ruleset name="OML code quality"
          xmlns="http://pmd.sourceforge.net/ruleset/2.0.0"

@@ -2,8 +2,7 @@ package omtteam.openmodularlighting.energy;
 
 import omtteam.openmodularlighting.blockentity.PanelLightBlockEntity;
 import omtteam.openmodularlighting.core.cluster.Cluster;
-import omtteam.openmodularlighting.core.energy.EnergyAccess;
-import omtteam.openmodularlighting.core.energy.EnergyStore;
+import omtteam.openmodularlighting.core.energy.EnergyGroup;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -60,14 +59,8 @@ public final class ClusterEnergy {
         return buffer == null ? 0 : buffer.store().getAmount();
     }
 
-    /** Inserts into one light's store; the loader adapters pass their own (Fabric: inside a transaction). */
-    @FunctionalInterface
-    public interface StoreInserter {
-        long insert(EnergyStore store, long maxAmount);
-    }
-
     /** The energy of a whole cluster, as seen from one of its lights. Insert only. */
-    public static final class View implements EnergyAccess {
+    public static final class View implements EnergyGroup {
         private final PanelLightBlockEntity light;
 
         public View(PanelLightBlockEntity light) {
@@ -79,11 +72,8 @@ public final class ClusterEnergy {
             return fill(maxAmount, (store, amount) -> store.insert(amount, simulate));
         }
 
-        /**
-         * Inserts up to {@code maxAmount} into the lights of the cluster, emptiest first, each through {@code inserter}.
-         *
-         * @return the amount inserted
-         */
+        /** Inserts into the lights of the cluster, emptiest first, each through {@code inserter}. */
+        @Override
         public long fill(long maxAmount, StoreInserter inserter) {
             List<PanelLightBlockEntity> members = members();
             members.sort(Comparator.comparingLong(ClusterEnergy::amount));

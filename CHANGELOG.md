@@ -9,6 +9,10 @@ turns *Unreleased* into the release section; `chiseledPublish` uploads exactly t
 
 ## [Unreleased]
 
+### Changed
+
+- The disguise of the electric, carbon and UV floodlights is set in a camouflage menu, opened with a Camouflage button in the light's GUI: the same screen as for turret bases in Open Modular Turrets
+
 ## [1.0.0-beta.8] - 2026-10-26
 
 ### Added

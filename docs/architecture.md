@@ -52,7 +52,7 @@ This is the only place where the two meet, and the reason the core can be tested
 | `light.LightWorld` | `world.LevelLightWorld` | classifies a block position as a `Cell`: air, phantom light, UV light, opaque, transparent or unloaded |
 | `state.PowerSource` | `energy.ElectricPower`, `energy.FuelPower` (through `energy.LightPower`) | whether the light can run this tick, and paying for it |
 | `cluster.ClusterNode` | `blockentity.PanelLightBlockEntity` | who a light is connected to, for the shared energy of touching lights |
-| `energy.EnergyAccess` | the lights' `getEnergyAccess(side)` (the buffer of `energy.ElectricPower`, or `energy.ClusterEnergy.View` for panel lights) | what other blocks may do with a light's energy (insert; extract is never allowed) |
+| `energy.EnergyAccess` | the lights' `getEnergyAccess(side)` (the buffer of `energy.ElectricPower`, or `energy.ClusterEnergy.View` for panel lights, a `core.energy.EnergyGroup`) | what other blocks may do with a light's energy (insert; extract is never allowed) |
 
 Positions in core are the `Pos` record and directions the `Facing` enum (same ordinal order as `Direction`); `world.Positions` converts both ways.
 The block entities own one core object each and forward to it: `FloodlightBlockEntity` → `LightController`, `LightBlockEntity` → `LightSources`, `PanelLightBlockEntity` → `Cluster`.
@@ -143,7 +143,7 @@ Then the registrations of `OML.registrationSteps()`: blocks, items, block entiti
 Fabric runs them in this order; NeoForge and Forge run each in the `RegisterEvent` of its registry and fail at common setup if one never ran.
 A new registry class gets a `RegistrationStep` in that list, not a call in an entrypoint.
 
-Last, the entrypoint wires its loader to the shared code: the item and energy access of the lights (`FabricBlockLookups`, NeoForge capabilities, Forge capabilities attached in `AttachCapabilitiesEvent` by `ForgeLightCapabilities`), block use (`InteractiveBlock.handleUse`), the config sync on join and the recipe condition.
+Last, the entrypoint wires its loader to the shared code: the item and energy access of the lights (`FabricBlockLookups`, NeoForge capabilities, Forge capabilities attached in `AttachCapabilitiesEvent` by `ForgeBlockCapabilities`), block use (`InteractiveBlock.handleUse`), the config sync on join and the recipe condition.
 
 On the client, the loader client entrypoint (`OMLFabricClient`, `OMLNeoForgeClient`, `OMLForgeClient`; Forge 1.20.1 has no client-only `@Mod` classes, so `OMLForge` constructs it by name) installs the client platform services and calls `OMLClient.init()`.
 It then registers what `OMLClient` lists with its loader: screens, the dye tint, tooltips and the debug renderer, and wraps the models of the `CamoBlock`s in the loader's disguise model (`FabricCamoModel`, `NeoForgeCamoModel`, `ForgeCamoModel`; the first two exist once per version folder, because 1.21.11 replaced baked models with block state models).
@@ -241,7 +241,7 @@ The block entity returns it from `currentShape()` and puts everything it depends
 ### A light
 
 1. A block extending `FloodlightBlock` (or `PanelLightBlock`) and a block entity extending `FloodlightBlockEntity` (or `PanelLightBlockEntity`); the block entity chooses `power()`, `currentShape()` and `shapeKey()`.
-2. Register block, item and block entity in `ModBlocks`, `ModItems`, `ModBlockEntities`; add it to the lookups of every loader if it has energy or item access (`FabricBlockLookups` and the capability registration in `OMLNeoForge` use `ModBlockEntities.lights()`; Forge attaches its capabilities to every `FloodlightBlockEntity`).
+2. Register block, item and block entity in `ModBlocks`, `ModItems`, `ModBlockEntities`; add it to the lookups of every loader if it has energy or item access (`FabricBlockLookups` and the capability registration in `OMLNeoForge` use `ModBlockEntities.transferTypes()`; Forge attaches its capabilities to every `TransferHost`, which `FloodlightBlockEntity` implements).
 3. Blockstate, model, item model definition (`assets/openmodularlighting/items/<id>.json`, which 1.21.4+ needs; without it the item shows the missing texture), lang entries (`en_us`, `de_de`, `ru_ru`), and the recipe, loot table and tags in `datagen`.
 4. A GameTest in `src/gametest` (and its entry in `src/gametest/resources/fabric.mod.json`), and an entry in `docs/id-mapping.md` if it replaces a block of the old mod.
 

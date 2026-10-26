@@ -1,25 +1,20 @@
 package omtteam.openmodularlighting.menu;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.chat.Component;
 import net.minecraft.world.Container;
-import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.inventory.ClickType;
 import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 import omtteam.openmodularlighting.block.CarbonFloodlightBlock;
 import omtteam.openmodularlighting.block.ElectricFloodlightBlock;
 import omtteam.openmodularlighting.blockentity.FloodlightBlockEntity;
 import omtteam.openmodularlighting.camo.CamoBlock;
-import omtteam.openmodularlighting.camo.CamoRules;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -27,27 +22,18 @@ import org.jetbrains.annotations.Nullable;
  * Floodlight GUI: the light's slot (battery or fuel) and the player inventory, laid out as in 1.7.10
  * ({@code ContainerElectricFloodlight}, 176 × 146). Values for the status line are synced as container data.
  * <p>
- * Lights that can be disguised ({@link CamoBlock}) also get a phantom slot for the disguise (as in OpenModularTurrets).
- * It never holds an item: clicking it with a block in the cursor sets that block as the disguise (the block stays in
- * the cursor), clicking it with an empty cursor removes the disguise, and shift-clicking a block that does not fit the
- * light's slot sets it as well. Only the server changes the disguise; the slot shows it through the normal slot sync.
+ * Lights that can be disguised ({@link CamoBlock}) get a button for the camouflage menu ({@code CamoMenu}) in the screen.
  */
 public abstract class FloodlightMenu extends AbstractContainerMenu {
     private static final double MAX_DISTANCE_SQR = 64.0;
     /** Index of the light's slot, after the 36 player slots. */
     private static final int LIGHT_SLOT = 36;
-    /** Index of the disguise slot, after the light's slot; only on lights with {@link #hasCamoSlot()}. */
-    public static final int CAMO_SLOT = 37;
-    public static final int CAMO_X = 152;
-    public static final int CAMO_Y = 36;
 
     private final BlockPos pos;
     @Nullable
     private final FloodlightBlockEntity light;
-    private final boolean camoSlot;
+    private final boolean camo;
     private final boolean timeoutHint;
-    /** What the disguise slot shows (filled by the server, synced to the client like any slot). */
-    private final SimpleContainer camoDisplay = new SimpleContainer(1);
     protected final ContainerData data;
 
     protected FloodlightMenu(MenuType<?> type, int containerId, Inventory playerInventory, BlockPos pos,
@@ -58,7 +44,7 @@ public abstract class FloodlightMenu extends AbstractContainerMenu {
         this.data = data;
         // the block at pos: the same on both sides, so both create the same slots
         Block block = playerInventory.player.level().getBlockState(pos).getBlock();
-        this.camoSlot = block instanceof CamoBlock;
+        this.camo = block instanceof CamoBlock;
         this.timeoutHint = block instanceof ElectricFloodlightBlock || block instanceof CarbonFloodlightBlock;
         for (int y = 0; y < 3; y++) {
             for (int x = 0; x < 9; x++) {
@@ -74,59 +60,20 @@ public abstract class FloodlightMenu extends AbstractContainerMenu {
                 return isValidItem(stack);
             }
         });
-        if (camoSlot) {
-            if (light != null) {
-                camoDisplay.setItem(0, CamoRules.itemFor(light.getCamo()));
-            }
-            addSlot(new Slot(camoDisplay, 0, CAMO_X, CAMO_Y) {
-                @Override
-                public boolean mayPlace(ItemStack stack) {
-                    return false;
-                }
-
-                @Override
-                public boolean mayPickup(Player player) {
-                    return false;
-                }
-            });
-        }
         addDataSlots(data);
     }
 
     /** What the light's slot accepts (battery or fuel). */
     protected abstract boolean isValidItem(ItemStack stack);
 
-    /** Whether this light can be disguised: the GUI shows the disguise slot. */
-    public boolean hasCamoSlot() {
-        return camoSlot;
+    /** Whether this light can be disguised: the GUI shows the button for the camouflage menu. */
+    public boolean supportsCamo() {
+        return camo;
     }
 
     /** Whether the GUI explains the timeout after turning off (the electric and carbon floodlights). */
     public boolean hasTimeoutHint() {
         return timeoutHint;
-    }
-
-    @Override
-    public void clicked(int slotId, int button, ClickType clickType, Player player) {
-        if (camoSlot && slotId == CAMO_SLOT) {
-            if (clickType == ClickType.PICKUP && !player.level().isClientSide()) {
-                setDisguiseFrom(player, getCarried());
-            }
-            return;
-        }
-        super.clicked(slotId, button, clickType, player);
-    }
-
-    /** An empty stack removes the disguise, a valid block sets it; anything else is refused with a message. */
-    private void setDisguiseFrom(Player player, ItemStack stack) {
-        if (light == null || light.isRemoved()) return;
-        BlockState disguise = stack.isEmpty() ? null : CamoRules.disguiseFor(stack);
-        if (!stack.isEmpty() && disguise == null) {
-            player.displayClientMessage(Component.translatable("gui.openmodularlighting.camo_invalid"), false);
-            return;
-        }
-        light.setCamo(disguise);
-        camoDisplay.setItem(0, CamoRules.itemFor(light.getCamo()));
     }
 
     public BlockPos getPos() {
@@ -141,7 +88,6 @@ public abstract class FloodlightMenu extends AbstractContainerMenu {
         ItemStack original = stack.copy();
         if (index < LIGHT_SLOT) {
             if (!isValidItem(stack)) {
-                quickSetDisguise(player, stack); // the stack stays where it is
                 return ItemStack.EMPTY;
             }
             if (!moveItemStackTo(stack, LIGHT_SLOT, LIGHT_SLOT + 1, false)) {
@@ -156,13 +102,6 @@ public abstract class FloodlightMenu extends AbstractContainerMenu {
             slot.setChanged();
         }
         return stack.getCount() == original.getCount() ? ItemStack.EMPTY : original;
-    }
-
-    /** Shift-click of a block that does not fit the light's slot: it becomes the disguise. */
-    private void quickSetDisguise(Player player, ItemStack stack) {
-        if (camoSlot && !player.level().isClientSide() && CamoRules.disguiseFor(stack) != null) {
-            setDisguiseFrom(player, stack);
-        }
     }
 
     @Override

@@ -5,6 +5,7 @@ import com.google.gson.GsonBuilder;
 
 import java.lang.reflect.Field;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Writes a config object as JSON with {@code //} comments (JSONC). Every key gets its {@link Comment}, its
@@ -28,42 +29,61 @@ final class ConfigWriter {
         return out.append('\n').toString();
     }
 
+    @SuppressWarnings("StringRepeatCanBeUsed")
     private static void writeObject(StringBuilder out, Object config, Object defaults, int depth) {
         String indent = INDENT.repeat(depth + 1);
         out.append("{\n");
         Field[] fields = ConfigRanges.fields(config.getClass());
         for (int i = 0; i < fields.length; i++) {
             Field field = fields[i];
-            Object value = get(field, config);
-            Object def = get(field, defaults);
-            boolean section = ConfigRanges.isSection(field.getType());
-            if (i > 0 && (section || hasComment(field))) out.append('\n');
-            comments(out, field, section ? null : def, indent);
-            out.append(indent).append(VALUE.toJson(ConfigRanges.keyOf(field))).append(": ");
-            writeValue(out, value, def, section, indent, depth);
-            if (i < fields.length - 1) out.append(',');
-            out.append('\n');
+            try {
+                Object value = field.get(config);
+                Object def = field.get(defaults);
+                boolean section = ConfigRanges.isSection(field.getType());
+                boolean sectionMap = ConfigRanges.isSectionMap(field);
+                if (i > 0 && (section || sectionMap || hasComment(field))) out.append('\n');
+                comments(out, field, section || sectionMap ? null : def, indent);
+                out.append(indent).append(VALUE.toJson(ConfigRanges.keyOf(field))).append(": ");
+                if (section) {
+                    writeObject(out, value, def, depth + 1);
+                } else if (sectionMap) {
+                    writeSectionMap(out, (Map<?, ?>) value, (Map<?, ?>) def, depth + 1);
+                } else if (value instanceof List<?> list) {
+                    writeList(out, list, indent);
+                } else {
+                    out.append(VALUE.toJson(value));
+                }
+                if (i < fields.length - 1) out.append(',');
+                out.append('\n');
+            } catch (IllegalAccessException e) {
+                throw new IllegalStateException(e);
+            }
         }
         out.append(INDENT.repeat(depth)).append('}');
     }
 
-    private static void writeValue(StringBuilder out, Object value, Object def, boolean section, String indent,
-                                   int depth) {
-        if (section) {
-            writeObject(out, value, def, depth + 1);
-        } else if (value instanceof List<?> list) {
-            writeList(out, list, indent);
-        } else {
-            out.append(VALUE.toJson(value));
+    /**
+     * A map of sections (e.g. stats per turret id): every entry is written like a section, documented with the
+     * entry's default if there is one (otherwise the value itself is the default).
+     */
+    @SuppressWarnings("StringRepeatCanBeUsed")
+    private static void writeSectionMap(StringBuilder out, Map<?, ?> map, Map<?, ?> defaults, int depth) {
+        if (map.isEmpty()) {
+            out.append("{}");
+            return;
         }
-    }
-
-    private static Object get(Field field, Object owner) {
-        try {
-            return field.get(owner);
-        } catch (IllegalAccessException e) {
-            throw new IllegalStateException(e);
+        String indent = INDENT.repeat(depth + 1);
+        out.append("{\n");
+        int i = 0;
+        for (Map.Entry<?, ?> entry : map.entrySet()) {
+            if (i > 0) out.append('\n');
+            Object def = defaults.get(entry.getKey());
+            out.append(indent).append(VALUE.toJson(String.valueOf(entry.getKey()))).append(": ");
+            writeObject(out, entry.getValue(), def != null ? def : entry.getValue(), depth + 1);
+            if (++i < map.size()) out.append(',');
+            out.append('\n');
         }
+        out.append(INDENT.repeat(depth)).append('}');
     }
 
     private static void writeList(StringBuilder out, List<?> list, String indent) {

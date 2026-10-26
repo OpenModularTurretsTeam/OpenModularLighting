@@ -7,7 +7,7 @@ package omtteam.openmodularlighting.config;
  */
 public class ConfigData {
     @Comment("Version of this file's layout, used to update old default values. Do not change it.") @Range(min = 1)
-    public int configVersion = ConfigMigration.CURRENT_VERSION;
+    public int configVersion = ConfigMigrationSteps.CURRENT_VERSION;
     @Comment("Enable or disable blocks (disabled blocks have no recipe).")
     public Blocks blocks = new Blocks();
     @Comment("Energy use, ranges and other behaviour of the lights.")

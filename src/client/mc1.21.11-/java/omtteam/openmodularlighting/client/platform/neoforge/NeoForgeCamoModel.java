@@ -21,14 +21,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Model of a light that can be disguised on NeoForge (taken over from OpenModularTurrets; the Fabric counterpart is
- * {@code FabricCamoModel}): without a disguise it is the light's own model, with one it consists of the parts of the
- * disguise's model (with their render types and ambient occlusion), plus the lamp quads of the light's own model
- * ({@link CamoModels#LAMP_TINT_INDEX}) in the light's cutout layer. The block entity hands the disguise over as
- * {@link CompatBlockEntity#RENDER_DATA} in its model data.
+ * Model of a camouflage host ({@code CamoHost}) on NeoForge (the Fabric counterpart is {@code FabricCamoModel}):
+ * without a disguise it is the block's own model, with one it consists of the parts of the disguise's model, with
+ * their render types and ambient occlusion, so the disguise is meshed like the real block (transparent ones in their
+ * own layer). The block entity hands the disguise over as {@link CompatBlockEntity#RENDER_DATA} in its model data.
  * <p>
- * Tinted quads keep their tint index; {@code FloodlightTint} gives the disguise's quads the disguise's colour and the
- * lamp the dye colour, so the vanilla mesher tints them with the client's biome blend like on the real block.
+ * Tinted quads keep their tint index; {@link #color} gives the hosts the colour of their disguise, so the vanilla
+ * mesher tints them with the client's biome blend like on the real block.
  * <p>
  * The variant for 1.21.11 (block state models made of parts); {@code OMLNeoForgeClient} wraps the models.
  */
@@ -50,12 +49,26 @@ public final class NeoForgeCamoModel extends DelegateBlockStateModel {
         for (BlockModelPart part : camoModel.collectParts(level, pos, camo, random)) {
             parts.add(new DisguisePart(part, camo));
         }
+        // what stays of the block's own model on top (e.g. a lamp), in its own layer
+        int overlay = CamoModels.overlayTintIndex(state);
+        if (overlay < 0) return;
         for (BlockModelPart part : delegate.collectParts(level, pos, state, random)) {
-            parts.add(new LampPart(part));
+            parts.add(new OverlayPart(part, overlay));
         }
     }
 
-    /** A part of the disguise's model, drawn in the disguise's render type (the light's is the cutout one). */
+    /**
+     * Colour of a camouflage host: that of its disguise at this position, or none without a disguise. Registered for
+     * all camouflage hosts, which have no colour of their own.
+     */
+    public static int color(BlockState state, @Nullable BlockAndTintGetter level, @Nullable BlockPos pos, int tintIndex) {
+        if (level == null || pos == null || !(level.getModelData(pos).get(CompatBlockEntity.RENDER_DATA) instanceof BlockState camo)) {
+            return -1;
+        }
+        return Minecraft.getInstance().getBlockColors().getColor(camo, level, pos, tintIndex);
+    }
+
+    /** A part of the disguise's model, drawn in the disguise's render type (the host block's is the solid one). */
     private record DisguisePart(BlockModelPart part, BlockState camo) implements BlockModelPart {
         @Override
         public List<BakedQuad> getQuads(@Nullable Direction side) {
@@ -84,15 +97,15 @@ public final class NeoForgeCamoModel extends DelegateBlockStateModel {
         }
     }
 
-    /** Only the lamp quads of a part of the light's own model. */
-    private record LampPart(BlockModelPart part) implements BlockModelPart {
+    /** Only the overlay quads (the ones with {@code tintIndex}) of a part of the block's own model. */
+    private record OverlayPart(BlockModelPart part, int tintIndex) implements BlockModelPart {
         @Override
         public List<BakedQuad> getQuads(@Nullable Direction side) {
-            List<BakedQuad> lamp = new ArrayList<>();
+            List<BakedQuad> overlay = new ArrayList<>();
             for (BakedQuad quad : part.getQuads(side)) {
-                if (quad.tintIndex() == CamoModels.LAMP_TINT_INDEX) lamp.add(quad);
+                if (quad.tintIndex() == tintIndex) overlay.add(quad);
             }
-            return lamp;
+            return overlay;
         }
 
         @Override

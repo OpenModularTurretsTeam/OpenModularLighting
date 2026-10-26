@@ -6,8 +6,8 @@ import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.level.BlockAndTintGetter;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
+import omtteam.openmodularlighting.block.FloodlightBlock;
 import omtteam.openmodularlighting.blockentity.FloodlightBlockEntity;
-import omtteam.openmodularlighting.client.camo.CamoModels;
 import omtteam.openmodularlighting.registry.ModBlocks;
 import org.jetbrains.annotations.Nullable;
 
@@ -31,7 +31,7 @@ public final class FloodlightTint {
             return NO_TINT;
         }
         BlockState camo = light.getCamo();
-        if (camo != null && tintIndex != CamoModels.LAMP_TINT_INDEX) {
+        if (camo != null && tintIndex != FloodlightBlock.LAMP_TINT_INDEX) {
             return Minecraft.getInstance().getBlockColors().getColor(camo, level, pos, tintIndex);
         }
         return tint(light.getColor(), brightness(state.getBlock()));

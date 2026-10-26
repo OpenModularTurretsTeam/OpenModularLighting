@@ -5,15 +5,15 @@ import net.fabricmc.fabric.api.transfer.v1.storage.StoragePreconditions;
 import net.fabricmc.fabric.api.transfer.v1.transaction.TransactionContext;
 import net.fabricmc.fabric.api.transfer.v1.transaction.base.SnapshotParticipant;
 import omtteam.openmodularlighting.core.energy.EnergyAccess;
+import omtteam.openmodularlighting.core.energy.EnergyGroup;
 import omtteam.openmodularlighting.core.energy.EnergyStore;
-import omtteam.openmodularlighting.energy.ClusterEnergy;
 import team.reborn.energy.api.EnergyStorage;
 
 import java.util.Map;
 
 /**
  * Team Reborn Energy views of {@link EnergyAccess}. A store gets one {@link SnapshotParticipant} for exact rollback in
- * transactions; a cluster view distributes into its members' store adapters.
+ * transactions; a group distributes into the adapters of its stores.
  */
 public final class FabricEnergyStorages {
     /**
@@ -29,8 +29,8 @@ public final class FabricEnergyStorages {
         if (access instanceof EnergyStore store) {
             return STORES.computeIfAbsent(store, StoreStorage::new);
         }
-        if (access instanceof ClusterEnergy.View view) {
-            return new ClusterStorage(view);
+        if (access instanceof EnergyGroup group) {
+            return new GroupStorage(group);
         }
         throw new IllegalArgumentException("No Team Reborn Energy adapter for " + access.getClass());
     }
@@ -95,18 +95,18 @@ public final class FabricEnergyStorages {
         }
     }
 
-    /** Insert only, emptiest light first ({@link ClusterEnergy.View#fill}). */
-    private static final class ClusterStorage implements EnergyStorage {
-        private final ClusterEnergy.View view;
+    /** Insert only: distributes through {@link EnergyGroup#fill}. */
+    private static final class GroupStorage implements EnergyStorage {
+        private final EnergyGroup group;
 
-        ClusterStorage(ClusterEnergy.View view) {
-            this.view = view;
+        GroupStorage(EnergyGroup group) {
+            this.group = group;
         }
 
         @Override
         public long insert(long maxAmount, TransactionContext transaction) {
             StoragePreconditions.notNegative(maxAmount);
-            return view.fill(maxAmount, (store, amount) -> of(store).insert(amount, transaction));
+            return group.fill(maxAmount, (store, amount) -> of(store).insert(amount, transaction));
         }
 
         @Override
@@ -121,12 +121,12 @@ public final class FabricEnergyStorages {
 
         @Override
         public long getAmount() {
-            return view.getAmount();
+            return group.getAmount();
         }
 
         @Override
         public long getCapacity() {
-            return view.getCapacity();
+            return group.getCapacity();
         }
     }
 }

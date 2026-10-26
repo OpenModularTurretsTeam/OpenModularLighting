@@ -3,6 +3,7 @@ package omtteam.openmodularlighting.compat.block;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.state.BlockState;
 
 /**
@@ -30,6 +31,18 @@ public final class BlockCompat {
         /*return state.getLightBlock();
         *///?} else {
         return state.getLightBlock(level, pos);
+        //?}
+    }
+
+    /**
+     * The render shape of a block that only a block entity renderer draws (1.21.11 removed
+     * {@code ENTITYBLOCK_ANIMATED}; its renderers draw whatever the shape is, so the block is invisible there).
+     */
+    public static RenderShape entityRenderShape() {
+        //? if >=1.21.11 {
+        /*return RenderShape.INVISIBLE;
+        *///?} else {
+        return RenderShape.ENTITYBLOCK_ANIMATED;
         //?}
     }
 

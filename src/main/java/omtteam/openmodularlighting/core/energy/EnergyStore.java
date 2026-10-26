@@ -1,7 +1,7 @@
 package omtteam.openmodularlighting.core.energy;
 
 /**
- * Energy buffer of a block entity, free of Minecraft and loaders (taken over from OpenModularTurrets).
+ * Energy buffer of a block entity, free of Minecraft and loaders.
  * Other blocks go through {@link #insert} / {@link #extract}, limited by {@code maxInsert} / {@code maxExtract}; the
  * loader adapters expose these. The owner uses {@link #generate}, {@link #consume} and {@link #drain}, which ignore
  * those limits. Negative arguments count as 0.
@@ -39,10 +39,12 @@ public final class EnergyStore implements EnergyAccess {
         return Math.max(0, capacity - amount);
     }
 
+    /** Most energy {@link #insert} accepts per call. */
     public long getMaxInsert() {
         return maxInsert;
     }
 
+    /** Most energy {@link #extract} gives per call. */
     public long getMaxExtract() {
         return maxExtract;
     }
@@ -56,10 +58,12 @@ public final class EnergyStore implements EnergyAccess {
         }
     }
 
+    /** Changes the limit of {@link #insert}; negative values count as 0. */
     public void setMaxInsert(long maxInsert) {
         this.maxInsert = Math.max(0, maxInsert);
     }
 
+    /** Changes the limit of {@link #extract}; negative values count as 0. */
     public void setMaxExtract(long maxExtract) {
         this.maxExtract = Math.max(0, maxExtract);
     }

@@ -6,6 +6,7 @@ import net.fabricmc.fabric.api.client.model.loading.v1.ModelLoadingPlugin;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.ColorProviderRegistry;
 import net.minecraft.client.gui.screens.MenuScreens;
+import net.minecraft.world.level.block.Block;
 import omtteam.openmodularlighting.client.OMLClient;
 import omtteam.openmodularlighting.client.camo.CamoModels;
 import omtteam.openmodularlighting.client.platform.ClientPlatform;
@@ -44,11 +45,11 @@ public final class OMLFabricClient implements ClientModInitializer {
         //? if >=1.21.11 {
         /*BlockRenderLayerMap.putBlock(ModBlocks.UV_LIGHT, ChunkSectionLayer.CUTOUT);
         BlockRenderLayerMap.putBlock(ModBlocks.LIGHTPROOF_GLASS, ChunkSectionLayer.TRANSLUCENT);
-        BlockRenderLayerMap.putBlocks(ChunkSectionLayer.CUTOUT, CamoModels.camoBlocks());
+        BlockRenderLayerMap.putBlocks(ChunkSectionLayer.CUTOUT, CamoModels.camoBlocks().toArray(Block[]::new));
         *///?} else {
         BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.UV_LIGHT, RenderType.cutout());
         BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.LIGHTPROOF_GLASS, RenderType.translucent());
-        BlockRenderLayerMap.INSTANCE.putBlocks(RenderType.cutout(), CamoModels.camoBlocks());
+        BlockRenderLayerMap.INSTANCE.putBlocks(RenderType.cutout(), CamoModels.camoBlocks().toArray(Block[]::new));
         //?}
         // the disguise model around the models of the lights that can be disguised (FabricCamoModel)
         ModelLoadingPlugin.register(plugin -> {

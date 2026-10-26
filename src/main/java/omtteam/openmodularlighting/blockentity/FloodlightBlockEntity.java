@@ -5,7 +5,9 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.SimpleContainer;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.Containers;
 import net.minecraft.world.level.Level;
@@ -16,11 +18,14 @@ import omtteam.openmodularlighting.block.FloodlightBlock;
 import omtteam.openmodularlighting.block.LightBlock;
 import omtteam.openmodularlighting.camo.CamoBlock;
 import omtteam.openmodularlighting.camo.CamoData;
+import omtteam.openmodularlighting.camo.CamoHost;
+import omtteam.openmodularlighting.camo.CamoRules;
 import omtteam.openmodularlighting.compat.CompatBlockEntity;
 import omtteam.openmodularlighting.compat.VersionCompat;
 import omtteam.openmodularlighting.compat.nbt.NbtCompat;
 import omtteam.openmodularlighting.config.OMLConfig;
 import omtteam.openmodularlighting.core.beam.BeamShape;
+import omtteam.openmodularlighting.core.camo.CamoLight;
 import omtteam.openmodularlighting.core.light.LightType;
 import omtteam.openmodularlighting.core.state.LightController;
 import omtteam.openmodularlighting.core.state.RecheckTimer;
@@ -39,7 +44,7 @@ import java.util.Locale;
  * {@link LightPower}, and the cached beam of light blocks (CLAUDE.md §6.3, §6.4). Subclasses define the beam shape and
  * may add a mode.
  */
-public abstract class FloodlightBlockEntity extends CompatBlockEntity implements LightSourceBlockEntity {
+public abstract class FloodlightBlockEntity extends CompatBlockEntity implements LightSourceBlockEntity, TransferHost, CamoHost {
     /** 1.7.10 colour value for "not dyed". Other values are {@code DyeColor} ids. */
     public static final int NO_COLOR = 16;
 
@@ -52,7 +57,7 @@ public abstract class FloodlightBlockEntity extends CompatBlockEntity implements
     /** Periodic re-cast (every ~20 s) for world changes that sent no block update. */
     private final RecheckTimer recheck = new RecheckTimer();
     private int color = NO_COLOR;
-    private final CamoData camo = new CamoData();
+    private final CamoData camo = new CamoData("camo", CamoRules::isValidDisguise);
     protected final SimpleContainer inventory = new SimpleContainer(1) {
         @Override
         public boolean canPlaceItem(int slot, ItemStack stack) {
@@ -206,14 +211,65 @@ public abstract class FloodlightBlockEntity extends CompatBlockEntity implements
 
     /** The disguise, or {@code null} for the light's own look. */
     @Nullable
+    @Override
     public BlockState getCamo() {
         return camo.get();
     }
 
     /** Sets the disguise ({@code null} removes it); the caller checked {@code CamoRules.isValidDisguise}. */
+    @Override
     public void setCamo(@Nullable BlockState state) {
         if (supportsCamo() && camo.set(state)) {
             syncToClient();
+        }
+    }
+
+    @Override
+    public boolean isCamoEnabled() {
+        return supportsCamo();
+    }
+
+    /** The lights have their own light logic: no light sliders in the camouflage menu. */
+    @Override
+    public boolean supportsLight() {
+        return false;
+    }
+
+    @Override
+    public CamoLight getLight() {
+        return CamoLight.DEFAULT;
+    }
+
+    @Override
+    public void setLight(CamoLight light) {
+    }
+
+    /** Lights have no owner: whoever can open the GUI of a light sees and sets its disguise. */
+    @Override
+    public boolean canSeeThroughCamo(Player player) {
+        return true;
+    }
+
+    @Override
+    public boolean canSetCamo(Player player) {
+        return supportsCamo();
+    }
+
+    @Override
+    public boolean canChangeLight(Player player) {
+        return false;
+    }
+
+    @Override
+    public boolean hasParentMenu() {
+        return true;
+    }
+
+    /** "Back" from the camouflage menu: the GUI of the light. */
+    @Override
+    public void openParentMenu(ServerPlayer player) {
+        if (getBlockState().getBlock() instanceof FloodlightBlock block) {
+            block.openMenu(player, this);
         }
     }
 
@@ -227,6 +283,7 @@ public abstract class FloodlightBlockEntity extends CompatBlockEntity implements
     }
 
     /** The slot as other blocks see it, on every side (the loader adapters wrap it). */
+    @Override
     public ItemAccess getItemAccess(@Nullable Direction side) {
         return itemAccess;
     }
@@ -244,6 +301,7 @@ public abstract class FloodlightBlockEntity extends CompatBlockEntity implements
 
     /** Energy exposed to other blocks on {@code side} (the loader adapters wrap it), or null. */
     @Nullable
+    @Override
     public EnergyAccess getEnergyAccess(@Nullable Direction side) {
         ElectricPower electric = electricPower();
         return electric != null && acceptsEnergyFrom(side) ? electric.store() : null;

@@ -39,13 +39,13 @@ public final class ForgeEnergyHandler implements IEnergyStorage {
         return clamp(access.getCapacity());
     }
 
-    /** A store: its {@code maxExtract}; other views (the insert-only cluster): whether anything could be taken now. */
+    /** A store: its {@code maxExtract}; other views: whether anything could be taken now. */
     @Override
     public boolean canExtract() {
         return access instanceof EnergyStore store ? store.getMaxExtract() > 0 : access.extract(1, true) > 0;
     }
 
-    /** A store: its {@code maxInsert}; other views (the cluster) always accept energy in principle. */
+    /** A store: its {@code maxInsert}; other views always accept energy in principle. */
     @Override
     public boolean canReceive() {
         return !(access instanceof EnergyStore store) || store.getMaxInsert() > 0;

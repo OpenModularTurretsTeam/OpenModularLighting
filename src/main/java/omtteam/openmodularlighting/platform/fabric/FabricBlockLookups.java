@@ -1,27 +1,31 @@
 package omtteam.openmodularlighting.platform.fabric;
 
 import net.fabricmc.fabric.api.transfer.v1.item.ItemStorage;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
-import omtteam.openmodularlighting.blockentity.FloodlightBlockEntity;
+import omtteam.openmodularlighting.blockentity.TransferHost;
 import omtteam.openmodularlighting.core.energy.EnergyAccess;
 import omtteam.openmodularlighting.registry.ModBlockEntities;
 import team.reborn.energy.api.EnergyStorage;
 
 /**
- * Fabric API lookups of the lights: items on all sides (1.7.10); energy on all sides or only from the back
- * ({@code FloodlightBlockEntity#acceptsEnergyFrom}).
+ * Fabric API lookups of the {@link TransferHost}s: items and energy, on the sides each host exposes.
  */
 public final class FabricBlockLookups {
     private FabricBlockLookups() {
     }
 
     public static void register() {
-        for (BlockEntityType<? extends FloodlightBlockEntity> type : ModBlockEntities.lights()) {
-            ItemStorage.SIDED.registerForBlockEntity((light, side) -> FabricItemStorages.of(light.getItemAccess(side)), type);
-            EnergyStorage.SIDED.registerForBlockEntity((light, side) -> {
-                EnergyAccess access = light.getEnergyAccess(side);
-                return access == null ? null : FabricEnergyStorages.of(access);
-            }, type);
+        for (BlockEntityType<? extends TransferHost> type : ModBlockEntities.transferTypes()) {
+            registerType(type);
         }
+    }
+
+    private static <T extends BlockEntity & TransferHost> void registerType(BlockEntityType<T> type) {
+        ItemStorage.SIDED.registerForBlockEntity((host, side) -> FabricItemStorages.of(host.getItemAccess(side)), type);
+        EnergyStorage.SIDED.registerForBlockEntity((host, side) -> {
+            EnergyAccess access = host.getEnergyAccess(side);
+            return access == null ? null : FabricEnergyStorages.of(access);
+        }, type);
     }
 }

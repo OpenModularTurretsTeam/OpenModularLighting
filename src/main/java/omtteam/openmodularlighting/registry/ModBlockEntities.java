@@ -11,6 +11,7 @@ import omtteam.openmodularlighting.OML;
 import omtteam.openmodularlighting.blockentity.CarbonFloodlightBlockEntity;
 import omtteam.openmodularlighting.blockentity.ElectricFloodlightBlockEntity;
 import omtteam.openmodularlighting.blockentity.FloodlightBlockEntity;
+import omtteam.openmodularlighting.blockentity.TransferHost;
 import omtteam.openmodularlighting.blockentity.CubeLightBlockEntity;
 import omtteam.openmodularlighting.blockentity.FluorescentLightBlockEntity;
 import omtteam.openmodularlighting.blockentity.GrowLightBlockEntity;
@@ -60,8 +61,8 @@ public final class ModBlockEntities {
     public static void init() {
     }
 
-    /** The lights: block entities with an item slot and (if electric) energy. */
-    public static List<BlockEntityType<? extends FloodlightBlockEntity>> lights() {
+    /** The block entities whose items and energy other blocks may use (the lights); each loader registers them. */
+    public static List<BlockEntityType<? extends TransferHost>> transferTypes() {
         return List.of(ELECTRIC_FLOODLIGHT, CARBON_FLOODLIGHT, UV_FLOODLIGHT, FLUORESCENT_LIGHT, GROW_LIGHT, CUBE_LIGHT);
     }
 }

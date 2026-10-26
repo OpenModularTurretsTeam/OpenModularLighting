@@ -31,16 +31,17 @@ import omtteam.openmodularlighting.blockentity.CarbonFloodlightBlockEntity;
 import omtteam.openmodularlighting.blockentity.FloodlightBlockEntity;
 import omtteam.openmodularlighting.camo.CamoRules;
 import omtteam.openmodularlighting.compat.VersionCompat;
+import omtteam.openmodularlighting.core.camo.CamoLight;
+import omtteam.openmodularlighting.menu.CamoMenu;
 import omtteam.openmodularlighting.menu.CarbonFloodlightMenu;
 import omtteam.openmodularlighting.menu.ElectricFloodlightMenu;
-import omtteam.openmodularlighting.menu.FloodlightMenu;
 import omtteam.openmodularlighting.registry.ModBlocks;
 
 import java.util.List;
 
 /**
  * Disguising the electric, carbon and UV floodlights (CLAUDE.md §6.11): which blocks are valid, the disguise slot of
- * the GUI, and that the disguise is saved, sent to clients and kept on the dropped item. The rendering itself is
+ * the camouflage menu, and that the disguise is saved, sent to clients and kept on the dropped item. The rendering itself is
  * client-only (check it with {@code runClient}).
  */
 //? if (neoforge && <1.21.11) || forge {
@@ -70,45 +71,68 @@ public class CamoGameTest implements OMLGameTests {
     public void disguiseSlotSetsAndRemovesTheDisguise(GameTestHelper helper) {
         FloodlightBlockEntity light = place(helper, ModBlocks.ELECTRIC_FLOODLIGHT);
         Player player = OMLGameTests.mockPlayer(helper);
-        ElectricFloodlightMenu menu = ElectricFloodlightMenu.server(0, player.getInventory(), light, light.electricPower());
-        helper.assertTrue(menu.hasCamoSlot(), "electric floodlight has the disguise slot");
+        CamoMenu menu = CamoMenu.server(0, player.getInventory(), light);
+        helper.assertTrue(!menu.showsLight(), "no light sliders on a light");
 
         menu.setCarried(new ItemStack(Items.STONE));
-        menu.clicked(FloodlightMenu.CAMO_SLOT, 0, ClickType.PICKUP, player);
+        menu.clicked(CamoMenu.PHANTOM_SLOT, 0, ClickType.PICKUP, player);
         helper.assertTrue(light.getCamo() == Blocks.STONE.defaultBlockState(), "stone set, got " + light.getCamo());
         helper.assertTrue(menu.getCarried().is(Items.STONE) && menu.getCarried().getCount() == 1, "stone stays in the cursor");
-        helper.assertTrue(menu.getSlot(FloodlightMenu.CAMO_SLOT).getItem().is(Items.STONE), "slot shows the disguise");
+        helper.assertTrue(menu.getSlot(CamoMenu.PHANTOM_SLOT).getItem().is(Items.STONE), "slot shows the disguise");
 
         menu.setCarried(new ItemStack(Items.GLASS));
-        menu.clicked(FloodlightMenu.CAMO_SLOT, 0, ClickType.PICKUP, player);
+        menu.clicked(CamoMenu.PHANTOM_SLOT, 0, ClickType.PICKUP, player);
         helper.assertTrue(light.getCamo() == Blocks.STONE.defaultBlockState(), "glass is refused");
 
         menu.setCarried(ItemStack.EMPTY);
-        menu.clicked(FloodlightMenu.CAMO_SLOT, 0, ClickType.PICKUP, player);
+        menu.clicked(CamoMenu.PHANTOM_SLOT, 0, ClickType.PICKUP, player);
         helper.assertTrue(light.getCamo() == null, "empty cursor removes the disguise");
-        helper.assertTrue(menu.getSlot(FloodlightMenu.CAMO_SLOT).getItem().isEmpty(), "slot is empty again");
+        helper.assertTrue(menu.getSlot(CamoMenu.PHANTOM_SLOT).getItem().isEmpty(), "slot is empty again");
         remove(helper, LIGHT);
         helper.succeed();
     }
 
     @GameTest(template = EMPTY_STRUCTURE)
-    public void shiftClickSetsTheDisguiseUnlessTheBlockFitsTheLightsSlot(GameTestHelper helper) {
-        helper.setBlock(LIGHT, ModBlocks.CARBON_FLOODLIGHT.defaultBlockState().setValue(FloodlightBlock.FACING, Direction.UP));
-        CarbonFloodlightBlockEntity light = (CarbonFloodlightBlockEntity) helper.getLevel().getBlockEntity(helper.absolutePos(LIGHT));
+    public void shiftClickInTheCamouflageMenuSetsTheDisguise(GameTestHelper helper) {
+        FloodlightBlockEntity light = place(helper, ModBlocks.UV_FLOODLIGHT);
         Player player = OMLGameTests.mockPlayer(helper);
-        CarbonFloodlightMenu menu = CarbonFloodlightMenu.server(0, player.getInventory(), light);
+        CamoMenu menu = CamoMenu.server(0, player.getInventory(), light);
 
         player.getInventory().setItem(9, new ItemStack(Items.STONE_BRICKS));
         menu.quickMoveStack(player, INVENTORY_SLOT);
         helper.assertTrue(light.getCamo() == Blocks.STONE_BRICKS.defaultBlockState(), "stone bricks set");
         helper.assertTrue(player.getInventory().getItem(9).is(Items.STONE_BRICKS), "the stack stays in the inventory");
+        remove(helper, LIGHT);
+        helper.succeed();
+    }
 
-        // a coal block is fuel: it goes into the fuel slot, the disguise stays
+    @GameTest(template = EMPTY_STRUCTURE)
+    public void shiftClickInTheLightMenuNeverSetsTheDisguise(GameTestHelper helper) {
+        helper.setBlock(LIGHT, ModBlocks.CARBON_FLOODLIGHT.defaultBlockState().setValue(FloodlightBlock.FACING, Direction.UP));
+        CarbonFloodlightBlockEntity light = (CarbonFloodlightBlockEntity) helper.getLevel().getBlockEntity(helper.absolutePos(LIGHT));
+        Player player = OMLGameTests.mockPlayer(helper);
+        CarbonFloodlightMenu menu = CarbonFloodlightMenu.server(0, player.getInventory(), light);
+        helper.assertTrue(menu.supportsCamo(), "the screen offers the camouflage menu");
+
+        // a coal block is fuel: it goes into the fuel slot
         player.getInventory().setItem(9, new ItemStack(Items.COAL_BLOCK));
         menu.quickMoveStack(player, INVENTORY_SLOT);
         helper.assertTrue(light.getInventory().getItem(0).is(Items.COAL_BLOCK), "coal block is fuel");
-        helper.assertTrue(light.getCamo() == Blocks.STONE_BRICKS.defaultBlockState(), "disguise unchanged");
+        // stone bricks are not: the stack stays and nothing is disguised
+        player.getInventory().setItem(10, new ItemStack(Items.STONE_BRICKS));
+        menu.quickMoveStack(player, INVENTORY_SLOT + 1);
+        helper.assertTrue(light.getCamo() == null, "the light menu does not disguise");
+        helper.assertTrue(player.getInventory().getItem(10).is(Items.STONE_BRICKS), "the stack stays in the inventory");
         light.getInventory().setItem(0, ItemStack.EMPTY);
+        remove(helper, LIGHT);
+        helper.succeed();
+    }
+
+    @GameTest(template = EMPTY_STRUCTURE)
+    public void backReopensTheLightMenu(GameTestHelper helper) {
+        FloodlightBlockEntity light = place(helper, ModBlocks.ELECTRIC_FLOODLIGHT);
+        helper.assertTrue(light.isCamoEnabled() && light.hasParentMenu(), "the camouflage menu has a parent");
+        helper.assertTrue(!light.supportsLight() && light.getLight().equals(CamoLight.DEFAULT), "no light settings");
         remove(helper, LIGHT);
         helper.succeed();
     }
@@ -119,8 +143,8 @@ public class CamoGameTest implements OMLGameTests {
         FloodlightBlockEntity light = (FloodlightBlockEntity) helper.getLevel().getBlockEntity(helper.absolutePos(LIGHT));
         Player player = OMLGameTests.mockPlayer(helper);
         ElectricFloodlightMenu menu = ElectricFloodlightMenu.server(0, player.getInventory(), light, light.electricPower());
-        helper.assertTrue(!menu.hasCamoSlot(), "no disguise slot");
-        helper.assertTrue(menu.slots.size() == FloodlightMenu.CAMO_SLOT, "37 slots, got " + menu.slots.size());
+        helper.assertTrue(!menu.supportsCamo(), "no camouflage button");
+        helper.assertTrue(!light.isCamoEnabled() && !light.canSetCamo(player), "not a camouflage host");
         light.setCamo(Blocks.STONE.defaultBlockState());
         helper.assertTrue(light.getCamo() == null, "setCamo is ignored");
         remove(helper, LIGHT);

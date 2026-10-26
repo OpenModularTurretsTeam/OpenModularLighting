@@ -2,9 +2,16 @@ package omtteam.openmodularlighting.compat.nbt;
 
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtUtils;
 import net.minecraft.nbt.Tag;
 import net.minecraft.world.level.block.state.BlockState;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.UUID;
+//? if >=1.21.11 {
+/*import net.minecraft.core.UUIDUtil;
+*///?}
 
 /**
  * Reads NBT the same way on every supported version: 1.21.11 returns {@code Optional}s, the older versions defaults.
@@ -29,6 +36,22 @@ public final class NbtCompat {
         /*return tag.getLongOr(key, fallback);
         *///?} else {
         return tag.contains(key, Tag.TAG_ANY_NUMERIC) ? tag.getLong(key) : fallback;
+        //?}
+    }
+
+    public static float getFloat(CompoundTag tag, String key, float fallback) {
+        //? if >=1.21.11 {
+        /*return tag.getFloatOr(key, fallback);
+        *///?} else {
+        return tag.contains(key, Tag.TAG_ANY_NUMERIC) ? tag.getFloat(key) : fallback;
+        //?}
+    }
+
+    public static double getDouble(CompoundTag tag, String key, double fallback) {
+        //? if >=1.21.11 {
+        /*return tag.getDoubleOr(key, fallback);
+        *///?} else {
+        return tag.contains(key, Tag.TAG_ANY_NUMERIC) ? tag.getDouble(key) : fallback;
         //?}
     }
 
@@ -72,6 +95,77 @@ public final class NbtCompat {
         /*return tag.getCompoundOrEmpty(key);
         *///?} else {
         return tag.getCompound(key);
+        //?}
+    }
+
+    /** The list of compounds under {@code key}, empty if there is none. */
+    public static ListTag getCompoundList(CompoundTag tag, String key) {
+        //? if >=1.21.11 {
+        /*return tag.getListOrEmpty(key);
+        *///?} else {
+        return tag.getList(key, Tag.TAG_COMPOUND);
+        //?}
+    }
+
+    /** The compound at {@code index} of a list of compounds, empty if there is none. */
+    public static CompoundTag getCompound(ListTag list, int index) {
+        //? if >=1.21.11 {
+        /*return list.getCompoundOrEmpty(index);
+        *///?} else {
+        return list.getCompound(index);
+        //?}
+    }
+
+    /** Whether there is a compound under {@code key}. */
+    public static boolean hasCompound(CompoundTag tag, String key) {
+        //? if >=1.21.11 {
+        /*return tag.getCompound(key).isPresent();
+        *///?} else {
+        return tag.contains(key, Tag.TAG_COMPOUND);
+        //?}
+    }
+
+    /** Whether there is a list under {@code key}. */
+    public static boolean hasList(CompoundTag tag, String key) {
+        //? if >=1.21.11 {
+        /*return tag.getList(key).isPresent();
+        *///?} else {
+        return tag.contains(key, Tag.TAG_LIST);
+        //?}
+    }
+
+    /** Whether there is a string under {@code key}. */
+    public static boolean hasString(CompoundTag tag, String key) {
+        //? if >=1.21.11 {
+        /*return tag.getString(key).isPresent();
+        *///?} else {
+        return tag.contains(key, Tag.TAG_STRING);
+        //?}
+    }
+
+    /** Whether there is a number under {@code key}. */
+    public static boolean hasNumber(CompoundTag tag, String key) {
+        //? if >=1.21.11 {
+        /*return tag.get(key) instanceof net.minecraft.nbt.NumericTag;
+        *///?} else {
+        return tag.contains(key, Tag.TAG_ANY_NUMERIC);
+        //?}
+    }
+
+    /** The UUID stored by {@link #putUuid}, {@code null} if there is none (or it is invalid). */
+    public static @Nullable UUID getUuid(CompoundTag tag, String key) {
+        //? if >=1.21.11 {
+        /*return tag.read(key, UUIDUtil.CODEC).orElse(null);
+        *///?} else {
+        return tag.hasUUID(key) ? tag.getUUID(key) : null;
+        //?}
+    }
+
+    public static void putUuid(CompoundTag tag, String key, UUID uuid) {
+        //? if >=1.21.11 {
+        /*tag.store(key, UUIDUtil.CODEC, uuid);
+        *///?} else {
+        tag.putUUID(key, uuid);
         //?}
     }
 

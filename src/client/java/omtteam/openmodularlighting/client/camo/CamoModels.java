@@ -3,33 +3,41 @@ package omtteam.openmodularlighting.client.camo;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
 import omtteam.openmodularlighting.OML;
 import omtteam.openmodularlighting.camo.CamoBlock;
 import omtteam.openmodularlighting.compat.VersionCompat;
 
+import org.jetbrains.annotations.Nullable;
+
+import java.util.List;
+
 /**
- * Which models show a disguise: those of the {@link CamoBlock}s (as in OpenModularTurrets). The loader client
- * entrypoints wrap them in their camouflage model ({@code FabricCamoModel}, {@code NeoForgeCamoModel}); the block
- * entity hands the disguise to the model through {@code CompatBlockEntity#renderData}.
- * <p>
- * A disguised light shows the disguise's model and, of its own model, only the lamp: the quads with
- * {@link #LAMP_TINT_INDEX} (a cut-out overlay on the front face, see {@code models/block/floodlight.json}).
+ * Which models show a disguise: those of the {@link CamoBlock}s. The loader client entrypoints wrap them in their
+ * camouflage model ({@code FabricCamoModel}, {@code NeoForgeCamoModel}); the block entity hands the disguise to the
+ * model through {@code CompatBlockEntity#renderData}. A block with a {@link CamoBlock#overlayTintIndex} also keeps
+ * those quads of its own model over the disguise.
  */
 public final class CamoModels {
-    /** Tint index that marks the lamp quads of a light's model; they get the dye colour like the rest of the light. */
-    public static final int LAMP_TINT_INDEX = 1;
-
     private CamoModels() {
     }
 
-    /** All blocks that can be disguised (after registration). */
-    public static Block[] camoBlocks() {
-        return BuiltInRegistries.BLOCK.stream().filter(block -> block instanceof CamoBlock).toArray(Block[]::new);
+    /**
+     * The tint index of the quads of this block's own model that stay visible over a disguise ({@link CamoBlock#overlayTintIndex}),
+     * -1 if none (also for blocks that cannot be disguised, and for the item model, which has no state).
+     */
+    public static int overlayTintIndex(@Nullable BlockState state) {
+        return state != null && state.getBlock() instanceof CamoBlock camo ? camo.overlayTintIndex() : -1;
+    }
+
+    /** All camouflage host blocks (after registration). */
+    public static List<Block> camoBlocks() {
+        return BuiltInRegistries.BLOCK.stream().filter(block -> block instanceof CamoBlock).toList();
     }
 
     /**
-     * Whether the model with this id belongs to a block that can be disguised: block state and item models share the
-     * block's registry path (only namespace and path of the id are compared).
+     * Whether the model with this id belongs to a camouflage host: block state and item models share the block's
+     * registry path (only namespace and path of the id are compared).
      */
     public static boolean isCamoModel(ResourceLocation id) {
         if (!id.getNamespace().equals(OML.MOD_ID)) return false;
