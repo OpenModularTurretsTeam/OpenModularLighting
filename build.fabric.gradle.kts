@@ -52,9 +52,17 @@ dependencies {
     mappings(loom.officialMojangMappings())
     modImplementation("net.fabricmc:fabric-loader:${property("fabric_loader_version")}")
     modImplementation("net.fabricmc.fabric-api:fabric-api:${property("fabric_api_version")}")
-    // Energy API (jar-in-jar)
+
+    // The Fabric game tests use the energy API directly; the mod itself gets it, bundled, through OMLib
     modImplementation("teamreborn:energy:${property("team_reborn_energy_version")}")
-    include("teamreborn:energy:${property("team_reborn_energy_version")}")
+
+    // OMLib (git submodule omlib, built before this project is configured): a mod of its own, jar-in-jar. In the dev
+    // environment its own dependencies (Fabric API, Team Reborn Energy) come through it; only the library itself is
+    // bundled (it bundles the energy API itself).
+    val omlib = project.extra["omlibCoordinates"] as String
+    modImplementation(omlib)
+    "include"(omlib) { isTransitive = false }
+
     // Jade plugin (compat/jade, client/compat/jade): optional, not bundled; present in dev runs to try it
     modCompileOnly("maven.modrinth:jade:${property("jade_version")}")
     modLocalRuntime("maven.modrinth:jade:${property("jade_version")}")
