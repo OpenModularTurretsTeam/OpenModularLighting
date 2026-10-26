@@ -49,10 +49,11 @@ public class UvLightBlock extends LightBlock {
         return LightBlocks.UPDATE_ALL;
     }
 
+    /** {@code uvLightRendered} is the player's own setting: read from the local config, not the server's. */
     @Override
     @SuppressWarnings("deprecation")
     public EnumBlockRenderType getRenderType(IBlockState state) {
-        return state.getValue(LIT) && OMLConfig.get().general.uvLightRendered
+        return state.getValue(LIT) && OMLConfig.local().general.uvLightRendered
                 ? EnumBlockRenderType.MODEL : EnumBlockRenderType.INVISIBLE;
     }
 

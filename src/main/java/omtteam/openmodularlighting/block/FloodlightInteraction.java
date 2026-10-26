@@ -74,12 +74,15 @@ public final class FloodlightInteraction {
         return EnumActionResult.SUCCESS;
     }
 
-    /** Sneaking: empty hand toggles invert, a wrench dismantles, anything else lets the held item act. */
+    /**
+     * Sneaking: empty hand toggles invert, a wrench dismantles (only for players who may build: the block-use events
+     * also run in adventure mode), anything else lets the held item act.
+     */
     private static EnumActionResult useSneaking(World world, BlockPos pos, EntityPlayer player,
                                                 FloodlightTileEntity light, ItemStack held) {
         if (held.isEmpty()) {
             if (!world.isRemote) toggleInverted(world, player, light);
-        } else if (CommonTags.isWrench(held)) {
+        } else if (CommonTags.isWrench(held) && player.isAllowEdit()) {
             if (!world.isRemote) world.destroyBlock(pos, true); // dismantle
         } else {
             return EnumActionResult.PASS; // e.g. place a block

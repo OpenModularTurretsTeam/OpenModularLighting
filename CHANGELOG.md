@@ -15,6 +15,10 @@ turns *Unreleased* into the release section; `chiseledPublish` uploads exactly t
 
 ### Fixed
 
+- Forge 1.12.2: players in adventure mode can no longer dismantle lights with a wrench
+- Forge 1.12.2: fuels with a huge burn time (modded) no longer get stuck in the carbon floodlight's slot
+- Forge 1.12.2: `uvLightRendered` is each player's own setting: on a server, the client's config decides whether UV light blocks are visible
+- Forge 1.12.2: light blocks are only saved when their light sources changed
 - No stray black line below the left corner of the floodlight GUIs
 
 ## [1.0.0-beta.7] - 2026-10-26

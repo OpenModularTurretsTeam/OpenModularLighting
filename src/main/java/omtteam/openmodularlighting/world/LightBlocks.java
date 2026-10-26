@@ -49,8 +49,7 @@ public final class LightBlocks {
         }
         LightTileEntity light = lightAt(world, pos, block);
         if (light == null) return false;
-        apply(world, pos, light.sources().add(Positions.toPos(source), on));
-        light.markDirty();
+        apply(world, pos, light.addSource(Positions.toPos(source), on));
         return true;
     }
 
@@ -58,18 +57,14 @@ public final class LightBlocks {
     public static void leave(World world, BlockPos pos, LightBlock block, BlockPos source) {
         LightTileEntity light = lightAt(world, pos, block);
         if (light == null) return;
-        LightSources.Effect effect = light.sources().remove(Positions.toPos(source));
-        light.markDirty();
-        apply(world, pos, effect);
+        apply(world, pos, light.removeSource(Positions.toPos(source)));
     }
 
     /** Switches {@code source} on or off at the light block at {@code pos}. */
     public static void setActive(World world, BlockPos pos, LightBlock block, BlockPos source, boolean on) {
         LightTileEntity light = lightAt(world, pos, block);
         if (light == null) return;
-        LightSources.Effect effect = light.sources().setActive(Positions.toPos(source), on);
-        light.markDirty();
-        apply(world, pos, effect);
+        apply(world, pos, light.setSourceActive(Positions.toPos(source), on));
     }
 
     /** Carries out an {@link LightSources.Effect} on the light block at {@code pos}. */

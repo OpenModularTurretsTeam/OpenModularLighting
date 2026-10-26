@@ -30,9 +30,35 @@ public abstract class LightTileEntity extends TileEntitySynced {
 
     private LightSources sources = new LightSources();
 
-    /** The sources of this block. Call {@link #markDirty()} after changing them. */
+    /** The sources of this block, for reading; change them through the methods below, which save only real changes. */
     public LightSources sources() {
         return sources;
+    }
+
+    public LightSources.Effect addSource(Pos source, boolean on) {
+        long before = sources.changeCount();
+        return savedIfChanged(before, sources.add(source, on));
+    }
+
+    public LightSources.Effect removeSource(Pos source) {
+        long before = sources.changeCount();
+        return savedIfChanged(before, sources.remove(source));
+    }
+
+    public LightSources.Effect setSourceActive(Pos source, boolean on) {
+        long before = sources.changeCount();
+        return savedIfChanged(before, sources.setActive(source, on));
+    }
+
+    /**
+     * Marks the tile entity dirty only if the sources changed since {@code before}: re-casts join every position again
+     * and random ticks refresh every light block, and most of these calls change nothing.
+     */
+    private LightSources.Effect savedIfChanged(long before, LightSources.Effect effect) {
+        if (sources.changeCount() != before) {
+            markDirty();
+        }
+        return effect;
     }
 
     /** Flags every source in a loaded chunk for a re-cast (this block was replaced or a neighbour changed). */
@@ -53,6 +79,7 @@ public abstract class LightTileEntity extends TileEntitySynced {
     public LightSources.Effect refresh() {
         if (world == null) return LightSources.Effect.NONE;
         World level = world;
+        long before = sources.changeCount();
         LightSources.Effect effect = sources.refresh(source -> {
             BlockPos sourcePos = Positions.toBlockPos(source);
             if (!level.isBlockLoaded(sourcePos)) return SourceStatus.UNKNOWN;
@@ -62,8 +89,7 @@ public abstract class LightTileEntity extends TileEntitySynced {
             }
             return ((LightSourceTileEntity) tile).isLightOn() ? SourceStatus.ON : SourceStatus.OFF;
         });
-        markDirty();
-        return effect;
+        return savedIfChanged(before, effect);
     }
 
     /** The block entity at {@code pos}, without loading its chunk. */

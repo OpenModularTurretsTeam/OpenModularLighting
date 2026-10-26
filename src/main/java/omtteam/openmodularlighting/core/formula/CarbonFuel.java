@@ -15,13 +15,14 @@ public final class CarbonFuel {
     /**
      * Burn time one fuel item adds, in ticks of straight light: {@code carbonTime × burnTime / 1600 × 20}, evaluated
      * left to right in integer arithmetic as in 1.7.10. Does not depend on the mode; the cone modes use the time up
-     * faster ({@link #drain}).
+     * faster ({@link #drain}). Computed in {@code long} and capped at {@link Integer#MAX_VALUE}, so modded fuels with
+     * huge burn times cannot overflow into a negative time.
      *
      * @param burnTime   furnace burn time of the item in ticks
      * @param carbonTime config {@code carbonTime} (seconds per coal)
      */
     public static int ticks(int burnTime, int carbonTime) {
-        return carbonTime * burnTime / COAL_BURN_TIME * 20;
+        return (int) Math.min(Integer.MAX_VALUE, (long) carbonTime * burnTime / COAL_BURN_TIME * 20);
     }
 
     /** Burn time used per tick: 1 for straight light, 2 for both cones (twice the "power"). */
