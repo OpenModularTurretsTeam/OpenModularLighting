@@ -9,6 +9,14 @@ turns *Unreleased* into the release section; `chiseledPublish` uploads exactly t
 
 ## [Unreleased]
 
+### Changed
+
+- The floodlight GUIs have a dark grey background like the turret GUIs instead of the vanilla light grey
+
+### Fixed
+
+- No stray black line below the left corner of the floodlight GUIs
+
 ## [1.0.0-beta.7] - 2026-10-26
 
 ### Changed

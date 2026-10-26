@@ -23,7 +23,7 @@ public abstract class FloodlightGui<M extends FloodlightContainer> extends GuiCo
     private static final int HINT_X = 164;
     private static final int HINT_Y = 6;
     private static final int STATUS_COLOR = 0x000000;
-    private static final int LABEL_COLOR = 0x404040;
+    private static final int LABEL_COLOR = 0x000000;
     private static final int HINT_HOVER_COLOR = 0xFFFFFF;
     private static final int CAMO_BUTTON = 0;
     private static final int CAMO_WIDTH = 70;
