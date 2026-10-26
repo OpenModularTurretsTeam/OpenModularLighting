@@ -14,7 +14,7 @@ import net.minecraft.world.level.ItemLike;
 import omtteam.openmodularlighting.OML;
 import omtteam.openmodularlighting.compat.BlockEnabledCondition;
 import omtteam.openmodularlighting.platform.fabric.FabricBlockEnabledCondition;
-import omtteam.openmodularlighting.compat.CommonTags;
+import omtteam.omlib.compat.CommonTags;
 import omtteam.openmodularlighting.registry.ModItems;
 
 //? if >=1.21.11 {

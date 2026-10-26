@@ -3,7 +3,7 @@ package omtteam.openmodularlighting.compat.jade;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import omtteam.openmodularlighting.blockentity.FloodlightBlockEntity;
-import omtteam.openmodularlighting.compat.nbt.NbtCompat;
+import omtteam.omlib.compat.nbt.NbtCompat;
 
 import java.util.ArrayList;
 import java.util.List;

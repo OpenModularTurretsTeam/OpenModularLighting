@@ -11,8 +11,8 @@ import net.minecraft.world.level.block.state.BlockState;
 import omtteam.openmodularlighting.blockentity.BeamFloodlightBlockEntity;
 import omtteam.openmodularlighting.blockentity.CarbonFloodlightBlockEntity;
 import omtteam.openmodularlighting.blockentity.FloodlightBlockEntity;
-import omtteam.openmodularlighting.camo.CamoBlock;
-import omtteam.openmodularlighting.compat.MenuCompat;
+import omtteam.omlib.camo.CamoBlock;
+import omtteam.omlib.compat.MenuCompat;
 import omtteam.openmodularlighting.menu.CarbonFloodlightMenu;
 import omtteam.openmodularlighting.registry.ModBlockEntities;
 //? if >=1.21 {

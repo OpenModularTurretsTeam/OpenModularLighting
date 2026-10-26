@@ -1,5 +1,10 @@
 package omtteam.openmodularlighting.config;
 
+import omtteam.omlib.config.Comment;
+import omtteam.omlib.config.Range;
+import omtteam.omlib.config.ConfigWriter;
+import omtteam.omlib.config.ConfigMigration;
+import omtteam.omlib.config.ConfigValidator;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
@@ -8,11 +13,11 @@ import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 import net.minecraft.server.level.ServerPlayer;
 import omtteam.openmodularlighting.OML;
-import omtteam.openmodularlighting.compat.VersionCompat;
-import omtteam.openmodularlighting.compat.network.NetworkCompat;
-import omtteam.openmodularlighting.network.ConfigSyncPacket;
+import omtteam.omlib.compat.VersionCompat;
+import omtteam.omlib.compat.network.NetworkCompat;
+import omtteam.omlib.network.ConfigSyncPacket;
 import omtteam.openmodularlighting.network.OMLPackets;
-import omtteam.openmodularlighting.platform.Platform;
+import omtteam.omlib.platform.Platform;
 
 import java.io.IOException;
 import java.io.Reader;

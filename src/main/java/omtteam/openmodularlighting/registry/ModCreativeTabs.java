@@ -6,7 +6,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.ItemStack;
 import omtteam.openmodularlighting.OML;
-import omtteam.openmodularlighting.compat.VersionCompat;
+import omtteam.omlib.compat.VersionCompat;
 
 /**
  * The mod's creative tab (1.7.10 {@code CreativeTabFloodlight}).

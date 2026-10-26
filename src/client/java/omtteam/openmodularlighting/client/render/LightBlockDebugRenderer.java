@@ -13,7 +13,7 @@ import net.minecraft.world.phys.Vec3;
 import omtteam.openmodularlighting.block.LightBlock;
 import omtteam.openmodularlighting.blockentity.LightBlockEntity;
 import omtteam.openmodularlighting.blockentity.UvLightBlockEntity;
-import omtteam.openmodularlighting.client.compat.ClientCompat;
+import omtteam.omlib.client.compat.ClientCompat;
 import omtteam.openmodularlighting.registry.ModItems;
 import org.jetbrains.annotations.Nullable;
 

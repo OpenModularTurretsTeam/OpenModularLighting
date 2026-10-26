@@ -1,13 +1,15 @@
 package omtteam.openmodularlighting.camo;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.EmptyBlockGetter;
 import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.state.BlockState;
-import omtteam.openmodularlighting.compat.block.BlockCompat;
+import omtteam.omlib.compat.block.BlockCompat;
+import omtteam.omlib.camo.DisguiseRules;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -16,6 +18,24 @@ import org.jetbrains.annotations.Nullable;
  * show holes into the world behind it.
  */
 public final class CamoRules {
+    /** These rules as the camouflage menu of OMLib asks the hosts for them (with this mod's texts). */
+    public static final DisguiseRules RULES = new DisguiseRules() {
+        @Override
+        public boolean isValidDisguise(BlockState state) {
+            return CamoRules.isValidDisguise(state);
+        }
+
+        @Override
+        public Component invalidMessage() {
+            return Component.translatable("message.openmodularlighting.camo_invalid");
+        }
+
+        @Override
+        public Component slotHint() {
+            return Component.translatable("tooltip.openmodularlighting.camouflage_slot");
+        }
+    };
+
     private CamoRules() {
     }
 

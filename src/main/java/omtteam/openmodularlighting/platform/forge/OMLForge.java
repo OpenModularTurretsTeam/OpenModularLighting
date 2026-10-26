@@ -3,7 +3,6 @@ package omtteam.openmodularlighting.platform.forge;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.crafting.CraftingHelper;
@@ -18,9 +17,7 @@ import net.minecraftforge.registries.RegisterEvent;
 import omtteam.openmodularlighting.OML;
 import omtteam.openmodularlighting.compat.InteractiveBlock;
 import omtteam.openmodularlighting.config.OMLConfig;
-import omtteam.openmodularlighting.platform.Platform;
-import omtteam.openmodularlighting.platform.PlatformServices;
-import omtteam.openmodularlighting.registry.RegistrationStep;
+import omtteam.omlib.registry.RegistrationStep;
 
 import java.util.HashSet;
 import java.util.List;
@@ -41,12 +38,9 @@ public final class OMLForge {
 
     public OMLForge() {
         IEventBus modBus = FMLJavaModLoadingContext.get().getModEventBus();
-        Platform.install(new PlatformServices(new ForgeLoaderInfo(), new ForgeFuel(), new ForgeNetwork(),
-                new ForgeMenus(), new ForgeEnergy()));
         OML.init();
         modBus.addListener(this::onRegister);
         modBus.addListener(this::onCommonSetup);
-        MinecraftForge.EVENT_BUS.addGenericListener(BlockEntity.class, ForgeBlockCapabilities::attach);
         MinecraftForge.EVENT_BUS.addListener(OMLForge::onRightClickBlock);
         MinecraftForge.EVENT_BUS.addListener(OMLForge::onPlayerLoggedIn);
         if (FMLEnvironment.dist == Dist.CLIENT) {

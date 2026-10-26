@@ -1,15 +1,15 @@
 package omtteam.openmodularlighting.client;
 
+import omtteam.omlib.client.ScreenRegistrar;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import omtteam.openmodularlighting.block.FloodlightBlock;
 import omtteam.openmodularlighting.client.network.ClientPacketHandlers;
-import omtteam.openmodularlighting.client.screen.CamoScreen;
 import omtteam.openmodularlighting.client.screen.CarbonFloodlightScreen;
 import omtteam.openmodularlighting.client.screen.ElectricFloodlightScreen;
-import omtteam.openmodularlighting.compat.VersionCompat;
+import omtteam.omlib.compat.VersionCompat;
 import omtteam.openmodularlighting.registry.ModMenus;
 
 import java.util.List;
@@ -35,7 +35,6 @@ public final class OMLClient {
     public static void registerScreens(ScreenRegistrar registrar) {
         registrar.register(ModMenus.ELECTRIC_FLOODLIGHT, ElectricFloodlightScreen::new);
         registrar.register(ModMenus.CARBON_FLOODLIGHT, CarbonFloodlightScreen::new);
-        registrar.register(ModMenus.CAMO, CamoScreen::new);
     }
 
     /**

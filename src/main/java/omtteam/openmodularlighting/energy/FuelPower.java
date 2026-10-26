@@ -4,12 +4,12 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import omtteam.openmodularlighting.compat.nbt.NbtCompat;
+import omtteam.omlib.compat.nbt.NbtCompat;
 import omtteam.openmodularlighting.config.OMLConfig;
 import omtteam.openmodularlighting.core.beam.BeamMode;
 import omtteam.openmodularlighting.core.formula.CarbonFuel;
 import omtteam.openmodularlighting.core.state.FuelTimer;
-import omtteam.openmodularlighting.platform.Platform;
+import omtteam.omlib.platform.Platform;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Supplier;

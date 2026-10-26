@@ -4,7 +4,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.Level;
 import omtteam.openmodularlighting.block.LightBlock;
-import omtteam.openmodularlighting.compat.nbt.NbtCompat;
+import omtteam.omlib.compat.nbt.NbtCompat;
 import omtteam.openmodularlighting.core.light.BeamCaster;
 import omtteam.openmodularlighting.core.light.ShapeDiff;
 import omtteam.openmodularlighting.core.math.Pos;

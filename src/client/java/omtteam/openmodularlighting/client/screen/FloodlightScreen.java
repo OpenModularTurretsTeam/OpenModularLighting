@@ -8,12 +8,12 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 import omtteam.openmodularlighting.blockentity.FloodlightBlockEntity;
-import omtteam.openmodularlighting.client.compat.ClientCompat;
-import omtteam.openmodularlighting.client.compat.ClientNetworkCompat;
+import omtteam.omlib.client.compat.ClientCompat;
+import omtteam.omlib.client.compat.ClientNetworkCompat;
 import omtteam.openmodularlighting.config.OMLConfig;
 import omtteam.openmodularlighting.menu.FloodlightMenu;
-import omtteam.openmodularlighting.network.CamoPackets;
-import omtteam.openmodularlighting.network.OMLPackets;
+import omtteam.omlib.network.CamoPackets;
+import omtteam.omlib.network.OMLibPackets;
 
 /**
  * Floodlight GUI as in 1.7.10: the 176 × 146 texture with one status line and no title labels. Lights that can be
@@ -57,7 +57,7 @@ public abstract class FloodlightScreen<M extends FloodlightMenu> extends Abstrac
 
     /** Opens the camouflage menu (a server-side menu, like this one). */
     private void openCamo() {
-        ClientNetworkCompat.sendToServer(OMLPackets.OPEN_CAMO_MENU, new CamoPackets.OpenMenu(menu.getPos()));
+        ClientNetworkCompat.sendToServer(OMLibPackets.OPEN_CAMO_MENU, new CamoPackets.OpenMenu(menu.getPos()));
     }
 
     /** The status line next to the slot. */

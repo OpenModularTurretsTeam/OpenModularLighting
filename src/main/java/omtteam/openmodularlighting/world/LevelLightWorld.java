@@ -4,7 +4,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.lighting.LightEngine;
-import omtteam.openmodularlighting.compat.block.BlockCompat;
+import omtteam.omlib.compat.block.BlockCompat;
 import omtteam.openmodularlighting.core.light.Cell;
 import omtteam.openmodularlighting.core.light.LightWorld;
 import omtteam.openmodularlighting.core.math.Pos;

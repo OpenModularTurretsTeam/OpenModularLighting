@@ -1,5 +1,6 @@
 package omtteam.openmodularlighting.blockentity;
 
+import omtteam.omlib.blockentity.TransferHost;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -16,23 +17,24 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import omtteam.openmodularlighting.block.FloodlightBlock;
 import omtteam.openmodularlighting.block.LightBlock;
-import omtteam.openmodularlighting.camo.CamoBlock;
-import omtteam.openmodularlighting.camo.CamoData;
-import omtteam.openmodularlighting.camo.CamoHost;
+import omtteam.omlib.camo.CamoBlock;
+import omtteam.omlib.camo.CamoData;
+import omtteam.omlib.camo.CamoHost;
+import omtteam.omlib.camo.DisguiseRules;
 import omtteam.openmodularlighting.camo.CamoRules;
-import omtteam.openmodularlighting.compat.CompatBlockEntity;
-import omtteam.openmodularlighting.compat.VersionCompat;
-import omtteam.openmodularlighting.compat.nbt.NbtCompat;
+import omtteam.omlib.compat.CompatBlockEntity;
+import omtteam.omlib.compat.VersionCompat;
+import omtteam.omlib.compat.nbt.NbtCompat;
 import omtteam.openmodularlighting.config.OMLConfig;
 import omtteam.openmodularlighting.core.beam.BeamShape;
-import omtteam.openmodularlighting.core.camo.CamoLight;
+import omtteam.omlib.core.camo.CamoLight;
 import omtteam.openmodularlighting.core.light.LightType;
 import omtteam.openmodularlighting.core.state.LightController;
 import omtteam.openmodularlighting.core.state.RecheckTimer;
-import omtteam.openmodularlighting.core.energy.EnergyAccess;
+import omtteam.omlib.core.energy.EnergyAccess;
 import omtteam.openmodularlighting.energy.ElectricPower;
 import omtteam.openmodularlighting.energy.LightPower;
-import omtteam.openmodularlighting.inventory.ItemAccess;
+import omtteam.omlib.inventory.ItemAccess;
 import omtteam.openmodularlighting.registry.ModBlocks;
 import org.jetbrains.annotations.Nullable;
 
@@ -222,6 +224,11 @@ public abstract class FloodlightBlockEntity extends CompatBlockEntity implements
         if (supportsCamo() && camo.set(state)) {
             syncToClient();
         }
+    }
+
+    @Override
+    public DisguiseRules disguiseRules() {
+        return CamoRules.RULES;
     }
 
     @Override

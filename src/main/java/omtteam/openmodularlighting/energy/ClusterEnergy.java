@@ -2,7 +2,7 @@ package omtteam.openmodularlighting.energy;
 
 import omtteam.openmodularlighting.blockentity.PanelLightBlockEntity;
 import omtteam.openmodularlighting.core.cluster.Cluster;
-import omtteam.openmodularlighting.core.energy.EnergyGroup;
+import omtteam.omlib.core.energy.EnergyGroup;
 
 import java.util.ArrayList;
 import java.util.Comparator;

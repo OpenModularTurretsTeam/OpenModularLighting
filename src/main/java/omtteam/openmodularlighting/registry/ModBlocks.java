@@ -18,7 +18,7 @@ import omtteam.openmodularlighting.block.PanelLightBlock;
 import omtteam.openmodularlighting.block.PhantomLightBlock;
 import omtteam.openmodularlighting.block.UvFloodlightBlock;
 import omtteam.openmodularlighting.block.UvLightBlock;
-import omtteam.openmodularlighting.compat.VersionCompat;
+import omtteam.omlib.compat.VersionCompat;
 
 import java.util.List;
 import java.util.function.Function;

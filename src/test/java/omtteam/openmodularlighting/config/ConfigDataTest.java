@@ -1,5 +1,8 @@
 package omtteam.openmodularlighting.config;
 
+import omtteam.omlib.config.Range;
+import omtteam.omlib.config.ConfigWriter;
+import omtteam.omlib.config.ConfigValidator;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;

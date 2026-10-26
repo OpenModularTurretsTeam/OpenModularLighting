@@ -2,8 +2,8 @@ package omtteam.openmodularlighting.energy;
 
 import net.minecraft.world.Container;
 import net.minecraft.world.item.ItemStack;
-import omtteam.openmodularlighting.core.energy.EnergyStore;
-import omtteam.openmodularlighting.platform.Platform;
+import omtteam.omlib.core.energy.EnergyStore;
+import omtteam.omlib.platform.Platform;
 
 /**
  * Battery slots: any item with extractable energy in the loader's energy API ({@code platform.Energy}; 1.7.10: RF

@@ -27,7 +27,7 @@ import omtteam.openmodularlighting.block.FluorescentLightBlock;
 import omtteam.openmodularlighting.block.LightBlock;
 import omtteam.openmodularlighting.blockentity.FloodlightBlockEntity;
 import omtteam.openmodularlighting.blockentity.PanelLightBlockEntity;
-import omtteam.openmodularlighting.core.energy.EnergyAccess;
+import omtteam.omlib.core.energy.EnergyAccess;
 import omtteam.openmodularlighting.energy.ElectricPower;
 import omtteam.openmodularlighting.registry.ModBlocks;
 

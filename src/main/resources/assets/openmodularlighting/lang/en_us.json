@@ -31,16 +31,12 @@
   "tooltip.openmodularlighting.configured": "Configured",
   "gui.openmodularlighting.grow_light_lighting": "Normal lighting",
   "gui.openmodularlighting.grow_light_black_light": "Black light",
-  "gui.openmodularlighting.disguise": "Disguise",
   "tooltip.openmodularlighting.timeout_hint": "After turning off, the light waits %s seconds before it can turn on again. Every switch updates the light level of all blocks in its beam, so the delay keeps fast switching from causing lag.",
   "gui.openmodularlighting.turns_on_in": "The light will turn on in %s seconds.",
   "death.attack.openmodularlighting.uv_light": "%1$s was burned by UV light",
   "config.jade.plugin_openmodularlighting.light": "Open Modular Lighting: lights",
   "message.openmodularlighting.camo_invalid": "Only full, opaque blocks can be used as a disguise.",
   "tooltip.openmodularlighting.camouflage_slot": "Click with a full, opaque block to disguise the light; click with an empty hand to remove the disguise.",
-  "gui.openmodularlighting.back": "Back",
   "gui.openmodularlighting.camouflage": "Camouflage",
-  "tooltip.openmodularlighting.camouflage": "Open the camouflage menu to disguise this light as another block.",
-  "message.openmodularlighting.not_owner": "You do not own this block, or you don't have permission to do that.",
-  "message.openmodularlighting.no_permission": "You do not have permission to do that."
+  "tooltip.openmodularlighting.camouflage": "Open the camouflage menu to disguise this light as another block."
 }

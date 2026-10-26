@@ -34,7 +34,10 @@ Core gameplay:
 - **Forge** 47.x (1.20.1 only), built with the legacy variant of ModDevGradle (`net.neoforged.moddev.legacyforge`, same artifact and version as `moddev`; build-time only), requested by the user.
   On Forge, the Fabric-only APIs are replaced by Forge's own (capabilities, events, event network channels); see §4 "Forge 1.20.1".
 - Build and test tools only, never in the jar (approved by the user, as in OMT): **ArchUnit** (test dependency), **JaCoCo**, **PIT** (plain `JavaExec`, no Gradle plugin) and **PMD**; versions in `gradle.properties`.
-- Nothing else without asking the user first. No Architectury, no Cloth Config, no OMLib, no Kotlin.
+- **OMLib** (the user's own library, `../OMLib1.20.1+`, branch `1.20.1+`), mounted as the git submodule `omlib` and bundled into every jar (jar-in-jar; Fabric `include`, NeoForge and Forge `jarJar`; requested by the user on 2026-10-27).
+  It holds the code both mods used to share (platform services, version compat, energy and item transfer, config, the camouflage menu) and the build logic.
+  The library is a mod of its own (`omlib`), declared as a required dependency in the mod metadata, and built as a nested step of the mod build, see §4 "OMLib".
+- Nothing else without asking the user first. No Architectury, no Cloth Config, no Kotlin.
 - Old optional integrations (IC2, BuildCraft/CoFH/EnderIO wrenches, EnderIO wireless charging, IGW, NEI, AgriCraft, Colored Light Core) are **not** ported unless the user asks. WAILA is replaced by the Jade plugin; WTHIT is not supported (the user chose Jade only).
 
 ---
@@ -55,7 +58,7 @@ Core gameplay:
 - Shared build logic is the convention plugin `omlib/build-logic/src/main/kotlin/mod-common.gradle.kts` (Java toolchain, metadata templating, JUnit, `verifyCoreIsolation`, licenses in the jar via `bundled_licenses` (default: all three), publishing).
   It is mod-independent (everything comes from `gradle.properties`) and lives in its own repository, `OMLib` (`../OMLib1.20.1+`), which every mod mounts as the git submodule `omlib` (the branch `1.20.1+` of the OMLib repository, clean history; an included build in `pluginManagement` of `settings.gradle.kts`).
   Change it inside `omlib/`, commit and push there, then commit the new submodule pointer in each mod; clone a mod with `--recurse-submodules` (or run `git submodule update --init`).
-  Source files that the mods copy from each other are listed in `omlib/shared-sources.txt`; after changing one, run `python3 -I omlib/tools/shared_sources.py sync --from . --write . ../OMT1.20.1+` and then `check` (see the README of OMLib).
+  The few source files that the mods still copy from each other are listed in `omlib/shared-sources.txt`; after changing one, run `python3 -I omlib/tools/shared_sources.py sync --from . --write . ../OMT1.20.1+` and then `check`.
   The quality tools (ArchUnit, JaCoCo, PIT, PMD) stay in `build.fabric.gradle.kts`, as in OMT.
   The loader plugins are not on the build logic's classpath; they are applied by version in `stonecutter.gradle.kts` (`apply false`) and used by the loader scripts.
 - Formatting: **Spotless** (in `stonecutter.gradle.kts`). It is deliberately light: tabs → spaces, trailing whitespace, final newline. No full formatter and no import reordering, because those would break the Stonecutter conditional comments. Run `./gradlew spotlessApply` before committing.
@@ -85,7 +88,7 @@ Check exact latest patch versions of Loader, API, Loom and Stonecutter when sett
 ├── gradle/pmd/ruleset.xml      # PMD rules (complexity and size, report only; same as OMT's)
 ├── build.neoforge.gradle.kts   # NeoForge nodes (ModDevGradle)
 ├── build.forge.gradle.kts      # Forge nodes (legacy ModDevGradle: reobfJar, remapped mod* dependencies, pack.mcmeta)
-├── omlib/                      # git submodule (OMLib, branch 1.20.1+): build-logic/ (mod-common convention plugin shared by all mods and loaders), shared-sources check
+├── omlib/                      # git submodule (OMLib, branch 1.20.1+): the library (src/) every mod bundles, and build-logic/ (the mod-common convention plugin); see §4 "OMLib"
 ├── stonecutter.gradle.kts      # Stonecutter controller (active version, loader constants, chiseled tasks)
 ├── settings.gradle.kts         # declares the Stonecutter nodes (<minecraft version>-<loader>)
 ├── gradle.properties           # shared properties (mod_id, mod_version, maven_group …)
@@ -172,6 +175,22 @@ The Stonecutter DSL changes between releases. If this does not match the install
 - **Renames** that Mojang applies everywhere are Stonecutter replacements in `stonecutter.gradle.kts` (`replacements`), not conditions: `ResourceLocation` → `Identifier` and `noCollission(` → `noCollision(` from 1.21.11. They work in both directions, so the new names must not be used for anything else.
 - Version-specific *properties* live in `versions/<v>/gradle.properties`. Read them in the build via `property("…")`.
 
+### OMLib (the library, `omlib/`)
+
+Requested by the user on 2026-10-27: the code that OpenModularLighting and OpenModularTurrets used to share lives in the library OMLib (`../OMLib1.20.1+`, a mod of its own with the id `omlib`, package `omtteam.omlib`), which both mods bundle jar-in-jar.
+Its README and `CLAUDE.md` describe the layout and the rules (no mod knowledge in the library, public API only where a mod needs it).
+
+- **Where things are:** the platform layer (`Platform`, `LoaderInfo`, `Fuel`, `Network`, `Menus`, `Energy` and their loader classes), the compat helpers (`VersionCompat`, `NbtCompat`, `BlockCompat`, `NetworkCompat`, `MenuCompat`, `CompatBlockEntity`, `CommonTags`, `ClientCompat`), `core.energy`, `inventory.ItemAccess`, `TransferHost`, the config machinery (`@Comment`, `@Range`, `ConfigWriter`, `ConfigRanges`, `ConfigValidator`, `ConfigMigration`), `RegistrationStep` and the camouflage menu with its screen, packets and models are in the `omtteam.omlib` packages.
+  Wherever the rest of this file names those classes under `omtteam.openmodularlighting`, read `omtteam.omlib`; they kept their names and package layout.
+- **Build:** the settings script runs `omlib/tools/bootstrap.sh` first (inside `pluginManagement`), which builds the library for all six nodes into `omlib/build/maven` when its sources changed (Loom resolves mod dependencies while it configures, so a task is too late).
+  `mod-common` adds that repository and exposes `project.extra["omlibCoordinates"]` / `["omlibVersion"]`; the loader scripts declare the dependency and bundle it, and the metadata templates declare it (`${omlib_version}`).
+  The settings script also drops Loom's cached remapped copy of the library when it was rebuilt from other sources.
+  `OMLIB_SKIP_BUILD=1` skips the library build.
+- **Runtime:** the library's services (`Platform`, `ClientPlatform`) are created on first use, so it does not matter which mod's entrypoint runs first; the library's own entrypoints register the camo menu type and packets.
+  The mod passes its transfer block entity types to the registrars (`FabricBlockLookups.register(ModBlockEntities.transferTypes())`, `NeoForgeCapabilities.register(event, ModBlockEntities.transferTypes())` in its own event) and applies its own NeoForge packets in its own `RegisterPayloadHandlersEvent` (`NeoForgeNetwork.applyRegistrations(event, MOD_ID)`).
+- **Camouflage:** `CamoBlock` (with `overlayTintIndex()`), `CamoHost` (with `disguiseRules()`) and `DisguiseRules` (this mod: `CamoRules.RULES`, opaque blocks only) are the hooks; the screen's extra buttons come from `CamoScreenExtras` (not used here).
+- **Changing the library:** edit, commit and push it, move the `omlib` pointer of both mods and build both (`./gradlew chiseledBuild`); a public signature change touches both mods.
+
 ### Loaders
 
 Each Stonecutter node is `<minecraft version>-<loader>`; the loader picks the build script (`build.<loader>.gradle.kts`).
@@ -197,7 +216,7 @@ The node `1.20.1-forge` follows the NeoForge setup; these are the differences:
 - **Data:** `convertFabricData` (a function in `omlib/build-logic`, shared with NeoForge) copies the 1.20.1 Fabric output with `"conditions"` (Forge 1.20.1 reads them on recipes and advancements). The node also generates `pack.mcmeta` (pack format 15) for the mod and the test mod: without one, Forge 1.20.1 loads neither's data.
 - **Entrypoints:** `OMLForge` (`@Mod`, mod bus from `FMLJavaModLoadingContext`); Forge 1.20.1 has no client-only `@Mod` classes, so it constructs `client.platform.forge.OMLForgeClient` by name on a client (main cannot see the client source set).
 - **Services:** `ForgeNetwork` uses one `EventNetworkChannel` per packet type (named by its id, missing remote accepted, decoded on the network thread, handled on the main thread; S2C handlers dispatched like on NeoForge). `ForgeMenus` uses `IForgeMenuType` / `NetworkHooks.openScreen`.
-- **Capabilities:** no registration event in 1.20.1; `OMLForge` attaches `ForgeBlockCapabilities` (shared with OpenModularTurrets) to every `TransferHost` (the lights) in `AttachCapabilitiesEvent`. It asks the light on every query (attached during construction; the exposed sides can change) and keeps a side's `LazyOptional` while the light returns the same access object.
+- **Capabilities:** no registration event in 1.20.1; `OMLForge` attaches `ForgeBlockCapabilities` (OMLib, attached by the library's own entrypoint) to every `TransferHost` (the lights) in `AttachCapabilitiesEvent`. It asks the light on every query (attached during construction; the exposed sides can change) and keeps a side's `LazyOptional` while the light returns the same access object.
 - **Recipe condition:** `ForgeBlockEnabledCondition` (`ICondition` + `IConditionSerializer`, registered with `CraftingHelper.register` in the recipe serializer `RegisterEvent`).
 - **Client:** screens are registered with `MenuScreens.register` in `FMLClientSetupEvent` (no screen event); `ForgeCamoModel` is `NeoForgeCamoModel` without the ambient occlusion override (Forge 1.20.1 does not pass model data there).
 - **GameTests:** `runGameTestServer` with `forge.enabledGameTestNamespaces`; the same annotations as NeoForge (`net.minecraftforge.gametest`). Vanilla 1.20.1's `makeMockServerPlayerInLevel` gives the connection no netty channel, which Forge's login handling needs: use `OMLGameTests.mockPlayer(helper)` instead (an `EmbeddedChannel` on Forge, as in vanilla 1.20.5+).
@@ -606,7 +625,7 @@ Unlike phantom lights, UV light BEs have to tick for the damage. They do nothing
 - Server-authoritative values that clients need (e.g. for tooltips) are synced on join.
 - Read values with `OMLConfig.get()` (for example `OMLConfig.get().general.rangeStraightFloodlight`). Never cache them: on a client connected to a server, `get()` returns the server's config, and after disconnecting it returns the local one again.
   Client settings that each player chooses (`uvLightRendered`) are read with `OMLConfig.local()`, the instance's own file, so a server's value never overrides them.
-- **Versioning** (as in OpenModularTurrets): the file records `configVersion`; files without it are version 1. On load, `ConfigMigration` (shared with OpenModularTurrets, steps in `ConfigMigrationSteps`) replaces values that still equal an old default with the new one, then saves the file with the current version, so it runs once per file and values an owner chose stay.
+- **Versioning** (as in OpenModularTurrets): the file records `configVersion`; files without it are version 1. On load, `ConfigMigration` (OMLib, steps in `ConfigMigrationSteps`) replaces values that still equal an old default with the new one, then saves the file with the current version, so it runs once per file and values an owner chose stay.
   **When you change a default, add a step to `ConfigMigrationSteps`** (the current version follows the last step; test it in `ConfigMigrationStepsTest`).
 - New fields go into `ConfigData` (sections `blocks` and `general`). Only `int`, `double`, `boolean` and `List<String>` are supported. Unknown keys are removed and wrong types reset to the default on load.
 
@@ -671,27 +690,11 @@ Design them step by step, together with the user:
 
 ### Code shared with OpenModularTurrets
 
-Parts of the code exist almost identically in OpenModularTurrets (`../OMT1.20.1+`, branch `neoforge-test`), which has the same section:
+The code both mods share is in OMLib (§4 "OMLib"), which both bundle.
+What is still duplicated in both repositories is listed in `omlib/shared-sources.txt` (the Minecraft 1.21.11 game test stand-ins, the PMD ruleset, the Gradle wrapper properties, `ClientPacketHandlers`); `python3 -I omlib/tools/shared_sources.py check . ../OMT1.20.1+` compares them.
+OpenModularTurrets also has camo light properties, a camouflage trap, the memory card handling of camouflage and its own `ScreenTexts`.
 
-- the platform layer (`platform/`, `client/platform/`, `NetworkCompat`, `PacketType`, `MenuCompat`), `ItemAccess`, `RegistrationStep`, `ScreenRegistrar`, `LongContainerData`, `@Comment` / `@Range`, `ConfigSyncPacket`, and the build logic (now the shared `omlib` submodule);
-- energy (`core.energy.EnergyStore`, `EnergyAccess`, `FabricEnergyStorages`, `NeoForgeEnergyHandler`);
-- `CompatBlockEntity` (identical) and camouflage: `camo/CamoBlock`, `CamoData`, `CamoHost`, `core/camo/CamoLight`, `menu/CamoMenu` / `CamoMenus`, `network/CamoPackets` / `CamoPacketHandler`, `client/camo/CamoModels`, `client/screen/CamoScreen` / `CamoScreenExtras`, and the camo models of every loader (`omlib/shared-sources.txt` lists them; `CamoRules` stays per mod).
-  OpenModularTurrets also has camo light properties, a camouflage trap and the memory card handling of camouflage.
-
-The camo code differs on purpose in a few points, each a parameter of a shared class: the disguise rule (`CamoRules`: OpenModularTurrets any full block, here full opaque blocks only), the quads of the block's own model on top of the disguise (`CamoBlock.overlayTintIndex()`: here the lamp), the NBT key and read validation (`new CamoData("camo", CamoRules::isValidDisguise)` here, `new CamoData("Camo", state -> true)` there; the key must stay per mod, or saved disguises are lost), and the buttons of the screen (`CamoHost.hasParentMenu()` for "Back"; `CamoScreenExtras` for hosts with more buttons, which only OpenModularTurrets' trap has).
-
-Until there is a shared library:
-
-- When you change one of these files, check whether the same change belongs in the other mod, and tell the user (do not edit the other repository unasked).
-- Keep the camo differences limited to the points above (§7 "Designing APIs" for any new hook).
-
-Shared library (assessment from 2026-10-20, a recommendation; building it is the user's decision and a new dependency, §1; it would not be the old OMLib):
-
-- Not yet: about 2,000 lines are shared, and copying the small service interfaces costs little.
-- Extract it at the next Minecraft version bump, when both camo models have to be reworked anyway, or earlier if a third mod needs the code.
-  Start with camouflage, `CompatBlockEntity` and the platform services.
-- Bundle it jar-in-jar, so players do not download anything extra; it must then stay binary-compatible within a major version, because the loader picks the highest bundled version.
-- The platform services need a redesign for a library: `Platform.install` allows one install per JVM, and the network registration uses the mod's own id.
+The camouflage differences are parameters of the library classes: the disguise rule (`CamoRules.RULES`: OpenModularTurrets any full block, here full opaque blocks only), the quads of the block's own model on top of the disguise (`CamoBlock.overlayTintIndex()`: here the lamp), the NBT key and read validation (`new CamoData("camo", CamoRules::isValidDisguise)` here, `"Camo"` there; the key must stay per mod, or saved disguises are lost) and the buttons of the screen (`CamoHost.hasParentMenu()` for "Back"; `CamoScreenExtras` for hosts with more).
 
 ---
 

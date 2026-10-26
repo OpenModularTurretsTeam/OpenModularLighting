@@ -2,8 +2,8 @@ package omtteam.openmodularlighting.gametest;
 
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import omtteam.openmodularlighting.compat.VersionCompat;
-import omtteam.openmodularlighting.compat.nbt.NbtCompat;
+import omtteam.omlib.compat.VersionCompat;
+import omtteam.omlib.compat.nbt.NbtCompat;
 
 /**
  * A battery for battery-slot tests: 100 000 E, any rate. The energy is kept in the item's custom data; each loader

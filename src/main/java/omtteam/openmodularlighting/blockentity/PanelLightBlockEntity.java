@@ -7,7 +7,7 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import omtteam.openmodularlighting.core.cluster.Cluster;
 import omtteam.openmodularlighting.core.cluster.ClusterNode;
-import omtteam.openmodularlighting.core.energy.EnergyAccess;
+import omtteam.omlib.core.energy.EnergyAccess;
 import omtteam.openmodularlighting.energy.ClusterEnergy;
 import omtteam.openmodularlighting.energy.ElectricPower;
 import org.jetbrains.annotations.Nullable;

@@ -3,7 +3,7 @@ package omtteam.openmodularlighting.blockentity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.state.BlockState;
 import omtteam.openmodularlighting.config.OMLConfig;
-import omtteam.openmodularlighting.core.energy.EnergyStore;
+import omtteam.omlib.core.energy.EnergyStore;
 import omtteam.openmodularlighting.core.formula.EnergyCost;
 import omtteam.openmodularlighting.energy.ElectricPower;
 import omtteam.openmodularlighting.energy.LightPower;

@@ -2,7 +2,7 @@ package omtteam.openmodularlighting;
 
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
-import omtteam.openmodularlighting.compat.VersionCompat;
+import omtteam.omlib.compat.VersionCompat;
 import omtteam.openmodularlighting.config.OMLConfig;
 import omtteam.openmodularlighting.network.OMLPackets;
 import omtteam.openmodularlighting.registry.ModBlockEntities;
@@ -10,7 +10,7 @@ import omtteam.openmodularlighting.registry.ModBlocks;
 import omtteam.openmodularlighting.registry.ModCreativeTabs;
 import omtteam.openmodularlighting.registry.ModItems;
 import omtteam.openmodularlighting.registry.ModMenus;
-import omtteam.openmodularlighting.registry.RegistrationStep;
+import omtteam.omlib.registry.RegistrationStep;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

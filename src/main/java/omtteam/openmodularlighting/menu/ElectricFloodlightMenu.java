@@ -1,5 +1,6 @@
 package omtteam.openmodularlighting.menu;
 
+import omtteam.omlib.menu.LongContainerData;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;

@@ -11,14 +11,14 @@ import omtteam.openmodularlighting.OML;
 import omtteam.openmodularlighting.blockentity.CarbonFloodlightBlockEntity;
 import omtteam.openmodularlighting.blockentity.ElectricFloodlightBlockEntity;
 import omtteam.openmodularlighting.blockentity.FloodlightBlockEntity;
-import omtteam.openmodularlighting.blockentity.TransferHost;
+import omtteam.omlib.blockentity.TransferHost;
 import omtteam.openmodularlighting.blockentity.CubeLightBlockEntity;
 import omtteam.openmodularlighting.blockentity.FluorescentLightBlockEntity;
 import omtteam.openmodularlighting.blockentity.GrowLightBlockEntity;
 import omtteam.openmodularlighting.blockentity.PhantomLightBlockEntity;
 import omtteam.openmodularlighting.blockentity.UvFloodlightBlockEntity;
 import omtteam.openmodularlighting.blockentity.UvLightBlockEntity;
-import omtteam.openmodularlighting.compat.VersionCompat;
+import omtteam.omlib.compat.VersionCompat;
 
 import java.util.List;
 import java.util.function.BiFunction;

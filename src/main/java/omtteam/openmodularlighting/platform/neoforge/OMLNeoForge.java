@@ -1,5 +1,8 @@
 package omtteam.openmodularlighting.platform.neoforge;
 
+import omtteam.omlib.platform.neoforge.NeoForgeNetwork;
+import omtteam.omlib.platform.neoforge.NeoForgeCapabilities;
+import omtteam.omlib.platform.neoforge.NeoForgeCapabilities;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionResult;
 import net.neoforged.bus.api.IEventBus;
@@ -9,14 +12,16 @@ import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import net.neoforged.neoforge.registries.NeoForgeRegistries;
+import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
+import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.registries.RegisterEvent;
 import omtteam.openmodularlighting.OML;
+import omtteam.openmodularlighting.registry.ModBlockEntities;
 import omtteam.openmodularlighting.compat.BlockEnabledCondition;
 import omtteam.openmodularlighting.compat.InteractiveBlock;
 import omtteam.openmodularlighting.config.OMLConfig;
-import omtteam.openmodularlighting.platform.Platform;
-import omtteam.openmodularlighting.platform.PlatformServices;
-import omtteam.openmodularlighting.registry.RegistrationStep;
+import omtteam.omlib.platform.Platform;
+import omtteam.omlib.registry.RegistrationStep;
 
 import java.util.HashSet;
 import java.util.List;
@@ -32,12 +37,13 @@ public final class OMLNeoForge {
     private final Set<RegistrationStep> done = new HashSet<>();
 
     public OMLNeoForge(IEventBus modBus) {
-        Platform.install(new PlatformServices(new NeoForgeLoaderInfo(), new NeoForgeFuel(), new NeoForgeNetwork(modBus),
-                new NeoForgeMenus(), new NeoForgeEnergy()));
         OML.init();
         modBus.addListener(this::onRegister);
         modBus.addListener(this::onCommonSetup);
-        modBus.addListener(NeoForgeCapabilities::register);
+        modBus.addListener((RegisterCapabilitiesEvent event) ->
+                NeoForgeCapabilities.register(event, ModBlockEntities.transferTypes()));
+        modBus.addListener((RegisterPayloadHandlersEvent event) ->
+                ((NeoForgeNetwork) Platform.network()).applyRegistrations(event, OML.MOD_ID));
         NeoForge.EVENT_BUS.addListener(OMLNeoForge::onRightClickBlock);
         NeoForge.EVENT_BUS.addListener(OMLNeoForge::onPlayerLoggedIn);
     }

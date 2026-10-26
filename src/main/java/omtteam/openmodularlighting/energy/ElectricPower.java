@@ -3,8 +3,8 @@ package omtteam.openmodularlighting.energy;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.item.ItemStack;
-import omtteam.openmodularlighting.compat.nbt.NbtCompat;
-import omtteam.openmodularlighting.core.energy.EnergyStore;
+import omtteam.omlib.compat.nbt.NbtCompat;
+import omtteam.omlib.core.energy.EnergyStore;
 
 import java.util.function.IntSupplier;
 

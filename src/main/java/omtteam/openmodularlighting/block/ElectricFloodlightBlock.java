@@ -9,7 +9,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import omtteam.openmodularlighting.blockentity.BeamFloodlightBlockEntity;
 import omtteam.openmodularlighting.blockentity.ElectricFloodlightBlockEntity;
 import omtteam.openmodularlighting.blockentity.FloodlightBlockEntity;
-import omtteam.openmodularlighting.camo.CamoBlock;
+import omtteam.omlib.camo.CamoBlock;
 import omtteam.openmodularlighting.registry.ModBlockEntities;
 //? if >=1.21 {
 import com.mojang.serialization.MapCodec;

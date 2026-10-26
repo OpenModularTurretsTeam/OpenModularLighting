@@ -29,11 +29,11 @@ import omtteam.openmodularlighting.block.LightBlock;
 import omtteam.openmodularlighting.blockentity.CarbonFloodlightBlockEntity;
 import omtteam.openmodularlighting.blockentity.ElectricFloodlightBlockEntity;
 import omtteam.openmodularlighting.blockentity.FloodlightBlockEntity;
-import omtteam.openmodularlighting.compat.VersionCompat;
-import omtteam.openmodularlighting.compat.block.BlockCompat;
+import omtteam.omlib.compat.VersionCompat;
+import omtteam.omlib.compat.block.BlockCompat;
 import omtteam.openmodularlighting.core.beam.BeamMode;
-import omtteam.openmodularlighting.core.energy.EnergyStore;
-import omtteam.openmodularlighting.platform.Platform;
+import omtteam.omlib.core.energy.EnergyStore;
+import omtteam.omlib.platform.Platform;
 import omtteam.openmodularlighting.registry.ModBlocks;
 
 import java.util.List;

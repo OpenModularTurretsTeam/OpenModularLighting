@@ -1,5 +1,11 @@
 package omtteam.openmodularlighting.config;
 
+import omtteam.omlib.config.Comment;
+import omtteam.omlib.config.Range;
+import omtteam.omlib.config.ConfigRanges;
+import omtteam.omlib.config.ConfigWriter;
+import omtteam.omlib.config.ConfigValidator;
+
 /**
  * The contents of {@code config/openmodularlighting.json}. Categories, names, defaults and ranges are ported from
  * 1.7.10 {@code handler/ConfigHandler}. Fields are documented and range-checked with {@link Comment} and

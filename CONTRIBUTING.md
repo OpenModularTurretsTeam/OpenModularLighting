@@ -27,11 +27,16 @@ You need:
 
 ### Building the mod for all versions and loaders
 
-Clone the repository, then run in its directory:
+Clone the repository with its submodule, then run in its directory:
 
 ```bash
+git clone --recurse-submodules <url>        # or, in an existing clone: git submodule update --init
 ./gradlew chiseledBuild
 ```
+
+The library [OMLib](https://github.com/OpenModularTurretsTeam/OMLib) is the git submodule `omlib`.
+The first Gradle run builds it for all versions and loaders into `omlib/build/maven`, and each jar bundles it; this takes a while the first time and is a no-op while the library is unchanged.
+To change the library, edit `omlib/` (it is a normal checkout of the OMLib repository), commit and push there, and commit the new submodule pointer here.
 
 The jars end up in `versions/<minecraft version>-<loader>/build/libs/`.
 

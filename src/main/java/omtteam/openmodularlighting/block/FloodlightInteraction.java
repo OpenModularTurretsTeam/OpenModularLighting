@@ -12,8 +12,8 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import omtteam.openmodularlighting.blockentity.FloodlightBlockEntity;
-import omtteam.openmodularlighting.compat.CommonTags;
-import omtteam.openmodularlighting.compat.block.BlockCompat;
+import omtteam.omlib.compat.CommonTags;
+import omtteam.omlib.compat.block.BlockCompat;
 import omtteam.openmodularlighting.energy.ElectricPower;
 import omtteam.openmodularlighting.registry.ModItems;
 

@@ -11,7 +11,7 @@ import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import omtteam.openmodularlighting.blockentity.LightBlockEntity;
-import omtteam.openmodularlighting.compat.CompatBlockEntity;
+import omtteam.omlib.compat.CompatBlockEntity;
 import omtteam.openmodularlighting.world.LightBlocks;
 //? if >=1.21.11 {
 /*import net.minecraft.world.level.redstone.Orientation;

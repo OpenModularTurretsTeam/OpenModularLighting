@@ -2,7 +2,7 @@ package omtteam.openmodularlighting.gametest;
 
 import net.minecraft.core.registries.Registries;
 import omtteam.openmodularlighting.config.OMLConfig;
-import omtteam.openmodularlighting.registry.RegistrationStep;
+import omtteam.omlib.registry.RegistrationStep;
 
 import java.util.List;
 

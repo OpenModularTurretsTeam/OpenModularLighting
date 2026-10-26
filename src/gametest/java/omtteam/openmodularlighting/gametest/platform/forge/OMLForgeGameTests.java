@@ -17,7 +17,7 @@ import net.minecraftforge.registries.RegisterEvent;
 import omtteam.openmodularlighting.OML;
 import omtteam.openmodularlighting.gametest.OMLGameTestMod;
 import omtteam.openmodularlighting.gametest.TestBatteryItem;
-import omtteam.openmodularlighting.registry.RegistrationStep;
+import omtteam.omlib.registry.RegistrationStep;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

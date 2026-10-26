@@ -6,7 +6,6 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
-import net.neoforged.neoforge.client.event.ModelEvent;
 import net.neoforged.neoforge.client.event.RegisterColorHandlersEvent;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
@@ -14,17 +13,13 @@ import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.entity.player.ItemTooltipEvent;
 import omtteam.openmodularlighting.OML;
 import omtteam.openmodularlighting.client.OMLClient;
-import omtteam.openmodularlighting.client.camo.CamoModels;
-import omtteam.openmodularlighting.client.compat.ClientCompat;
-import omtteam.openmodularlighting.client.platform.ClientPlatform;
-import omtteam.openmodularlighting.client.platform.ClientPlatformServices;
+import omtteam.omlib.client.compat.ClientCompat;
 import omtteam.openmodularlighting.client.render.FloodlightTint;
 import omtteam.openmodularlighting.client.render.LightBlockDebugRenderer;
 import omtteam.openmodularlighting.config.OMLConfig;
-import omtteam.openmodularlighting.platform.Platform;
-import omtteam.openmodularlighting.platform.neoforge.NeoForgeNetwork;
+import omtteam.omlib.platform.Platform;
 //? if >=1.21.11 {
-/*import omtteam.openmodularlighting.camo.CamoBlock;
+/*import omtteam.omlib.camo.CamoBlock;
 *///?}
 
 /**
@@ -35,19 +30,10 @@ import omtteam.openmodularlighting.platform.neoforge.NeoForgeNetwork;
 @Mod(value = OML.MOD_ID, dist = Dist.CLIENT)
 public final class OMLNeoForgeClient {
     public OMLNeoForgeClient(IEventBus modBus) {
-        ClientPlatform.install(new ClientPlatformServices(new NeoForgeClientNetwork((NeoForgeNetwork) Platform.network())));
         OMLClient.init();
         modBus.addListener((RegisterMenuScreensEvent event) -> OMLClient.registerScreens(event::register));
         modBus.addListener((RegisterColorHandlersEvent.Block event) ->
                 event.register(FloodlightTint::color, FloodlightTint.tintedBlocks()));
-        // the disguise model around the models of the lights that can be disguised (NeoForgeCamoModel)
-        //? if >=1.21.11 {
-        /*modBus.addListener((ModelEvent.ModifyBakingResult event) -> event.getBakingResult().blockStateModels()
-                .replaceAll((state, model) -> state.getBlock() instanceof CamoBlock ? new NeoForgeCamoModel(model) : model));
-        *///?} else {
-        modBus.addListener((ModelEvent.ModifyBakingResult event) -> event.getModels().replaceAll((id, model) ->
-                CamoModels.isCamoModel(id.id()) ? new NeoForgeCamoModel(model) : model));
-        //?}
         // back to the local config after leaving a server
         NeoForge.EVENT_BUS.addListener((ClientPlayerNetworkEvent.LoggingOut event) -> OMLConfig.useLocalConfig());
         NeoForge.EVENT_BUS.addListener((ItemTooltipEvent event) ->

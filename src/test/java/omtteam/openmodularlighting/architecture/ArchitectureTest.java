@@ -37,9 +37,9 @@ class ArchitectureTest {
      * so does a cycle that shrank or disappeared until it is updated here, so the list always shows the real state.
      */
     private static final List<Set<String>> KNOWN_CYCLES = List.of(
-            // registry, blocks, block entities, menus, config, network and the platform facades all reach each other
-            Set.of("(root)", "block", "blockentity", "compat", "compat.network", "config", "energy", "menu", "network",
-                    "platform", "registry", "world"));
+            // registry, blocks, block entities, menus, config and network all reach each other
+            Set.of("(root)", "block", "blockentity", "compat", "config", "energy", "menu", "network", "registry",
+                    "world"));
 
     private static JavaClasses classes;
 
@@ -54,7 +54,7 @@ class ArchitectureTest {
     @Test
     void coreDependsOnlyOnCoreAndJava() {
         classes().that().resideInAPackage(BASE + ".core..")
-                .should().onlyDependOnClassesThat().resideInAnyPackage(BASE + ".core..", "java..")
+                .should().onlyDependOnClassesThat().resideInAnyPackage(BASE + ".core..", "omtteam.omlib.core..", "java..")
                 .because("the core game logic must stay testable without the game")
                 .check(classes);
     }

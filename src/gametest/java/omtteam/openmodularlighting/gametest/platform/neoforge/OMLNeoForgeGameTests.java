@@ -6,7 +6,7 @@ import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.server.ServerStartingEvent;
 import net.neoforged.neoforge.registries.RegisterEvent;
 import omtteam.openmodularlighting.gametest.OMLGameTestMod;
-import omtteam.openmodularlighting.registry.RegistrationStep;
+import omtteam.omlib.registry.RegistrationStep;
 
 import java.util.List;
 

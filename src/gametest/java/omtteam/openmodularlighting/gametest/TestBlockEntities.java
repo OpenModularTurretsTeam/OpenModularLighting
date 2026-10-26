@@ -3,7 +3,7 @@ package omtteam.openmodularlighting.gametest;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.level.block.entity.BlockEntityType;
-import omtteam.openmodularlighting.compat.VersionCompat;
+import omtteam.omlib.compat.VersionCompat;
 
 public final class TestBlockEntities {
     public static final BlockEntityType<TestLightSourceBlockEntity> TEST_LIGHT_SOURCE = Registry.register(
