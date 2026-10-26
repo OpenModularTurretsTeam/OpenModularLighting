@@ -9,9 +9,12 @@ turns *Unreleased* into the release section; `chiseledPublish` uploads exactly t
 
 ## [Unreleased]
 
+## [1.0.0-beta.8] - 2026-10-27
+
 ### Changed
 
 - The floodlight GUIs have a dark grey background like the turret GUIs instead of the vanilla light grey
+- Forge 1.12.2: requires OMLib 4.0.0-beta.4 or newer
 
 ### Fixed
 
