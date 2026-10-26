@@ -9,7 +9,7 @@ This file guides Claude Code when working in this repository. Read it fully befo
 **Floodlights (FL)** is a mod being ported from Forge on MC 1.7.10 (`oldmod/`, package `de.keridos.floodlights`, mod ID `FloodLights`) to **Fabric**, targeting **1.20.1, 1.21.1 and 1.21.11 from a single codebase** using **Stonecutter**.
 A **NeoForge 1.21.1** build is being added on the branch `neoforge-test` (see §4 "Loaders" and §9).
 A **Forge 1.20.1** build is being added on the branch `forge-test` (requested by the user on 2026-10-24, done here before OpenModularTurrets; see §4 "Forge 1.20.1" and §9).
-It is a test run for the same setup in OpenModularTurrets (`../OMT1.20.1+`), so keep the build logic and the `platform/` pattern mod-independent.
+It is a test run for the same setup in OpenModularTurrets (`../OpenModularTurrets`), so keep the build logic and the `platform/` pattern mod-independent.
 
 `oldmod/` is the **read-only reference** for the port. Never edit it and never build it. It is a source of ideas, values and assets, not a specification: the beam thinning, the persistent light blocks and other details differ on purpose. Do not copy its structure (static singletons, metadata, `ForgeDirection`, CoFH API).
 `oldmod/` is *FloodLights* for Forge 1.7.10 by Keridos; key classes: `tileentity/TileEntityMetaFloodlight` (beam shapes), `tileentity/TileEntityPhantomLight` (source tracking), `tileentity/TileEntityFLElectric` (energy), `handler/ConfigHandler`, `handler/RecipeHandler`.
@@ -34,7 +34,7 @@ Core gameplay:
 - **Forge** 47.x (1.20.1 only), built with the legacy variant of ModDevGradle (`net.neoforged.moddev.legacyforge`, same artifact and version as `moddev`; build-time only), requested by the user.
   On Forge, the Fabric-only APIs are replaced by Forge's own (capabilities, events, event network channels); see §4 "Forge 1.20.1".
 - Build and test tools only, never in the jar (approved by the user, as in OMT): **ArchUnit** (test dependency), **JaCoCo**, **PIT** (plain `JavaExec`, no Gradle plugin) and **PMD**; versions in `gradle.properties`.
-- **OMLib** (the user's own library, `../OMLib1.20.1+`, branch `1.20.1+`), mounted as the git submodule `omlib` and bundled into every jar (jar-in-jar; Fabric `include`, NeoForge and Forge `jarJar`; requested by the user on 2026-10-27).
+- **OMLib** (the user's own library, `../OMLib`, branch `1.20.1+`), mounted as the git submodule `omlib` and bundled into every jar (jar-in-jar; Fabric `include`, NeoForge and Forge `jarJar`; requested by the user on 2026-10-27).
   It holds the code both mods used to share (platform services, version compat, energy and item transfer, config, the camouflage menu) and the build logic.
   The library is a mod of its own (`omlib`), declared as a required dependency in the mod metadata, and built as a nested step of the mod build, see §4 "OMLib".
 - Nothing else without asking the user first. No Architectury, no Cloth Config, no Kotlin.
@@ -56,9 +56,9 @@ Core gameplay:
 
 - Build system: Gradle 9.8 (Kotlin DSL) + **Stonecutter 0.9**, with Fabric Loom 1.18 (`net.fabricmc.fabric-loom-remap`, the variant for obfuscated MC versions) on the Fabric nodes and ModDevGradle 2.0 (`net.neoforged.moddev`) on the NeoForge node.
 - Shared build logic is the convention plugin `omlib/build-logic/src/main/kotlin/mod-common.gradle.kts` (Java toolchain, metadata templating, JUnit, `verifyCoreIsolation`, licenses in the jar via `bundled_licenses` (default: all three), publishing).
-  It is mod-independent (everything comes from `gradle.properties`) and lives in its own repository, `OMLib` (`../OMLib1.20.1+`), which every mod mounts as the git submodule `omlib` (the branch `1.20.1+` of the OMLib repository, clean history; an included build in `pluginManagement` of `settings.gradle.kts`).
+  It is mod-independent (everything comes from `gradle.properties`) and lives in its own repository, `OMLib` (`../OMLib`), which every mod mounts as the git submodule `omlib` (the branch `1.20.1+` of the OMLib repository, clean history; an included build in `pluginManagement` of `settings.gradle.kts`).
   Change it inside `omlib/`, commit and push there, then commit the new submodule pointer in each mod; clone a mod with `--recurse-submodules` (or run `git submodule update --init`).
-  The few source files that the mods still copy from each other are listed in `omlib/shared-sources.txt`; after changing one, run `python3 -I omlib/tools/shared_sources.py sync --from . --write . ../OMT1.20.1+` and then `check`.
+  The few source files that the mods still copy from each other are listed in `omlib/shared-sources.txt`; after changing one, run `python3 -I omlib/tools/shared_sources.py sync --from . --write . ../OpenModularTurrets` and then `check`.
   The quality tools (ArchUnit, JaCoCo, PIT, PMD) stay in `build.fabric.gradle.kts`, as in OMT.
   The loader plugins are not on the build logic's classpath; they are applied by version in `stonecutter.gradle.kts` (`apply false`) and used by the loader scripts.
 - Formatting: **Spotless** (in `stonecutter.gradle.kts`). It is deliberately light: tabs → spaces, trailing whitespace, final newline. No full formatter and no import reordering, because those would break the Stonecutter conditional comments. Run `./gradlew spotlessApply` before committing.
@@ -177,7 +177,7 @@ The Stonecutter DSL changes between releases. If this does not match the install
 
 ### OMLib (the library, `omlib/`)
 
-Requested by the user on 2026-10-27: the code that OpenModularLighting and OpenModularTurrets used to share lives in the library OMLib (`../OMLib1.20.1+`, a mod of its own with the id `omlib`, package `omtteam.omlib`), which both mods bundle jar-in-jar.
+Requested by the user on 2026-10-27: the code that OpenModularLighting and OpenModularTurrets used to share lives in the library OMLib (`../OMLib`, a mod of its own with the id `omlib`, package `omtteam.omlib`), which both mods bundle jar-in-jar.
 Its README and `CLAUDE.md` describe the layout and the rules (no mod knowledge in the library, public API only where a mod needs it).
 
 - **Where things are:** the platform layer (`Platform`, `LoaderInfo`, `Fuel`, `Network`, `Menus`, `Energy` and their loader classes), the compat helpers (`VersionCompat`, `NbtCompat`, `BlockCompat`, `NetworkCompat`, `MenuCompat`, `CompatBlockEntity`, `CommonTags`, `ClientCompat`), `core.energy`, `inventory.ItemAccess`, `TransferHost`, the config machinery (`@Comment`, `@Range`, `ConfigWriter`, `ConfigRanges`, `ConfigValidator`, `ConfigMigration`), `RegistrationStep`, the block base `CompatEntityBlock` with `BlockCodec`, the single right-click handling `InteractiveBlock` (with interceptors), `ConfigManager` (with the config sync) and the camouflage menu with its screen, packets and models are in the `omtteam.omlib` packages.
@@ -652,7 +652,7 @@ Fields (defaults and ranges are only in `ConfigData`, in `@Range` and the field 
 
 ### 6.11 Disguise (camouflage)
 
-Taken over from OpenModularTurrets (`../OMT1.20.1+`, `camo/` and `FabricCamoModel` / `NeoForgeCamoModel`); keep the two in step where they share code.
+Taken over from OpenModularTurrets (`../OpenModularTurrets`, `camo/` and `FabricCamoModel` / `NeoForgeCamoModel`); keep the two in step where they share code.
 
 - **Which lights:** the electric, carbon and UV floodlights (`camo.CamoBlock`). Not the panel lights (thin, no full face to disguise) and not the cube light (no front, it would vanish completely).
 - **Valid disguises** (`CamoRules.isValidDisguise`): full, opaque blocks only (`isSolidRender`), drawn from a normal model, without a block entity. A floodlight hides its neighbours' faces like any solid block, so a see-through disguise would show holes into the world. The disguise is the default state of the item's block. An invalid disguise read from NBT is dropped.
@@ -690,7 +690,7 @@ Design them step by step, together with the user:
 ### Code shared with OpenModularTurrets
 
 The code both mods share is in OMLib (§4 "OMLib"), which both bundle.
-What is still duplicated in both repositories is listed in `omlib/shared-sources.txt` (the Minecraft 1.21.11 game test stand-ins, the PMD ruleset, the Gradle wrapper properties, `ClientPacketHandlers`); `python3 -I omlib/tools/shared_sources.py check . ../OMT1.20.1+` compares them.
+What is still duplicated in both repositories is listed in `omlib/shared-sources.txt` (the Minecraft 1.21.11 game test stand-ins, the PMD ruleset, the Gradle wrapper properties, `ClientPacketHandlers`); `python3 -I omlib/tools/shared_sources.py check . ../OpenModularTurrets` compares them.
 OpenModularTurrets also has camo light properties, a camouflage trap, the memory card handling of camouflage and its own `ScreenTexts`.
 
 The camouflage differences are parameters of the library classes: the disguise rule (`CamoRules.RULES`: OpenModularTurrets any full block, here full opaque blocks only), the quads of the block's own model on top of the disguise (`CamoBlock.overlayTintIndex()`: here the lamp), the NBT key and read validation (`new CamoData("camo", CamoRules::isValidDisguise)` here, `"Camo"` there; the key must stay per mod, or saved disguises are lost) and the buttons of the screen (`CamoHost.hasParentMenu()` for "Back"; `CamoScreenExtras` for hosts with more).
