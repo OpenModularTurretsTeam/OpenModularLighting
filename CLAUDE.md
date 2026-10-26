@@ -650,7 +650,9 @@ Taken over from OpenModularTurrets (`../OMT1.20.1+`, `camo/` and `FabricCamoMode
 2. Wrap version differences in `compat/`.
 3. Add assets, lang entries and datagen entries; regenerate data for **both** versions.
 4. Add a `CHANGELOG.md` entry for user-visible changes.
-5. Run `./gradlew chiseledBuild`.
+5. Update the documentation the change touches.
+   "Updating the docs" always means everything in the `docs/` folder (`architecture.md`, `id-mapping.md`, …) plus `README.md` and `CONTRIBUTING.md`: check each of them against the change, not only the one that comes to mind.
+6. Run `./gradlew chiseledBuild`.
 
 - Every variant of subblocks is an **individual registered block/item** with a lowercase snake_case ID.
   `docs/id-mapping.md` maps the 1.7.10 IDs to the current ones.

@@ -18,6 +18,7 @@ It lights up large areas with invisible light blocks placed along a beam, so you
 | **Grow Light** | Lights the block below it and makes the crop two blocks below grow faster (about one growth step every 10 s). A black-light mode gives the growth without the light. | Energy: 25 E/t |
 | **Small / Square Fluorescent Light** | Cheap little panels that light up the 5 blocks next to them. The small one can be turned by 90°, and a shapeless recipe converts between the two. | Energy: 1 E/t |
 | **Cube Light** | A full block that lights all 6 blocks around it. | Energy: 2 E/t, accepted from every side |
+| **Lightproof Glass** | See-through glass that lets no light through and stops light beams, with connected textures. Made from black stained glass and coal. | – |
 
 All lights turn on with a **redstone signal**. The signal can be inverted, so that a light is on without redstone and
 turns off when powered. After a light turns off, it waits 2 seconds before it can turn on again, to prevent flickering.
@@ -87,7 +88,8 @@ if they are missing.
 ./gradlew :1.20.1-forge:runClient    # start a Forge test client
 ```
 
-The jars end up in `versions/<minecraft version>-<loader>/build/libs/`. See `CHANGELOG.md` for the changes.
+The jars end up in `versions/<minecraft version>-<loader>/build/libs/`.
+See `CHANGELOG.md` for the changes, [`CONTRIBUTING.md`](CONTRIBUTING.md) for how to contribute and [`docs/architecture.md`](docs/architecture.md) for an overview of the code.
 
 ## License
 
