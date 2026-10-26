@@ -5,9 +5,7 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.SectionPos;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -15,6 +13,7 @@ import net.minecraft.world.phys.Vec3;
 import omtteam.openmodularlighting.block.LightBlock;
 import omtteam.openmodularlighting.blockentity.LightBlockEntity;
 import omtteam.openmodularlighting.blockentity.UvLightBlockEntity;
+import omtteam.openmodularlighting.client.compat.ClientCompat;
 import omtteam.openmodularlighting.registry.ModItems;
 import org.jetbrains.annotations.Nullable;
 
@@ -52,7 +51,7 @@ public final class LightBlockDebugRenderer {
                               Vec3 camera) {
         if (!isHoldingDebugTool()) return;
         if (level == null || buffers == null) return;
-        VertexConsumer lines = buffers.getBuffer(RenderType.lines());
+        VertexConsumer lines = buffers.getBuffer(ClientCompat.lines());
         int centerX = SectionPos.blockToSectionCoord(camera.x);
         int centerZ = SectionPos.blockToSectionCoord(camera.z);
         for (int chunkX = centerX - CHUNK_RANGE; chunkX <= centerX + CHUNK_RANGE; chunkX++) {
@@ -79,7 +78,7 @@ public final class LightBlockDebugRenderer {
         float brightness = light.getBlockState().getValue(LightBlock.LIT) ? 1F : UNLIT_BRIGHTNESS;
         poseStack.pushPose();
         poseStack.translate(pos.getX() - camera.x, pos.getY() - camera.y, pos.getZ() - camera.z);
-        LevelRenderer.renderLineBox(poseStack, lines, INSET, INSET, INSET, 1 - INSET, 1 - INSET, 1 - INSET,
+        ClientCompat.renderLineBox(poseStack, lines, INSET, INSET, INSET, 1 - INSET, 1 - INSET, 1 - INSET,
                 brightness, uv ? 0F : brightness, uv ? brightness : 0F, 1F);
         poseStack.popPose();
     }

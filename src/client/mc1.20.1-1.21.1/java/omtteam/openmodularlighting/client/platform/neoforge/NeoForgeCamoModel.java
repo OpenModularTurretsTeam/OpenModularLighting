@@ -27,6 +27,8 @@ import java.util.List;
  * <p>
  * Tinted quads keep their tint index; {@code FloodlightTint} gives the disguise's quads the disguise's colour and the
  * lamp the dye colour, so the vanilla mesher tints them with the client's biome blend like on the real block.
+ * <p>
+ * The variant for 1.21.1 (NeoForge's baked model API); {@code OMLNeoForgeClient} wraps the models.
  */
 public final class NeoForgeCamoModel extends BakedModelWrapper<BakedModel> {
     public NeoForgeCamoModel(BakedModel original) {

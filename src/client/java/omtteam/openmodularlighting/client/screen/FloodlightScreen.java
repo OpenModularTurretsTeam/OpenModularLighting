@@ -25,6 +25,10 @@ public abstract class FloodlightScreen<M extends FloodlightMenu> extends Abstrac
     private static final String HINT = "?";
     private static final int HINT_X = 164;
     private static final int HINT_Y = 6;
+    /** Text colours with alpha: from 1.21.6 on, text without alpha is not drawn. */
+    private static final int STATUS_COLOR = 0xFF000000;
+    private static final int LABEL_COLOR = 0xFF404040;
+    private static final int HINT_HOVER_COLOR = 0xFFFFFFFF;
 
     private final ResourceLocation texture;
 
@@ -45,13 +49,14 @@ public abstract class FloodlightScreen<M extends FloodlightMenu> extends Abstrac
         renderTooltip(graphics, mouseX, mouseY);
         Slot hovered = hoveredSlot;
         if (menu.hasCamoSlot() && hovered != null && hovered.index == FloodlightMenu.CAMO_SLOT && !hovered.hasItem()) {
-            graphics.renderTooltip(font, font.split(Component.translatable("tooltip.openmodularlighting.camo_slot"),
-                    CAMO_HINT_WIDTH), mouseX, mouseY);
+            ClientCompat.renderTooltip(graphics, font, font.split(
+                    Component.translatable("tooltip.openmodularlighting.camo_slot"), CAMO_HINT_WIDTH), mouseX, mouseY);
         }
         if (isOverTimeoutHint(mouseX, mouseY)) {
             String seconds = FloodlightBlockEntity.seconds(OMLConfig.get().general.timeoutFloodlights);
-            graphics.renderTooltip(font, font.split(Component.translatable("tooltip.openmodularlighting.timeout_hint",
-                    seconds), CAMO_HINT_WIDTH), mouseX, mouseY);
+            ClientCompat.renderTooltip(graphics, font, font.split(
+                    Component.translatable("tooltip.openmodularlighting.timeout_hint", seconds), CAMO_HINT_WIDTH),
+                    mouseX, mouseY);
         }
     }
 
@@ -64,24 +69,24 @@ public abstract class FloodlightScreen<M extends FloodlightMenu> extends Abstrac
 
     @Override
     protected void renderBg(GuiGraphics graphics, float partialTick, int mouseX, int mouseY) {
-        graphics.blit(texture, leftPos, topPos, 0, 0, imageWidth, imageHeight);
+        ClientCompat.blit(graphics, texture, leftPos, topPos, 0, 0, imageWidth, imageHeight);
         if (menu.hasCamoSlot()) {
-            graphics.blit(texture, leftPos + FloodlightMenu.CAMO_X - 1, topPos + FloodlightMenu.CAMO_Y - 1,
+            ClientCompat.blit(graphics, texture, leftPos + FloodlightMenu.CAMO_X - 1, topPos + FloodlightMenu.CAMO_Y - 1,
                     SLOT_U, SLOT_V, SLOT_SIZE, SLOT_SIZE);
         }
     }
 
     @Override
     protected void renderLabels(GuiGraphics graphics, int mouseX, int mouseY) {
-        graphics.drawString(font, statusText(), 50, 26, 0x000000, false);
+        graphics.drawString(font, statusText(), 50, 26, STATUS_COLOR, false);
         if (menu.hasCamoSlot()) {
             Component label = Component.translatable("gui.openmodularlighting.disguise");
             graphics.drawString(font, label, FloodlightMenu.CAMO_X - 5 - font.width(label), FloodlightMenu.CAMO_Y + 4,
-                    0x404040, false);
+                    LABEL_COLOR, false);
         }
         if (menu.hasTimeoutHint()) {
             // renderLabels gets screen coordinates for the mouse, like render
-            int color = isOverTimeoutHint(mouseX, mouseY) ? 0xFFFFFF : 0x404040;
+            int color = isOverTimeoutHint(mouseX, mouseY) ? HINT_HOVER_COLOR : LABEL_COLOR;
             graphics.drawString(font, HINT, HINT_X, HINT_Y, color, false);
         }
     }

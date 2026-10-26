@@ -143,7 +143,7 @@ A new registry class gets a `RegistrationStep` in that list, not a call in an en
 Last, the entrypoint wires its loader to the shared code: the item and energy access of the lights (`FabricBlockLookups`, NeoForge capabilities, Forge capabilities attached in `AttachCapabilitiesEvent` by `ForgeLightCapabilities`), block use (`InteractiveBlock.handleUse`), the config sync on join and the recipe condition.
 
 On the client, the loader client entrypoint (`OMLFabricClient`, `OMLNeoForgeClient`, `OMLForgeClient`; Forge 1.20.1 has no client-only `@Mod` classes, so `OMLForge` constructs it by name) installs the client platform services and calls `OMLClient.init()`.
-It then registers what `OMLClient` lists with its loader: screens, the dye tint, tooltips and the debug renderer, and wraps the models of the `CamoBlock`s in the loader's disguise model (`FabricCamoModel`, `NeoForgeCamoModel`, `ForgeCamoModel`).
+It then registers what `OMLClient` lists with its loader: screens, the dye tint, tooltips and the debug renderer, and wraps the models of the `CamoBlock`s in the loader's disguise model (`FabricCamoModel`, `NeoForgeCamoModel`, `ForgeCamoModel`; the first two exist once per version folder, because 1.21.11 replaced baked models with block state models).
 Render layers are the one thing kept twice: `BlockRenderLayerMap` on Fabric, `"render_type"` in the block model JSON on NeoForge and Forge.
 
 ### A light's tick (server)

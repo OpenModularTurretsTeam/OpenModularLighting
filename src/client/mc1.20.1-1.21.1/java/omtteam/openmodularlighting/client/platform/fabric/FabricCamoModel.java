@@ -1,6 +1,5 @@
 package omtteam.openmodularlighting.client.platform.fabric;
 
-import net.fabricmc.fabric.api.client.model.loading.v1.ModelLoadingPlugin;
 import net.fabricmc.fabric.api.renderer.v1.Renderer;
 import net.fabricmc.fabric.api.renderer.v1.RendererAccess;
 import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
@@ -13,7 +12,6 @@ import net.minecraft.client.color.block.BlockColors;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.core.BlockPos;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.BlockAndTintGetter;
 import net.minecraft.world.level.block.state.BlockState;
@@ -30,28 +28,12 @@ import java.util.function.Supplier;
  * <p>
  * Tinted quads of the disguise (grass, ...) get its colour at the light's position, taken from the level view of the
  * chunk being meshed, so the client's biome blend setting applies like on the real block.
+ * <p>
+ * The variant for 1.20.1 and 1.21.1 (Fabric's baked model API); {@code OMLFabricClient} wraps the models.
  */
 public final class FabricCamoModel extends ForwardingBakedModel {
     public FabricCamoModel(BakedModel wrapped) {
         this.wrapped = wrapped;
-    }
-
-    /** Wraps the block state and item models of the lights that can be disguised ({@link CamoModels#isCamoModel}). */
-    public static void register() {
-        ModelLoadingPlugin.register(plugin -> {
-            //? if >=1.21 {
-            plugin.modifyModelAfterBake().register((model, context) -> {
-                var topLevel = context.topLevelId();
-                return wrap(model, topLevel != null ? topLevel.id() : context.resourceId());
-            });
-            //?} else {
-            /*plugin.modifyModelAfterBake().register((model, context) -> wrap(model, context.id()));
-            *///?}
-        });
-    }
-
-    private static BakedModel wrap(BakedModel model, ResourceLocation id) {
-        return CamoModels.isCamoModel(id) ? new FabricCamoModel(model) : model;
     }
 
     @Override
