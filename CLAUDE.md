@@ -367,7 +367,7 @@ Fields (defaults and ranges are only in `ConfigData`, in `@Range` and the field 
 
 ### 6.11 Disguise (camouflage)
 
-Taken over from OpenModularTurrets (`../OMT1.20.1+`, `camo/` and `FabricCamoModel` / `NeoForgeCamoModel`); on this branch the lights use OMLib's camouflage (since 2026-10-25, requested by the user), like OMT's turret bases and OMPD's camouflage trap.
+Taken over from OpenModularTurrets (`../../OMTTeam1.20.1+/OpenModularTurrets`, `camo/` and `FabricCamoModel` / `NeoForgeCamoModel`); on this branch the lights use OMLib's camouflage (since 2026-10-25, requested by the user), like OMT's turret bases and OMPD's camouflage trap.
 
 - **Which lights:** the electric, carbon and UV floodlights (`FloodlightBlock.supportsCamo`). Not the panel lights (thin, no full face to disguise) and not the cube light (no front, it would vanish completely).
 - **Host:** `FloodlightTileEntity` implements OMLib's `ICamoSupport`: camouflage enabled on those lights, no light sliders (`supportsLight` false), anyone who may open the light's GUI may set the disguise (`canSetCamo` true; the lights have no owner); `getCamoState` is the disguise or the light's own default state, and `setCamoState` with the light's own block removes the disguise.
@@ -403,7 +403,7 @@ Design them step by step, together with the user:
 
 ### Code shared with OpenModularTurrets
 
-The camo model and the tile entity base (OMLib's `TileEntitySynced`, the main branch's `CompatBlockEntity`) follow OpenModularTurrets (`../OMT1.20.1+`) on the main branch; on 1.12.2 they are rewritten for the 1.12 APIs, and the rest of the camouflage is OMLib's (§6.11).
+The camo model and the tile entity base (OMLib's `TileEntitySynced`, the main branch's `CompatBlockEntity`) follow OpenModularTurrets (`../../OMTTeam1.20.1+/OpenModularTurrets`) on the main branch; on 1.12.2 they are rewritten for the 1.12 APIs, and the rest of the camouflage is OMLib's (§6.11).
 The camo differences to OpenModularTurrets stay limited to the lamp overlay.
 When you change one of these, tell the user whether the same change belongs in the other mod or the main branch (do not edit other repositories unasked).
 
