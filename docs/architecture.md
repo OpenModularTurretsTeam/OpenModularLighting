@@ -239,7 +239,7 @@ The block entity returns it from `currentShape()` and puts everything it depends
 
 1. A block extending `FloodlightBlock` (or `PanelLightBlock`) and a block entity extending `FloodlightBlockEntity` (or `PanelLightBlockEntity`); the block entity chooses `power()`, `currentShape()` and `shapeKey()`.
 2. Register block, item and block entity in `ModBlocks`, `ModItems`, `ModBlockEntities`; add it to the lookups of every loader if it has energy or item access (`FabricBlockLookups` and the capability registration in `OMLNeoForge` use `ModBlockEntities.lights()`; Forge attaches its capabilities to every `FloodlightBlockEntity`).
-3. Blockstate, model, lang entries (`en_us`, `de_de`, `ru_ru`), and the recipe, loot table and tags in `datagen`.
+3. Blockstate, model, item model definition (`assets/openmodularlighting/items/<id>.json`, which 1.21.4+ needs; without it the item shows the missing texture), lang entries (`en_us`, `de_de`, `ru_ru`), and the recipe, loot table and tags in `datagen`.
 4. A GameTest in `src/gametest` (and its entry in `src/gametest/resources/fabric.mod.json`), and an entry in `docs/id-mapping.md` if it replaces a block of the old mod.
 
 ### A config value
