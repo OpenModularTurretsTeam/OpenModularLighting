@@ -1,6 +1,6 @@
 package omtteam.openmodularlighting.gametest;
 
-//? if neoforge {
+//? if neoforge && <1.21.11 {
 /*import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 *///?}
@@ -8,12 +8,14 @@ import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 /*import net.minecraftforge.gametest.GameTestHolder;
 import net.minecraftforge.gametest.PrefixGameTestTemplate;
 *///?}
-//? if neoforge || forge {
+//? if (neoforge && <1.21.11) || forge {
 /*import omtteam.openmodularlighting.OML;
 *///?}
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+//? if <1.21.11 {
 import net.minecraft.gametest.framework.GameTest;
+//?}
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.ItemStack;
@@ -21,12 +23,14 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.lighting.LightEngine;
 import omtteam.openmodularlighting.block.FloodlightBlock;
 import omtteam.openmodularlighting.block.LightBlock;
 import omtteam.openmodularlighting.blockentity.CarbonFloodlightBlockEntity;
 import omtteam.openmodularlighting.blockentity.ElectricFloodlightBlockEntity;
 import omtteam.openmodularlighting.blockentity.FloodlightBlockEntity;
 import omtteam.openmodularlighting.compat.VersionCompat;
+import omtteam.openmodularlighting.compat.block.BlockCompat;
 import omtteam.openmodularlighting.core.beam.BeamMode;
 import omtteam.openmodularlighting.core.energy.EnergyStore;
 import omtteam.openmodularlighting.platform.Platform;
@@ -39,7 +43,7 @@ import java.util.List;
  * {@link OMLGameTestMod#TEST_RANGE}, so every beam stays inside its test structure; lights shine up and remove
  * themselves at the end.
  */
-//? if neoforge || forge {
+//? if (neoforge && <1.21.11) || forge {
 /*@GameTestHolder(OML.MOD_ID)
 @PrefixGameTestTemplate(false)
 *///?}
@@ -198,9 +202,10 @@ public class FloodlightGameTest implements OMLGameTests {
         helper.runAfterDelay(3, () -> level.setBlock(pos.above(4), ModBlocks.LIGHTPROOF_GLASS.defaultBlockState(), Block.UPDATE_ALL));
         helper.runAfterDelay(5, () -> {
             BlockPos glass = pos.above(4);
-            helper.assertTrue(level.getBlockState(glass).getLightBlock(level, glass) >= level.getMaxLightLevel(),
+            BlockState glassState = level.getBlockState(glass);
+            helper.assertTrue(BlockCompat.lightBlock(glassState, level, glass) >= LightEngine.MAX_LEVEL,
                     "lets no light through");
-            helper.assertTrue(!level.getBlockState(glass).isSolidRender(level, glass), "but is see-through");
+            helper.assertTrue(!BlockCompat.isSolidRender(glassState, level, glass), "but is see-through");
             helper.assertTrue(isPhantom(level, pos.above(3), true), "lit up to the glass");
             helper.assertTrue(level.getBlockState(pos.above(5)).isAir(), "beam ends at the glass");
             level.setBlock(glass, Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL);

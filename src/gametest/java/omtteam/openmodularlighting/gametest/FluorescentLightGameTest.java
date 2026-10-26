@@ -1,6 +1,6 @@
 package omtteam.openmodularlighting.gametest;
 
-//? if neoforge {
+//? if neoforge && <1.21.11 {
 /*import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 *///?}
@@ -8,12 +8,14 @@ import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 /*import net.minecraftforge.gametest.GameTestHolder;
 import net.minecraftforge.gametest.PrefixGameTestTemplate;
 *///?}
-//? if neoforge || forge {
+//? if (neoforge && <1.21.11) || forge {
 /*import omtteam.openmodularlighting.OML;
 *///?}
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+//? if <1.21.11 {
 import net.minecraft.gametest.framework.GameTest;
+//?}
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.Block;
@@ -33,7 +35,7 @@ import omtteam.openmodularlighting.registry.ModBlocks;
  * Small and square fluorescent lights (CLAUDE.md §6.2, §6.3): 5 lit neighbours, energy only from the back, the panel
  * on the back face and the small light's rotation.
  */
-//? if neoforge || forge {
+//? if (neoforge && <1.21.11) || forge {
 /*@GameTestHolder(OML.MOD_ID)
 @PrefixGameTestTemplate(false)
 *///?}

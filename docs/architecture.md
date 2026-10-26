@@ -67,7 +67,7 @@ Source sets (Loom split source sets on Fabric, the same split built by hand on N
 | `src/main` | everything that runs on both sides, including `fabric.mod.json`, `neoforge.mods.toml` and `mods.toml` (Forge; all templated) | yes |
 | `src/client` | screens, tint, disguise models, debug renderer, client networking | yes, client only |
 | `src/test` | JUnit tests of the core and the config, and the architecture rules (`ArchitectureTest`) | no |
-| `src/gametest` | in-world GameTests as a separate test mod (own mod id), shared by all loaders | no |
+| `src/gametest` | in-world GameTests as a separate test mod (own mod id), shared by all loaders and versions (from 1.21.11 on the test mod registers them itself, `GameTestCases`) | no |
 
 Packages below `omtteam.openmodularlighting` (main):
 
@@ -262,6 +262,8 @@ Whole loader-specific classes go into those packages; a small difference inside 
 The source is written for 1.21.1; Stonecutter comments switch it to 1.20.1.
 Put the difference into a small helper in `compat` (for example `VersionCompat`) and call that, instead of `//? if` blocks in gameplay code.
 Block entities extend `compat.CompatBlockEntity` (override `readData` / `writeData`).
+A class that differs completely between versions (as many do on 1.21.11) goes into a version source folder instead, `src/<source set>/mc<first>-<last>/java`, once per range and with the same name.
+Stonecutter processes those folders like the rest, so they are written in the 1.21.1 state too (`ResourceLocation`, which it turns into `Identifier` on 1.21.11).
 The table of known differences is in `CLAUDE.md`, section 5.
 
 ### Recipes, loot tables, tags

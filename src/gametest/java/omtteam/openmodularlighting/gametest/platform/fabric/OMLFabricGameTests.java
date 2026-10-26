@@ -7,7 +7,8 @@ import omtteam.openmodularlighting.gametest.TestItems;
 import team.reborn.energy.api.EnergyStorage;
 
 /**
- * Fabric entrypoint of the test mod.
+ * Fabric entrypoint of the test mod. Before 1.21.11 Fabric registers the test classes (the {@code fabric-gametest}
+ * entrypoints); from 1.21.11 on {@code FabricGameTestRegistration} does.
  */
 public final class OMLFabricGameTests implements ModInitializer {
     @Override
@@ -16,5 +17,8 @@ public final class OMLFabricGameTests implements ModInitializer {
         OMLGameTestMod.registrationSteps().forEach(step -> step.register().run());
         EnergyStorage.ITEM.registerForItems((stack, context) -> new FabricTestBatteryStorage(context), TestItems.TEST_BATTERY);
         ServerLifecycleEvents.SERVER_STARTING.register(server -> OMLGameTestMod.onServerStarting());
+        //? if >=1.21.11 {
+        /*FabricGameTestRegistration.register();
+        *///?}
     }
 }

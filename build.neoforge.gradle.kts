@@ -54,12 +54,13 @@ neoForge {
             programArgument("--nogui")
             loadedMods = setOf(mods.getByName(modId))
         }
-        // Headless in-world tests (no EULA needed); runs the GameTests of this mod's namespace and exits with the
-        // number of failed tests, which fails the task
+        // Headless in-world tests (no EULA needed); runs the GameTests and exits with the number of failed tests,
+        // which fails the task. Up to 1.21.4 only those of this mod's namespace; from 1.21.5 on every registered test
+        // (the test mod registers only its own, GameTestCases)
         register("gameTestServer") {
             type = "gameTestServer"
             sourceSet = gametest
-            systemProperty("neoforge.enabledGameTestNamespaces", modId)
+            if (stonecutter.current.parsed < "1.21.5") systemProperty("neoforge.enabledGameTestNamespaces", modId)
         }
     }
 }

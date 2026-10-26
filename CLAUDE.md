@@ -162,7 +162,8 @@ The Stonecutter DSL changes between releases. If this does not match the install
 - Constants can be compared in conditions: `//? if >=1.21 {`, `//? if <1.21 {`, `//? if 1.20.1 {`.
 - **Whole classes that differ between versions** (the NeoForge capability adapters, camo models) go into version source folders instead of large conditions: `src/<source set>/mc<first>-<last>/java` (e.g. `src/main/mc1.20.1-1.21.1/java`, `src/client/mc1.21.11-/java`; both ends included, no `<last>` = no upper bound).
   `mod-common` adds the folders whose range contains the node's Minecraft version. Each variant keeps the same package and class name, so entrypoints and references stay the same; the ranges of one class's variants must not overlap.
-  Stonecutter does not process these folders, so they hold no `//?` conditions: loader differences inside them go into `platform/<loader>/` packages as usual (the exclusion applies there too).
+  Stonecutter processes them like the rest of the source: switching versions rewrites them, and `mod-common` adds each folder at the node's own path (`versions/<v>/src/…`), which Stonecutter maps to the folder itself on the active node and to its processed copy on the others. So the replacements below reach them, and they are written in the `vcsVersion` state like everything else (`ResourceLocation` even in a 1.21.11-only class).
+  They hold no `//?` conditions all the same (a class that needs them belongs in the shared folder): loader differences inside them go into `platform/<loader>/` packages as usual (the exclusion applies there too).
 - **Renames** that Mojang applies everywhere are Stonecutter replacements in `stonecutter.gradle.kts` (`replacements`), not conditions: `ResourceLocation` → `Identifier` and `noCollission(` → `noCollision(` from 1.21.11. They work in both directions, so the new names must not be used for anything else.
 - Version-specific *properties* live in `versions/<v>/gradle.properties`. Read them in the build via `property("…")`.
 
@@ -175,7 +176,7 @@ The rules for loader differences mirror those for version differences, with one 
   `mod-common` leaves the other loaders' `platform/` packages out of the compilation, so these classes need no Stonecutter comments.
   Examples: entrypoints, capability/API registration, event wiring.
 - Shared code reaches them through small interfaces in `platform/` (design them with the user, see §7 "Designing APIs").
-- **Small differences** inside a shared class use the loader constants: `//? if fabric {` / `//? if neoforge {` / `//? if forge {` (set in `stonecutter.gradle.kts`); `//? if neoforge || forge {` where both share an API (model data, GameTest annotations), with separate import blocks because the packages differ.
+- **Small differences** inside a shared class use the loader constants: `//? if fabric {` / `//? if neoforge {` / `//? if forge {` (set in `stonecutter.gradle.kts`); `//? if neoforge || forge {` where both share an API (model data), with separate import blocks because the packages differ. Loader and version checks combine: `//? if (neoforge && <1.21.11) || forge {`.
   Keep them inside `compat/` and `platform/`, never in gameplay code.
 - `core/` stays loader-free (`verifyCoreIsolation` also forbids `net.neoforged` and `net.minecraftforge`).
 - **Everything compiles on NeoForge and Forge except `datagen`,** which is Fabric-only by design (NeoForge gets the converted Fabric output, §5 "Resources strategy").
@@ -236,23 +237,30 @@ The node `1.20.1-forge` follows the NeoForge setup; these are the differences:
 
 - In-world tests run on a headless GameTest server (Fabric `runGameTest`, NeoForge and Forge `runGameTestServer`; all part of `check`). It needs **no EULA**: the run directory gets `eula=false`, and that is fine. Do not accept the EULA on the user's behalf.
 - `src/gametest` is a separate test mod (`openmodularlighting_gametest`; Fabric: Loom's `fabricApi.configureTests` + `fabric.mod.json`, NeoForge: the `gametest` source set registered as a second mod + `META-INF/neoforge.mods.toml`). It is not in the release jar. It registers test-only content (`TestBlocks`, `TestBlockEntities`, `TestItems` through `OMLGameTestMod.registrationSteps()`), for example `TestLightSourceBlock`, a fake light source whose on/off state and shape the test sets directly.
-- **The test classes are shared by all loaders.** They implement `OMLGameTests` (not `FabricGameTest`) and use `@GameTest(template = EMPTY_STRUCTURE)`: our own 8 × 8 × 8 air structure (`src/gametest/resources/data/openmodularlighting/structure/empty.nbt`, a copy in `structures/` for 1.20.1). Every test class also carries the NeoForge / Forge annotations behind a condition (imported per loader):
+- **The test classes are shared by all loaders and versions.** They implement `OMLGameTests` (not `FabricGameTest`) and use `@GameTest(template = EMPTY_STRUCTURE)`: our own 8 × 8 × 8 air structure (`src/gametest/resources/data/openmodularlighting/structure/empty.nbt`, a copy in `structures/` for 1.20.1). Before 1.21.11 they import vanilla's `@GameTest`, and the NeoForge / Forge test classes also carry their loader's annotations (imported per loader):
 
   ```java
-  //? if neoforge || forge {
+  //? if <1.21.11 {
+  import net.minecraft.gametest.framework.GameTest;
+  //?}
+  …
+  //? if (neoforge && <1.21.11) || forge {
   /*@GameTestHolder(OML.MOD_ID)
   @PrefixGameTestTemplate(false)
   *///?}
   public class FooGameTest implements OMLGameTests
   ```
 
-  Add a new test class to the `fabric-gametest` entrypoint in `src/gametest/resources/fabric.mod.json` as well (NeoForge finds it through `@GameTestHolder`).
-- Loader-specific test code lives in `gametest/platform/<loader>`: the entrypoints (`OMLFabricGameTests`, `OMLNeoForgeGameTests`, `OMLForgeGameTests`), `TestTransfer` (energy and items through the loader's API, `OMLGameTestMod.transfer()`; use it to test the loader adapters) and the energy access of the test battery.
+  Add a new test class to the `fabric-gametest` entrypoint in `src/gametest/resources/fabric.mod.json` as well (NeoForge finds it through `@GameTestHolder`, on 1.21.11 through its `@GameTest` methods).
+- **From 1.21.11 on** (the framework changed in 1.21.5: a test is a registered test function plus a data-driven test instance, batched by test environment) vanilla's annotation is gone. The version folder `src/gametest/mc1.21.11-` has a stand-in `@GameTest` with the same name and attributes in the test classes' own package, and `GameTestCases`, which turns the methods into test functions and instances `openmodularlighting_gametest:<class>/<method>` and each `batch` into an empty test environment (100 ticks per test, the old default).
+  The loader entrypoints register them: `FabricGameTestRegistration` (the `fabric-gametest` entrypoints; `DynamicRegistrySetupCallback` for the instances) and `NeoForgeGameTestRegistration` (the test mod's classes with `@GameTest` methods from the mod file scan; `RegisterGameTestsEvent`).
+  Fabric's own test registration still reads the entrypoints and logs that it found no methods with its annotation in them; that warning is expected. The game test server also runs vanilla's `minecraft:always_pass`, so it reports 58 tests.
+- Loader-specific test code lives in `gametest/platform/<loader>`: the entrypoints (`OMLFabricGameTests`, `OMLNeoForgeGameTests`, `OMLForgeGameTests`), `TestTransfer` (energy and items through the loader's API, `OMLGameTestMod.transfer()`; use it to test the loader adapters) and the energy access of the test battery. `NeoForgeTestTransfer` and `NeoForgeTestBattery` exist once per version folder (`mc1.21.11-`: NeoForge's transfer API).
 - **No test class may sit in a main-mod package:** NeoForge loads the test mod as its own module, and two modules cannot share a package. Reach protected block entity methods through vanilla's public ones (`BlockEntityData.save` / `load` / `clientData`).
 - Tests in the same batch run side by side, and finished tests leave beacons (light 15) next to their structure. A test that checks for darkness needs its own `batch` and must compare against the light level measured before it starts.
 - The test mod must not load in normal dev runs: NeoForge's `client` and `server` runs set `loadedMods` to the main mod only (ModDevGradle loads every registered mod by default), and Loom's `runClient` never includes it. Otherwise its range override below applies in play.
 - 1.21 encloses every test structure in barriers. Light beams therefore have to stay inside the 8 × 8 × 8 structure: the test mod sets both beam ranges to `OMLGameTestMod.TEST_RANGE` (6) when the server starts. Entrypoints do not run in dependency order, so test setup that depends on the main mod (such as the config or `Platform` services) belongs in a server lifecycle event (`OMLGameTestMod.onServerStarting`), not in the entrypoint.
-- The test mod also has a test battery (`TestBatteryItem`, energy in the item's custom data; Team Reborn Energy on Fabric, an item capability on NeoForge).
+- The test mod also has a test battery (`TestBatteryItem`, energy in the item's custom data; Team Reborn Energy on Fabric, an item capability on NeoForge and Forge).
 - The client (screens, models, tint, tooltips) is not covered: Fabric's client GameTests need Minecraft 1.21.4+. Check it by hand with `runClient`.
 
 ### Core Game Logic Source
@@ -765,19 +773,19 @@ Update this checklist as work progresses.
 
 ### Minecraft 1.21.11 (Fabric + NeoForge, same codebase; started 2026-10-25)
 
-- [x] Version source folders (`src/<set>/mc<first>-<last>/java`, `mod-common`) for whole per-version classes
+- [x] Version source folders (`src/<set>/mc<first>-<last>/java`, `mod-common`) for whole per-version classes; added at the node's path, so Stonecutter processes them on every node (replacements such as `Identifier` reach them)
 - [x] `ResourceLocation` → `Identifier` as a Stonecutter replacement
 - [x] NBT read helpers (`compat.nbt.NbtCompat`); `CompatBlockEntity` bridges `ValueInput` / `ValueOutput`; stack, slot and item block entity data helpers have 1.21.11 branches
 - [x] Removal hook `CompatBlockEntity.onBlockRemoved` (replaces the blocks' `onRemove` logic); `Fuel.burnTime(level, stack)`
 - [x] UV damage (`VersionCompat.hurt`, damage type lookup) and config sync on join (`VersionCompat.isSingleplayerOwner`)
 - [x] Registration: ids in the block and item properties, block entity types through `VersionCompat.blockEntityType`
 - [x] Block callbacks: `FACING` as `EnumProperty<Direction>`, `noCollision`, `neighborChanged` with `Orientation`, `BlockCompat` (state queries, `sidedSuccess`)
-- [ ] Nodes `1.21.11-fabric` / `1.21.11-neoforge` in `settings.gradle.kts` (`versions/1.21.11-*/gradle.properties` exist; add the nodes once they compile)
-- [x] NeoForge transfer API: `NeoForgeEnergyHandler` (`EnergyHandler`, one `SnapshotJournal` per store), `NeoForgeItemHandler` (`ResourceHandler<ItemResource>`), `NeoForgeEnergy` and the capability registration (`NeoForgeCapabilities`) exist once per version folder (`mc1.20.1-1.21.1`: `IEnergyStorage` / `IItemHandler`, `mc1.21.11-`: transfer API); the NeoForge GameTest transfer code (`NeoForgeTestTransfer`, test battery) still uses the old API
+- [ ] Nodes `1.21.11-fabric` / `1.21.11-neoforge` in `settings.gradle.kts` (`versions/1.21.11-*/gradle.properties` exist). Everything compiles, and `build` (unit tests, GameTests, jars) passes on both with the nodes added temporarily; adding them for good also publishes them with the next release
+- [x] NeoForge transfer API: `NeoForgeEnergyHandler` (`EnergyHandler`, one `SnapshotJournal` per store), `NeoForgeItemHandler` (`ResourceHandler<ItemResource>`), `NeoForgeEnergy` and the capability registration (`NeoForgeCapabilities`) exist once per version folder (`mc1.20.1-1.21.1`: `IEnergyStorage` / `IItemHandler`, `mc1.21.11-`: transfer API); so do the GameTest transfer code (`NeoForgeTestTransfer`) and the test battery
 - [x] Datagen: shared recipe content (`OMLRecipeProvider.Recipes`, on 1.21.11 a vanilla `RecipeProvider`), `tagBuilder` for the renamed tag builder, recipe condition `test` with `RegistryInfoLookup`; datagen runs in the server environment; output in `versions/1.21.11-fabric/src/main/generated` (committed; only the recipe ingredient format differs from 1.21.1), converted for NeoForge as on 1.21.1
 - [x] Jade 21: the plugin is split into a server half (main) and a client half (`client/compat/jade`), because `ITooltip` extends a client class; all main code compiles on both 1.21.11 nodes
 - [x] Client: camo models as block state models (version folders, wrapped by the entrypoints), screen drawing and tooltips (`ClientCompat.blit` / `renderTooltip`, text colours with alpha), debug renderer (`ClientCompat.renderLineBox`, Fabric's new `WorldRenderEvents`, NeoForge's `RenderLevelStageEvent.AfterEntities`), Fabric `BlockRenderLayerMap` with `ChunkSectionLayer`, NeoForge `ClientPacketDistributor`; compiles on both 1.21.11 nodes. Not yet run: check by hand once the nodes are in `settings.gradle.kts`
-- [ ] GameTests (new framework; NeoForge test transfer and test battery on the transfer API)
+- [x] GameTests: stand-in `@GameTest` and `GameTestCases` (version folder), registered by `FabricGameTestRegistration` / `NeoForgeGameTestRegistration`; NeoForge test transfer and test battery on the transfer API; all 57 pass on both 1.21.11 nodes
 
 ### Later / optional (ask first)
 

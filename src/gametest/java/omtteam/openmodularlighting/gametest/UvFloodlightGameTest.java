@@ -1,6 +1,6 @@
 package omtteam.openmodularlighting.gametest;
 
-//? if neoforge {
+//? if neoforge && <1.21.11 {
 /*import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 *///?}
@@ -8,16 +8,18 @@ import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 /*import net.minecraftforge.gametest.GameTestHolder;
 import net.minecraftforge.gametest.PrefixGameTestTemplate;
 *///?}
-//? if neoforge || forge {
+//? if (neoforge && <1.21.11) || forge {
 /*import omtteam.openmodularlighting.OML;
 *///?}
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+//? if <1.21.11 {
 import net.minecraft.gametest.framework.GameTest;
+//?}
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.animal.Pig;
+import net.minecraft.world.entity.Mob;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
@@ -31,7 +33,7 @@ import omtteam.openmodularlighting.registry.ModBlocks;
  * UV floodlight and UV light block (CLAUDE.md §6.3, §6.9): a beam of UV light blocks that damage living entities only
  * while lit, take over phantom lights and give them back when removed.
  */
-//? if neoforge || forge {
+//? if (neoforge && <1.21.11) || forge {
 /*@GameTestHolder(OML.MOD_ID)
 @PrefixGameTestTemplate(false)
 *///?}
@@ -44,7 +46,7 @@ public class UvFloodlightGameTest implements OMLGameTests {
     public void beamOfUvLightDamagesWhileLit(GameTestHelper helper) {
         placeUv(helper, UV, true);
         helper.setBlock(UV.above(), Blocks.REDSTONE_BLOCK);
-        Pig pig = pig(helper, new BlockPos(3, 0, 3));
+        Mob pig = pig(helper, new BlockPos(3, 0, 3));
         float health = pig.getHealth();
         BlockPos pos = helper.absolutePos(UV);
         helper.runAfterDelay(25, () -> {
@@ -62,7 +64,7 @@ public class UvFloodlightGameTest implements OMLGameTests {
     @GameTest(template = EMPTY_STRUCTURE)
     public void unlitUvLightIsHarmless(GameTestHelper helper) {
         placeUv(helper, UV, true); // energy, but no redstone
-        Pig pig = pig(helper, new BlockPos(3, 0, 3));
+        Mob pig = pig(helper, new BlockPos(3, 0, 3));
         float health = pig.getHealth();
         BlockPos pos = helper.absolutePos(UV);
         helper.runAfterDelay(25, () -> {
@@ -109,8 +111,8 @@ public class UvFloodlightGameTest implements OMLGameTests {
         if (energy) light.electricPower().store().setAmountUnchecked(ElectricPower.CAPACITY);
     }
 
-    private static Pig pig(GameTestHelper helper, BlockPos relative) {
-        Pig pig = helper.spawn(EntityType.PIG, relative);
+    private static Mob pig(GameTestHelper helper, BlockPos relative) {
+        Mob pig = helper.spawn(EntityType.PIG, relative);
         pig.setNoAi(true);
         return pig;
     }

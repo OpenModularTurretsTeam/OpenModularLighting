@@ -1,6 +1,6 @@
 package omtteam.openmodularlighting.gametest;
 
-//? if neoforge {
+//? if neoforge && <1.21.11 {
 /*import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 *///?}
@@ -8,12 +8,18 @@ import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 /*import net.minecraftforge.gametest.GameTestHolder;
 import net.minecraftforge.gametest.PrefixGameTestTemplate;
 *///?}
-//? if neoforge || forge {
+//? if (neoforge && <1.21.11) || forge {
 /*import omtteam.openmodularlighting.OML;
 *///?}
+//? if <1.21.11 {
 import net.minecraft.gametest.framework.GameTest;
+//?}
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.item.crafting.RecipeManager;
+//? if >=1.21.11 {
+/*import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceKey;
+*///?}
 import omtteam.openmodularlighting.OML;
 import omtteam.openmodularlighting.compat.BlockEnabledCondition;
 import omtteam.openmodularlighting.config.ConfigData;
@@ -25,7 +31,7 @@ import java.util.List;
  * The generated recipes load (their {@code block_enabled} condition is registered and passes with the default
  * config), and the condition follows the config.
  */
-//? if neoforge || forge {
+//? if (neoforge && <1.21.11) || forge {
 /*@GameTestHolder(OML.MOD_ID)
 @PrefixGameTestTemplate(false)
 *///?}
@@ -36,9 +42,14 @@ public class RecipeGameTest implements OMLGameTests {
 
     @GameTest(template = EMPTY_STRUCTURE)
     public void allRecipesLoadWithTheDefaultConfig(GameTestHelper helper) {
-        RecipeManager recipes = helper.getLevel().getRecipeManager();
+        RecipeManager recipes = helper.getLevel().getServer().getRecipeManager();
         for (String recipe : RECIPES) {
-            helper.assertTrue(recipes.byKey(OML.id(recipe)).isPresent(), "recipe " + recipe + " loaded");
+            //? if >=1.21.11 {
+            /*boolean loaded = recipes.byKey(ResourceKey.create(Registries.RECIPE, OML.id(recipe))).isPresent();
+            *///?} else {
+            boolean loaded = recipes.byKey(OML.id(recipe)).isPresent();
+            //?}
+            helper.assertTrue(loaded, "recipe " + recipe + " loaded");
         }
         helper.succeed();
     }

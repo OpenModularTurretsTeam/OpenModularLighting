@@ -58,12 +58,15 @@ val versionRange = Regex("""mc(\d+(?:\.\d+)*)-(\d+(?:\.\d+)*)?""")
 // Classes that differ completely between Minecraft versions (e.g. datagen providers) live in version source folders,
 // src/<source set>/mc<first>-<last>/java, instead of large Stonecutter conditions. A node compiles the folders whose
 // range contains its Minecraft version; the variants keep the same class names.
+// Each folder is added at the node's own path (versions/<v>/src/...), like src/<set>/java: Stonecutter maps it to the
+// folder itself on the active node and to its processed copy on the others (its second pass after evaluation), so the
+// replacements (ResourceLocation <-> Identifier) reach these classes on every node.
 sourceSets.configureEach {
     rootProject.file("src/$name").listFiles()?.sorted()?.forEach { dir ->
         val range = versionRange.matchEntire(dir.name) ?: return@forEach
         val (first, last) = range.destructured
         if (compareVersions(minecraftVersion, first) >= 0 && (last.isEmpty() || compareVersions(minecraftVersion, last) <= 0)) {
-            java.srcDir(dir.resolve("java"))
+            java.srcDir(project.file("src/$name/${dir.name}/java"))
         }
     }
 }

@@ -3,6 +3,10 @@ package omtteam.openmodularlighting.gametest;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.block.entity.BlockEntity;
+//? if >=1.21.11 {
+/*import net.minecraft.util.ProblemReporter;
+import net.minecraft.world.level.storage.TagValueInput;
+*///?}
 
 /**
  * Saves and loads block entities through vanilla's public methods (which call {@code writeData} / {@code readData} /
@@ -22,7 +26,9 @@ public final class BlockEntityData {
     }
 
     public static void load(BlockEntity blockEntity, CompoundTag tag, HolderLookup.Provider registries) {
-        //? if >=1.21 {
+        //? if >=1.21.11 {
+        /*blockEntity.loadWithComponents(TagValueInput.create(ProblemReporter.DISCARDING, registries, tag));
+        *///?} else if >=1.21 {
         blockEntity.loadWithComponents(tag, registries);
         //?} else {
         /*blockEntity.load(tag);

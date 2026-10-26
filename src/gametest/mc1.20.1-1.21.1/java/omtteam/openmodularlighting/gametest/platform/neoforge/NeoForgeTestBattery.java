@@ -1,18 +1,26 @@
 package omtteam.openmodularlighting.gametest.platform.neoforge;
 
 import net.minecraft.world.item.ItemStack;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.energy.IEnergyStorage;
 import omtteam.openmodularlighting.gametest.TestBatteryItem;
 import omtteam.openmodularlighting.gametest.TestItems;
 
 /**
  * FE view of a {@link TestBatteryItem}; changes the stack directly (item capabilities work on the stack in the slot).
+ * The variant for 1.21.1 ({@code IEnergyStorage}).
  */
 final class NeoForgeTestBattery implements IEnergyStorage {
     private final ItemStack stack;
 
-    NeoForgeTestBattery(ItemStack stack) {
+    private NeoForgeTestBattery(ItemStack stack) {
         this.stack = stack;
+    }
+
+    static void register(RegisterCapabilitiesEvent event) {
+        event.registerItem(Capabilities.EnergyStorage.ITEM, (stack, context) -> new NeoForgeTestBattery(stack),
+                TestItems.TEST_BATTERY);
     }
 
     @Override

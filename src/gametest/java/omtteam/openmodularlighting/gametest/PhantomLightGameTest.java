@@ -1,6 +1,6 @@
 package omtteam.openmodularlighting.gametest;
 
-//? if neoforge {
+//? if neoforge && <1.21.11 {
 /*import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 *///?}
@@ -8,11 +8,13 @@ import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 /*import net.minecraftforge.gametest.GameTestHolder;
 import net.minecraftforge.gametest.PrefixGameTestTemplate;
 *///?}
-//? if neoforge || forge {
+//? if (neoforge && <1.21.11) || forge {
 /*import omtteam.openmodularlighting.OML;
 *///?}
 import net.minecraft.core.BlockPos;
+//? if <1.21.11 {
 import net.minecraft.gametest.framework.GameTest;
+//?}
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
@@ -35,7 +37,7 @@ import omtteam.openmodularlighting.world.Positions;
  * In-world tests of the phantom light block (CLAUDE.md §6.3): persistent light blocks that are switched with
  * {@code LIT}, behave like air and clean up after themselves.
  */
-//? if neoforge || forge {
+//? if (neoforge && <1.21.11) || forge {
 /*@GameTestHolder(OML.MOD_ID)
 @PrefixGameTestTemplate(false)
 *///?}
@@ -212,7 +214,11 @@ public class PhantomLightGameTest implements OMLGameTests {
         helper.assertTrue(state.getCollisionShape(level, light).isEmpty(), "no collision");
         helper.assertTrue(state.getShape(level, light).isEmpty(), "no outline");
         helper.assertTrue(state.getPistonPushReaction() == PushReaction.DESTROY, "destroyed by pistons");
+        //? if >=1.21.11 {
+        /*helper.assertTrue(state.propagatesSkylightDown(), "lets sky light through");
+        *///?} else {
         helper.assertTrue(state.propagatesSkylightDown(level, light), "lets sky light through");
+        //?}
         helper.assertTrue(NaturalSpawner.isValidEmptySpawnBlock(level, light, state, state.getFluidState(), EntityType.ZOMBIE),
                 "mobs can spawn in an unlit phantom light");
         helper.succeed();

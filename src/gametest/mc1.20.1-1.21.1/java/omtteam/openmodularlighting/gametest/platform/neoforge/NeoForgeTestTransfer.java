@@ -11,7 +11,7 @@ import net.neoforged.neoforge.items.ItemHandlerHelper;
 import omtteam.openmodularlighting.gametest.TestTransfer;
 
 /**
- * NeoForge block capabilities.
+ * NeoForge block capabilities ({@code IEnergyStorage}, {@code IItemHandler}; the variant for 1.21.1).
  */
 public final class NeoForgeTestTransfer implements TestTransfer {
     @Override
