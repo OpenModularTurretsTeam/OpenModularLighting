@@ -6,7 +6,7 @@ This file guides Claude Code when working in this repository. Read it fully befo
 
 ## 1. Project Overview
 
-**Floodlights (FL)** is a mod being ported from Forge on MC 1.7.10 (`oldmod/`, package `de.keridos.floodlights`, mod ID `FloodLights`) to **Fabric**, targeting **1.20.1 and 1.21.1 from a single codebase** using **Stonecutter**.
+**Floodlights (FL)** is a mod being ported from Forge on MC 1.7.10 (`oldmod/`, package `de.keridos.floodlights`, mod ID `FloodLights`) to **Fabric**, targeting **1.20.1, 1.21.1 and 1.21.11 from a single codebase** using **Stonecutter**.
 A **NeoForge 1.21.1** build is being added on the branch `neoforge-test` (see §4 "Loaders" and §9).
 A **Forge 1.20.1** build is being added on the branch `forge-test` (requested by the user on 2026-10-24, done here before OpenModularTurrets; see §4 "Forge 1.20.1" and §9).
 It is a test run for the same setup in OpenModularTurrets (`../OMT1.20.1+`), so keep the build logic and the `platform/` pattern mod-independent.
@@ -48,6 +48,8 @@ Core gameplay:
 | API | Fabric API `0.92.x+1.20.1` | – | Fabric API `0.116.x+1.21.1` | – |
 | Gradle plugin | Loom 1.18 | ModDevGradle 2.0 (legacy) | Loom 1.18 | ModDevGradle 2.0 |
 | Mappings | Mojang official (+ Parchment optional) | Mojang official (jar reobfuscated to SRG) | Mojang official (+ Parchment optional) | Mojang official (NeoForge runtime names) |
+
+1.21.11 (Fabric and NeoForge) is built like 1.21.1: Java 21, Fabric API `0.141.x+1.21.11`, NeoForge 21.11.x, the same Gradle plugins.
 
 - Build system: Gradle 9.8 (Kotlin DSL) + **Stonecutter 0.9**, with Fabric Loom 1.18 (`net.fabricmc.fabric-loom-remap`, the variant for obfuscated MC versions) on the Fabric nodes and ModDevGradle 2.0 (`net.neoforged.moddev`) on the NeoForge node.
 - Shared build logic is the convention plugin `buildSrc/src/main/kotlin/mod-common.gradle.kts` (Java toolchain, metadata templating, JUnit, `verifyCoreIsolation`, licenses in the jar via `bundled_licenses` (default: all three), publishing).
@@ -99,7 +101,7 @@ Check exact latest patch versions of Loader, API, Loom and Stonecutter when sett
 │   │   └── src/main/generated/ # datagen output for 1.21.1 (committed)
 │   ├── 1.21.1-neoforge/
 │   │   └── gradle.properties   # neoforge_version, minecraft_dependency (Maven range) …
-│   ├── 1.21.11-fabric/         # being ported (§9), not in settings.gradle.kts yet
+│   ├── 1.21.11-fabric/
 │   │   ├── gradle.properties
 │   │   └── src/main/generated/ # datagen output for 1.21.11 (committed)
 │   └── 1.21.11-neoforge/
@@ -135,6 +137,7 @@ stonecutter {
         versions(
             "1.20.1-fabric" to "1.20.1", "1.20.1-forge" to "1.20.1",
             "1.21.1-fabric" to "1.21.1", "1.21.1-neoforge" to "1.21.1",
+            "1.21.11-fabric" to "1.21.11", "1.21.11-neoforge" to "1.21.11",
         )
         mapBuilds { _, node -> "build.${node.project.substringAfterLast('-')}.gradle.kts" }
         vcsVersion = "1.21.1-fabric" // the version the committed source is written for
@@ -211,6 +214,7 @@ The node `1.20.1-forge` follows the NeoForge setup; these are the differences:
 ./gradlew :1.21.1-fabric:runGameTest              # in-world GameTests for one node (also part of check/build)
 ./gradlew :1.20.1-fabric:runDatagen               # regenerate data for a node
 ./gradlew :1.21.1-fabric:runDatagen
+./gradlew :1.21.11-fabric:runDatagen              # (the 1.21.11 NeoForge node converts this output)
 ./gradlew :1.21.1-neoforge:runClient              # NeoForge client (run dir versions/1.21.1-neoforge/run)
 ./gradlew :1.21.1-neoforge:runGameTestServer      # NeoForge GameTests (also part of check/build)
 ./gradlew :1.20.1-forge:runClient                 # Forge client (run dir versions/1.20.1-forge/run)
@@ -252,7 +256,8 @@ The node `1.20.1-forge` follows the NeoForge setup; these are the differences:
   ```
 
   Add a new test class to the `fabric-gametest` entrypoint in `src/gametest/resources/fabric.mod.json` as well (NeoForge finds it through `@GameTestHolder`, on 1.21.11 through its `@GameTest` methods).
-- **From 1.21.11 on** (the framework changed in 1.21.5: a test is a registered test function plus a data-driven test instance, batched by test environment) vanilla's annotation is gone. The version folder `src/gametest/mc1.21.11-` has a stand-in `@GameTest` with the same name and attributes in the test classes' own package, and `GameTestCases`, which turns the methods into test functions and instances `openmodularlighting_gametest:<class>/<method>` and each `batch` into an empty test environment (100 ticks per test, the old default).
+- **From 1.21.11 on** (the framework changed in 1.21.5: a test is a registered test function plus a data-driven test instance, batched by test environment) vanilla's annotation is gone. The version folder `src/gametest/mc1.21.11-` has a stand-in `@GameTest` with the same name and attributes in the test classes' own package, and `GameTestCases`, which turns the methods into test functions and instances `openmodularlighting_gametest:<class>/<method>` and each `batch` into an empty test environment (`timeoutTicks`, default 100, as before).
+  The 1.21.11 test server runs its ticks as fast as it can, so a test that waits for the light engine may need a longer `timeoutTicks` when several test servers run at once (`chiseledBuild`).
   The loader entrypoints register them: `FabricGameTestRegistration` (the `fabric-gametest` entrypoints; `DynamicRegistrySetupCallback` for the instances) and `NeoForgeGameTestRegistration` (the test mod's classes with `@GameTest` methods from the mod file scan; `RegisterGameTestsEvent`).
   Fabric's own test registration still reads the entrypoints and logs that it found no methods with its annotation in them; that warning is expected. The game test server also runs vanilla's `minecraft:always_pass`, so it reports 58 tests.
 - Loader-specific test code lives in `gametest/platform/<loader>`: the entrypoints (`OMLFabricGameTests`, `OMLNeoForgeGameTests`, `OMLForgeGameTests`), `TestTransfer` (energy and items through the loader's API, `OMLGameTestMod.transfer()`; use it to test the loader adapters) and the energy access of the test battery. `NeoForgeTestTransfer` and `NeoForgeTestBattery` exist once per version folder (`mc1.21.11-`: NeoForge's transfer API).
@@ -780,11 +785,12 @@ Update this checklist as work progresses.
 - [x] UV damage (`VersionCompat.hurt`, damage type lookup) and config sync on join (`VersionCompat.isSingleplayerOwner`)
 - [x] Registration: ids in the block and item properties, block entity types through `VersionCompat.blockEntityType`
 - [x] Block callbacks: `FACING` as `EnumProperty<Direction>`, `noCollision`, `neighborChanged` with `Orientation`, `BlockCompat` (state queries, `sidedSuccess`)
-- [ ] Nodes `1.21.11-fabric` / `1.21.11-neoforge` in `settings.gradle.kts` (`versions/1.21.11-*/gradle.properties` exist). Everything compiles, and `build` (unit tests, GameTests, jars) passes on both with the nodes added temporarily; adding them for good also publishes them with the next release
+- [x] Nodes `1.21.11-fabric` / `1.21.11-neoforge` in `settings.gradle.kts` (added on 2026-10-26; built by `chiseledBuild`, published with the next release)
+- [ ] Checked by hand in a 1.21.11 client (`:1.21.11-fabric:runClient`, `:1.21.11-neoforge:runClient`): screens, tint, camouflage rendering, debug renderer, Jade
 - [x] NeoForge transfer API: `NeoForgeEnergyHandler` (`EnergyHandler`, one `SnapshotJournal` per store), `NeoForgeItemHandler` (`ResourceHandler<ItemResource>`), `NeoForgeEnergy` and the capability registration (`NeoForgeCapabilities`) exist once per version folder (`mc1.20.1-1.21.1`: `IEnergyStorage` / `IItemHandler`, `mc1.21.11-`: transfer API); so do the GameTest transfer code (`NeoForgeTestTransfer`) and the test battery
 - [x] Datagen: shared recipe content (`OMLRecipeProvider.Recipes`, on 1.21.11 a vanilla `RecipeProvider`), `tagBuilder` for the renamed tag builder, recipe condition `test` with `RegistryInfoLookup`; datagen runs in the server environment; output in `versions/1.21.11-fabric/src/main/generated` (committed; only the recipe ingredient format differs from 1.21.1), converted for NeoForge as on 1.21.1
 - [x] Jade 21: the plugin is split into a server half (main) and a client half (`client/compat/jade`), because `ITooltip` extends a client class; all main code compiles on both 1.21.11 nodes
-- [x] Client: camo models as block state models (version folders, wrapped by the entrypoints), screen drawing and tooltips (`ClientCompat.blit` / `renderTooltip`, text colours with alpha), debug renderer (`ClientCompat.renderLineBox`, Fabric's new `WorldRenderEvents`, NeoForge's `RenderLevelStageEvent.AfterEntities`), Fabric `BlockRenderLayerMap` with `ChunkSectionLayer`, NeoForge `ClientPacketDistributor`; compiles on both 1.21.11 nodes. Not yet run: check by hand once the nodes are in `settings.gradle.kts`
+- [x] Client: camo models as block state models (version folders, wrapped by the entrypoints), screen drawing and tooltips (`ClientCompat.blit` / `renderTooltip`, text colours with alpha), debug renderer (`ClientCompat.renderLineBox`, Fabric's new `WorldRenderEvents`, NeoForge's `RenderLevelStageEvent.AfterEntities`), Fabric `BlockRenderLayerMap` with `ChunkSectionLayer`, NeoForge `ClientPacketDistributor`; compiles on both 1.21.11 nodes. Not yet run (see the hand check above)
 - [x] GameTests: stand-in `@GameTest` and `GameTestCases` (version folder), registered by `FabricGameTestRegistration` / `NeoForgeGameTestRegistration`; NeoForge test transfer and test battery on the transfer API; all 57 pass on both 1.21.11 nodes
 
 ### Later / optional (ask first)

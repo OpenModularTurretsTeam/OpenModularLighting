@@ -1,6 +1,6 @@
 # Open Modular Lighting
 
-Floodlights for **Fabric** (Minecraft 1.20.1 and 1.21.1), **NeoForge** (Minecraft 1.21.1) and **Forge** (Minecraft 1.20.1).
+Floodlights for **Fabric** (Minecraft 1.20.1, 1.21.1 and 1.21.11), **NeoForge** (Minecraft 1.21.1 and 1.21.11) and **Forge** (Minecraft 1.20.1).
 Open Modular Lighting is a port of the Forge 1.7.10 mod *FloodLights* by Keridos.
 It lights up large areas with invisible light blocks placed along a beam, so you can light a cave, a farm or a base without placing torches everywhere.
 
@@ -71,8 +71,8 @@ Jade is not required.
 
 ## Requirements
 
-- Fabric: Minecraft 1.20.1 (Java 17) or 1.21.1 (Java 21), with [Fabric Loader](https://fabricmc.net/) and [Fabric API](https://modrinth.com/mod/fabric-api)
-- NeoForge: Minecraft 1.21.1 (Java 21), with [NeoForge](https://neoforged.net/) 21.1
+- Fabric: Minecraft 1.20.1 (Java 17), 1.21.1 or 1.21.11 (Java 21), with [Fabric Loader](https://fabricmc.net/) and [Fabric API](https://modrinth.com/mod/fabric-api)
+- NeoForge: Minecraft 1.21.1 or 1.21.11 (Java 21), with [NeoForge](https://neoforged.net/) 21.1 or 21.11
 - Forge: Minecraft 1.20.1 (Java 17), with [Forge](https://files.minecraftforge.net/) 47.4.28 or newer
 
 ## Building from source

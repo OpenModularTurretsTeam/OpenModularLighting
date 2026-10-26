@@ -34,8 +34,6 @@ import java.util.function.Consumer;
 public final class GameTestCases {
     /** Batch of the tests that name none. */
     static final String DEFAULT_BATCH = "default";
-    /** Time limit of every test in ticks: the default of vanilla's old annotation. */
-    private static final int MAX_TICKS = 100;
 
     private final List<Case> cases = new ArrayList<>();
 
@@ -71,7 +69,7 @@ public final class GameTestCases {
             Holder<TestEnvironmentDefinition> environment = batches.computeIfAbsent(test.annotation().batch(),
                     batch -> environments.apply(id(batch), new TestEnvironmentDefinition.AllOf(List.of())));
             TestData<Holder<TestEnvironmentDefinition>> data = new TestData<>(environment,
-                    ResourceLocation.parse(test.annotation().template()), MAX_TICKS, 0, true);
+                    ResourceLocation.parse(test.annotation().template()), test.annotation().timeoutTicks(), 0, true);
             ResourceKey<Consumer<GameTestHelper>> function = ResourceKey.create(Registries.TEST_FUNCTION, test.id());
             tests.accept(test.id(), new FunctionGameTestInstance(function, data));
         }

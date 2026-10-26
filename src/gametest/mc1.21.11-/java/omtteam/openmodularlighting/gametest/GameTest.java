@@ -22,4 +22,7 @@ public @interface GameTest {
      * environment, because the framework batches tests by environment.
      */
     String batch() default GameTestCases.DEFAULT_BATCH;
+
+    /** Time limit in ticks; the test fails if it has not succeeded by then (the old annotation's default). */
+    int timeoutTicks() default 100;
 }

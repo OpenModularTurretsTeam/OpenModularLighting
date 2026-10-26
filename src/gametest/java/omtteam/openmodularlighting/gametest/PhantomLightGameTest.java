@@ -113,9 +113,10 @@ public class PhantomLightGameTest implements OMLGameTests {
     /**
      * Own batch, so that no light from tests running at the same time reaches this one. Finished tests leave
      * beacons (light 15) next to their structures, so the area is not completely dark: the light has to return to
-     * the level measured before placing the phantom light.
+     * the level measured before placing the phantom light. The light engine works beside the server thread and can
+     * fall behind the ticks while the machine is busy (several test servers at once), hence the longer time limit.
      */
-    @GameTest(template = EMPTY_STRUCTURE, batch = "phantom_light_darkness")
+    @GameTest(template = EMPTY_STRUCTURE, batch = "phantom_light_darkness", timeoutTicks = 400)
     public void switchingOffRemovesTheLight(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
         BlockPos light = helper.absolutePos(LIGHT);

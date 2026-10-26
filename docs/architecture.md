@@ -268,7 +268,7 @@ The table of known differences is in `CLAUDE.md`, section 5.
 
 ### Recipes, loot tables, tags
 
-Never handwrite files under `data/`: add them to the providers in `datagen` and run `./gradlew :1.21.1-fabric:runDatagen :1.20.1-fabric:runDatagen` (plus `:1.21.11-fabric:runDatagen` once that node is in `settings.gradle.kts`).
+Never handwrite files under `data/`: add them to the providers in `datagen` and run `./gradlew :1.21.1-fabric:runDatagen :1.20.1-fabric:runDatagen :1.21.11-fabric:runDatagen`.
 The output is committed per version.
 The NeoForge build converts the Fabric 1.21.1 output and the Forge build the Fabric 1.20.1 output at build time (`convertFabricData` in `buildSrc`), so nothing loader-specific is committed.
 
