@@ -26,8 +26,7 @@
       "omtteam.openmodularlighting.datagen.OMLDataGenerator"
     ],
     "jade": [
-      "omtteam.openmodularlighting.compat.jade.OMLJadePlugin",
-      "omtteam.openmodularlighting.client.compat.jade.OMLJadeClientPlugin"
+      "omtteam.openmodularlighting.compat.jade.OMLJadePlugin"
     ]
   },
   "depends": {
