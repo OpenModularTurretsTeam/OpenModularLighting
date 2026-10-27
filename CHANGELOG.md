@@ -9,6 +9,8 @@ turns *Unreleased* into the release section; `chiseledPublish` uploads exactly t
 
 ## [Unreleased]
 
+## [1.0.0-beta.9] - 2026-10-27
+
 ### Changed
 
 - The mod bundles the new library OMLib (jar-in-jar), which now holds the code it shares with Open Modular Turrets; nothing to install separately
