@@ -9,6 +9,10 @@ turns *Unreleased* into the release section; `chiseledPublish` uploads exactly t
 
 ## [Unreleased]
 
+### Fixed
+
+- Forge 1.20.1: recipes that take iron, gold, redstone or glass panes can be crafted (their common tags were empty on Forge)
+
 ## [1.0.0-beta.9] - 2026-10-27
 
 ### Changed
