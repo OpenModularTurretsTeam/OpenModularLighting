@@ -47,7 +47,7 @@ public class CarbonFloodlightBlock extends FloodlightBlock {
     }
 
     @Override
-    protected void openGui(EntityPlayer player, FloodlightTileEntity light) {
+    public void openGui(EntityPlayer player, FloodlightTileEntity light) {
         BlockPos pos = light.getPos();
         player.openGui(OML.instance, OMLGuiHandler.CARBON, light.getWorld(), pos.getX(), pos.getY(), pos.getZ());
     }

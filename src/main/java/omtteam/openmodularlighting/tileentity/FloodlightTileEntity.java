@@ -1,7 +1,9 @@
 package omtteam.openmodularlighting.tileentity;
 
+import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
@@ -10,6 +12,8 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.ITickable;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.TextComponentTranslation;
 import net.minecraft.world.World;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.Constants;
@@ -17,6 +21,7 @@ import net.minecraftforge.energy.CapabilityEnergy;
 import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.ItemStackHandler;
+import omtteam.omlib.api.render.camo.DisguiseRules;
 import omtteam.omlib.api.render.camo.ICamoSupport;
 import omtteam.omlib.core.energy.EnergyAccess;
 import omtteam.omlib.inventory.AutomationItemHandler;
@@ -61,6 +66,23 @@ public abstract class FloodlightTileEntity extends TileEntitySynced
     private static final String INVENTORY = "inventory";
     /** Key of the disguise up to 1.0.0-beta.6 (a block state compound); read, no longer written. */
     private static final String LEGACY_CAMO = "camo";
+    /** OMLib's camouflage rules without see-through blocks, with OML's texts (as on 1.20.1+). */
+    private static final DisguiseRules CAMO_RULES = new DisguiseRules() {
+        @Override
+        public boolean isValidDisguise(IBlockState state) {
+            return CamoRules.isValidDisguise(state, false);
+        }
+
+        @Override
+        public ITextComponent invalidMessage() {
+            return new TextComponentTranslation("message.openmodularlighting.camo_invalid");
+        }
+
+        @Override
+        public String slotHint() {
+            return "tooltip.openmodularlighting.camouflage_slot";
+        }
+    };
 
     private final LightController controller = new LightController();
     /** Periodic re-cast (every ~20 s) for world changes that sent no block update. */
@@ -289,6 +311,26 @@ public abstract class FloodlightTileEntity extends TileEntitySynced
         return false;
     }
 
+    /** Only full, opaque blocks, so a disguised light shows no holes into the world; with OML's own texts. */
+    @Override
+    public DisguiseRules getDisguiseRules() {
+        return CAMO_RULES;
+    }
+
+    /** The camouflage menu is opened from the light's GUI, which its Back button returns to. */
+    @Override
+    public boolean hasParentMenu() {
+        return true;
+    }
+
+    @Override
+    public void openParentMenu(EntityPlayerMP player) {
+        Block block = world.getBlockState(pos).getBlock();
+        if (block instanceof FloodlightBlock) {
+            ((FloodlightBlock) block).openGui(player, this);
+        }
+    }
+
     public ItemStackHandler getInventory() {
         return inventory;
     }
@@ -409,7 +451,7 @@ public abstract class FloodlightTileEntity extends TileEntitySynced
         if (state == null && tag.hasKey(LEGACY_CAMO, Constants.NBT.TAG_COMPOUND)) {
             state = NBTUtil.readBlockState(tag.getCompoundTag(LEGACY_CAMO));
         }
-        return state != null && CamoRules.isValidDisguise(state) ? state : null;
+        return state != null && CAMO_RULES.isValidDisguise(state) ? state : null;
     }
 
     @Override

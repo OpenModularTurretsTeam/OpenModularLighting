@@ -35,6 +35,8 @@ public class FluorescentLightBlock extends PanelLightBlock {
     /** @param small the 6 px strip (rotatable) instead of the full square */
     public FluorescentLightBlock(boolean small) {
         this.small = small;
+        // 1.7.10 set no harvest level on them: any pickaxe (as on 1.20.1+)
+        setHarvestLevel("pickaxe", 0);
         setDefaultState(getDefaultState().withProperty(ROTATED, false));
     }
 

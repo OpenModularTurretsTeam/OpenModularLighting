@@ -14,7 +14,7 @@ import omtteam.openmodularlighting.tileentity.FloodlightTileEntity;
 /**
  * Floodlight GUI as in 1.7.10: the 176 × 146 texture with one status line and no title labels. Lights that can be
  * disguised also show a button below the status line on the right ({@link FloodlightContainer#hasCamoButton()}) that
- * opens OMLib's camouflage menu.
+ * opens OMLib's camouflage menu, whose Back button returns here.
  */
 public abstract class FloodlightGui<M extends FloodlightContainer> extends GuiContainer {
     private static final int HINT_WIDTH = 160;
@@ -26,12 +26,15 @@ public abstract class FloodlightGui<M extends FloodlightContainer> extends GuiCo
     private static final int LABEL_COLOR = 0x000000;
     private static final int HINT_HOVER_COLOR = 0xFFFFFF;
     private static final int CAMO_BUTTON = 0;
-    private static final int CAMO_WIDTH = 70;
-    private static final int CAMO_X = 176 - 8 - CAMO_WIDTH;
-    private static final int CAMO_Y = 36;
+    /** The camouflage button: below the status line, right of the light's slot (as on 1.20.1+). */
+    private static final int CAMO_X = 88;
+    private static final int CAMO_Y = 38;
+    private static final int CAMO_WIDTH = 80;
+    private static final int CAMO_HEIGHT = 18;
 
     protected final M menu;
     private final ResourceLocation texture;
+    private GuiButton camoButton;
 
     protected FloodlightGui(M menu, ResourceLocation texture) {
         super(menu);
@@ -49,8 +52,9 @@ public abstract class FloodlightGui<M extends FloodlightContainer> extends GuiCo
         super.initGui();
         buttonList.clear();
         if (menu.hasCamoButton()) {
-            buttonList.add(new GuiButton(CAMO_BUTTON, guiLeft + CAMO_X, guiTop + CAMO_Y, CAMO_WIDTH, 20,
-                    I18n.format("gui.openmodularlighting.camouflage")));
+            camoButton = new GuiButton(CAMO_BUTTON, guiLeft + CAMO_X, guiTop + CAMO_Y, CAMO_WIDTH, CAMO_HEIGHT,
+                    I18n.format("gui.openmodularlighting.camouflage"));
+            buttonList.add(camoButton);
         }
     }
 
@@ -71,6 +75,9 @@ public abstract class FloodlightGui<M extends FloodlightContainer> extends GuiCo
             String seconds = FloodlightTileEntity.seconds(OMLConfig.get().general.timeoutFloodlights);
             drawHoveringText(fontRenderer.listFormattedStringToWidth(
                     I18n.format("tooltip.openmodularlighting.timeout_hint", seconds), HINT_WIDTH), mouseX, mouseY);
+        } else if (camoButton != null && camoButton.isMouseOver()) {
+            drawHoveringText(fontRenderer.listFormattedStringToWidth(
+                    I18n.format("tooltip.openmodularlighting.camouflage"), HINT_WIDTH), mouseX, mouseY);
         }
     }
 

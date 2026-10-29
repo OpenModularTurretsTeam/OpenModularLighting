@@ -177,7 +177,8 @@ Light blocks do not tick (there can be thousands); they react to the world inste
   Sources in unloaded chunks are left alone (`SourceStatus.UNKNOWN`).
 
 The phantom light is `Material.AIR` on 1.12 (so `isAir` is true, as in 1.7.10); falling blocks, trees, pistons and explosions treat it as air, and random ticks still work.
-`LevelLightWorld` and `LightBlocks.join` therefore check the light blocks **before** `isAir`.
+OML itself never asks `Block.isAir`, which is true for every block with air material, including other mods' blocks a beam must not replace: `LightBlocks.isAir` (real air, `BlockAir`) is used by `LevelLightWorld`, `LightBlocks.join` and the grow light, as `isAir()` on 1.20.1+.
+Leaves pass beams (`LevelLightWorld`): 1.12 reports them as opaque cubes with fast graphics, which a dedicated server always has.
 The UV light block is the exception that ticks: while lit it hurts every living entity inside it once a second (`UvLightTileEntity.update`).
 
 Forge recreates a mod tile entity on every state change unless `shouldRefresh` says otherwise; OMLib's `TileEntitySynced` replaces it only when the block changes, which is what lets `LIT` switch without wiping a light.
@@ -208,7 +209,7 @@ Each light keeps its own buffer; `ClusterEnergy` shows the whole cluster to the 
 - sneak with an empty hand: toggle invert; stick or wrench: `configure` (cycle the mode, turn the small fluorescent light); wrench plus sneak: dismantle; dye or wool: set the colour;
 - anything else opens the GUI: `OMLGuiHandler` creates `ElectricFloodlightContainer` or `CarbonFloodlightContainer` on the server and the screen from `ClientProxy.createGui` on the client.
   The container syncs its long values through OMLib's `WindowValues`.
-  The electric, carbon and UV floodlights also get a Camouflage button that opens OMLib's camouflage menu.
+  The electric, carbon and UV floodlights also get a Camouflage button that opens OMLib's camouflage menu; its Back button returns to the light's GUI (`hasParentMenu` / `openParentMenu`), and its rules take only opaque blocks, with OML's texts (`getDisguiseRules`).
 
 Changes that affect the beam (`setMode`) end in `shapeChanged()`, which re-casts at once.
 The server is the only place that changes state; the screens only show it, and the colour and the disguise reach the client in the tile entity's update tag.

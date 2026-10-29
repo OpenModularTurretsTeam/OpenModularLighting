@@ -13,6 +13,8 @@ import omtteam.openmodularlighting.core.formula.GrowChance;
 import omtteam.openmodularlighting.core.state.LightController;
 import omtteam.openmodularlighting.energy.ElectricPower;
 import omtteam.openmodularlighting.energy.LightPower;
+import omtteam.openmodularlighting.registry.ModBlocks;
+import omtteam.openmodularlighting.world.LightBlocks;
 
 /**
  * Grow light (1.7.10 {@code TileEntityGrowLight}): lights the block in front (normal lighting mode) and gives the crop
@@ -75,8 +77,9 @@ public class GrowLightTileEntity extends PanelLightTileEntity {
         BlockPos target = pos.offset(facing, 2);
         IBlockState frontState = world.getBlockState(front);
         IBlockState targetState = world.getBlockState(target);
-        // the phantom light is an air block itself
-        if (frontState.getBlock().isAir(frontState, world, front) && targetState.getBlock() instanceof IGrowable) {
+        // a phantom light counts as air
+        boolean air = LightBlocks.isAir(frontState) || frontState.getBlock() == ModBlocks.PHANTOM_LIGHT;
+        if (air && targetState.getBlock() instanceof IGrowable) {
             IGrowable crop = (IGrowable) targetState.getBlock();
             if (crop.canGrow(world, target, targetState, false)) {
                 crop.grow(world, world.rand, target, targetState);

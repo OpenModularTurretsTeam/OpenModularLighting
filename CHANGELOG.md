@@ -9,6 +9,21 @@ turns *Unreleased* into the release section; `chiseledPublish` uploads exactly t
 
 ## [Unreleased]
 
+### Added
+
+- The camouflage menu has a Back button to the light's GUI (as on 1.20.1+)
+
+### Changed
+
+- The Camouflage button is placed and sized as on 1.20.1+ and has a tooltip
+- The camouflage menu says that only full, opaque blocks work, in its slot tooltip and when a block is refused (as on 1.20.1+)
+- Fluorescent lights can be mined with any pickaxe (as on 1.20.1+)
+
+### Fixed
+
+- Leaves stopped floodlight beams on servers and with fast graphics; beams pass them, as on 1.20.1+
+- Beams could replace other mods' blocks made of air material; only real air takes light blocks now
+
 ## [1.0.0-beta.8] - 2026-10-27
 
 ### Changed

@@ -1,5 +1,6 @@
 package omtteam.openmodularlighting.world;
 
+import net.minecraft.block.BlockAir;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.init.Blocks;
 import net.minecraft.tileentity.TileEntity;
@@ -32,6 +33,15 @@ public final class LightBlocks {
     }
 
     /**
+     * Whether the block is real air (1.20.1+ {@code isAir}). Not {@code Block.isAir}: in 1.12 every block with
+     * {@code Material.AIR} counts as air there, including the phantom light and other mods' blocks, which a beam
+     * must not replace.
+     */
+    public static boolean isAir(IBlockState state) {
+        return state.getBlock() instanceof BlockAir;
+    }
+
+    /**
      * Adds {@code source} to the light block at {@code pos}, placing one if the block is air (or one the light block
      * may replace, see {@link LightBlock#canReplace}; replacing a phantom light makes its sources re-cast).
      *
@@ -41,8 +51,7 @@ public final class LightBlocks {
         if (!world.isBlockLoaded(pos)) return false;
         IBlockState state = world.getBlockState(pos);
         if (state.getBlock() != block) {
-            boolean air = state.getBlock().isAir(state, world, pos) && !(state.getBlock() instanceof LightBlock);
-            if (!(air || block.canReplace(state))
+            if (!(isAir(state) || block.canReplace(state))
                     || !world.setBlockState(pos, block.getDefaultState().withProperty(LightBlock.LIT, on), FLAGS)) {
                 return false;
             }

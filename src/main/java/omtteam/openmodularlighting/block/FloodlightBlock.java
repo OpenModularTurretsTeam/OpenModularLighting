@@ -66,7 +66,7 @@ public abstract class FloodlightBlock extends Block {
     /**
      * Opens the GUI of this light: the shared electric GUI (energy, battery slot) for electric lights. Server side.
      */
-    protected void openGui(EntityPlayer player, FloodlightTileEntity light) {
+    public void openGui(EntityPlayer player, FloodlightTileEntity light) {
         if (light.electricPower() != null) {
             BlockPos pos = light.getPos();
             player.openGui(OML.instance, OMLGuiHandler.ELECTRIC, light.getWorld(), pos.getX(), pos.getY(), pos.getZ());
