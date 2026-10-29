@@ -70,6 +70,9 @@ dependencies {
     // Architecture rules (src/test/.../architecture): they read the compiled main and client classes
     testImplementation("com.tngtech.archunit:archunit-junit5:${property("archunit_version")}")
     testRuntimeOnly(sourceSets["client"].output)
+
+    // equals/hashCode contracts of the core value records (src/test/.../core/EqualsContractTest)
+    testImplementation("nl.jqno.equalsverifier:equalsverifier:${property("equalsverifier_version")}")
 }
 
 // ---- Test coverage (JaCoCo): check prints the line coverage of core ----

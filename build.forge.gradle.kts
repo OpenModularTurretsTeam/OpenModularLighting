@@ -95,6 +95,9 @@ dependencies {
     // Jade plugin (compat/jade, client/compat/jade): optional, not bundled; present in dev runs to try it
     "modCompileOnly"("maven.modrinth:jade:${property("jade_version")}")
     modLocalRuntime("maven.modrinth:jade:${property("jade_version")}")
+
+    // equals/hashCode contracts of the core value records (src/test/.../core/EqualsContractTest)
+    testImplementation("nl.jqno.equalsverifier:equalsverifier:${property("equalsverifier_version")}")
 }
 // The client half of the Jade plugin (client/compat/jade) compiles against it too (remapped, through compileOnly)
 configurations.named("clientCompileOnly") { extendsFrom(configurations.compileOnly.get()) }
