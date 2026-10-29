@@ -9,6 +9,8 @@ turns *Unreleased* into the release section; `chiseledPublish` uploads exactly t
 
 ## [Unreleased]
 
+## [1.0.0-beta.9] - 2026-10-29
+
 ### Added
 
 - The camouflage menu has a Back button to the light's GUI (as on 1.20.1+)
@@ -18,6 +20,7 @@ turns *Unreleased* into the release section; `chiseledPublish` uploads exactly t
 - The Camouflage button is placed and sized as on 1.20.1+ and has a tooltip
 - The camouflage menu says that only full, opaque blocks work, in its slot tooltip and when a block is refused (as on 1.20.1+)
 - Fluorescent lights can be mined with any pickaxe (as on 1.20.1+)
+- Requires OMLib 4.0.0-beta.6 or newer
 
 ### Fixed
 
