@@ -34,7 +34,7 @@ public final class ModItems {
     public static final Item CARBON_DISSOLVER = item("carbon_dissolver");
     public static final Item CARBON_LANTERN = item("carbon_lantern");
     public static final Item MANTLE = item("mantle");
-    /** While held, shows wireframes around light blocks (client {@code LightBlockDebugRenderer}). */
+    /** While held, shows wireframes around light blocks (client {@code LightBlockDebugRenderer}); creative only, no recipe. */
     public static final Item LIGHT_DEBUG_TOOL = item("light_debug_tool");
 
     /** Crafting items in creative tab order. */
