@@ -17,6 +17,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTest;
 //?}
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -210,6 +211,31 @@ public class FloodlightGameTest implements OMLGameTests {
         });
         helper.runAfterDelay(6, () -> {
             assertBeam(helper, pos, true);
+            remove(helper, pos);
+            helper.succeed();
+        });
+    }
+
+    /** Block entity data copied to another position ({@code /clone}, structures) re-casts there. */
+    @GameTest(template = EMPTY_STRUCTURE)
+    public void copiedDataRecastsAtTheNewPosition(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        BlockPos pos = helper.absolutePos(LIGHT);
+        BlockPos copyRel = new BlockPos(1, 1, 1);
+        BlockPos copyPos = helper.absolutePos(copyRel);
+        ElectricFloodlightBlockEntity light = placeElectric(helper);
+        helper.runAfterDelay(2, () -> {
+            helper.assertTrue(!light.getShape().isEmpty(), "original cast its beam");
+            CompoundTag tag = BlockEntityData.save(light, level.registryAccess());
+            helper.setBlock(copyRel, ModBlocks.ELECTRIC_FLOODLIGHT.defaultBlockState().setValue(FloodlightBlock.FACING, Direction.UP));
+            BlockEntityData.load(level.getBlockEntity(copyPos), tag, level.registryAccess());
+        });
+        helper.runAfterDelay(4, () -> {
+            FloodlightBlockEntity copy = (FloodlightBlockEntity) level.getBlockEntity(copyPos);
+            helper.assertTrue(!copy.getShape().isEmpty() && copy.getShape().stream()
+                    .allMatch(p -> p.getX() == copyPos.getX() && p.getZ() == copyPos.getZ()), "copy cast its own beam");
+            assertBeam(helper, pos, false);
+            remove(helper, copyPos);
             remove(helper, pos);
             helper.succeed();
         });

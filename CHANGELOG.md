@@ -15,6 +15,7 @@ turns *Unreleased* into the release section; `chiseledPublish` uploads exactly t
 - A floodlight right behind a block lights up as soon as that block is removed, instead of after up to 30 seconds
 - Phantom light blocks whose lit state was changed by a command go back to matching their floodlights
 - Minecraft 1.21.11: UV light left behind by a UV floodlight replaced with /setblock, /fill or /clone no longer hurts and removes itself
+- Floodlights copied with their data (/clone, structures) or turned without being replaced (debug stick) cast their own beam at once
 
 ## [1.0.0-beta.10] - 2026-10-27
 

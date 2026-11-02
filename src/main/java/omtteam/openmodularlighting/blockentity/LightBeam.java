@@ -22,18 +22,27 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * The beam of one light (CLAUDE.md §6.3): the light block positions it placed or joined, cached with the shape key
- * they were cast for, so that switching after a reload needs no re-cast.
+ * The beam of one light (CLAUDE.md §6.3): the light block positions it placed or joined, cached with the shape key,
+ * position and facing they were cast for, so that switching after a reload needs no re-cast.
  */
 final class LightBeam {
     private static final String SHAPE = "shape";
     private static final String SHAPE_KEY = "shape_key";
+    private static final String SHAPE_ORIGIN = "shape_origin";
+    private static final String SHAPE_FACING = "shape_facing";
 
     private final FloodlightBlockEntity light;
     private List<BlockPos> shape = List.of();
     private Set<BlockPos> shapeSet = Set.of();
     /** What the cached shape was cast for; null if there is no cached shape. */
     private int @Nullable [] shapeKey;
+    /**
+     * Position and facing the cached shape was cast from; null if unknown (saved before they were recorded), which is
+     * taken as matching. A copy of the block entity data elsewhere ({@code /clone}, structures) or a facing changed
+     * without a new block entity (debug stick) then re-casts.
+     */
+    private @Nullable BlockPos castOrigin;
+    private @Nullable Direction castFacing;
     /** The cells of the six neighbours after the last cast (not saved: null until the first cast after loading). */
     private Cell @Nullable [] neighbours;
 
@@ -41,9 +50,11 @@ final class LightBeam {
         this.light = light;
     }
 
-    /** Whether the cached shape is missing or was cast for a different key (mode, config). */
+    /** Whether the cached shape is missing or was cast for a different key (mode, config), position or facing. */
     boolean needsRecast() {
-        return !Arrays.equals(shapeKey, light.shapeKey());
+        return !Arrays.equals(shapeKey, light.shapeKey())
+                || castOrigin != null && !castOrigin.equals(light.getBlockPos())
+                || castFacing != null && castFacing != light.facing();
     }
 
     /**
@@ -86,6 +97,8 @@ final class LightBeam {
         }
         setShape(joined);
         shapeKey = light.shapeKey();
+        castOrigin = origin;
+        castFacing = light.facing();
         neighbours = neighbourCells(level);
     }
 
@@ -102,6 +115,8 @@ final class LightBeam {
         }
         setShape(List.of());
         shapeKey = null;
+        castOrigin = null;
+        castFacing = null;
         neighbours = null;
     }
 
@@ -117,6 +132,10 @@ final class LightBeam {
         if (shapeKey != null) {
             tag.putLongArray(SHAPE, shape.stream().mapToLong(BlockPos::asLong).toArray());
             tag.putIntArray(SHAPE_KEY, shapeKey);
+            if (castOrigin != null && castFacing != null) {
+                tag.putLong(SHAPE_ORIGIN, castOrigin.asLong());
+                tag.putInt(SHAPE_FACING, castFacing.get3DDataValue());
+            }
         }
     }
 
@@ -124,9 +143,14 @@ final class LightBeam {
         if (tag.contains(SHAPE_KEY)) {
             setShape(Arrays.stream(NbtCompat.getLongArray(tag, SHAPE)).mapToObj(BlockPos::of).toList());
             shapeKey = NbtCompat.getIntArray(tag, SHAPE_KEY);
+            boolean recorded = tag.contains(SHAPE_ORIGIN) && tag.contains(SHAPE_FACING);
+            castOrigin = recorded ? BlockPos.of(NbtCompat.getLong(tag, SHAPE_ORIGIN, 0L)) : null;
+            castFacing = recorded ? Direction.from3DDataValue(NbtCompat.getInt(tag, SHAPE_FACING, 0)) : null;
         } else {
             setShape(List.of());
             shapeKey = null;
+            castOrigin = null;
+            castFacing = null;
         }
     }
 
