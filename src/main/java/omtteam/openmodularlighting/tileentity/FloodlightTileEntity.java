@@ -189,6 +189,13 @@ public abstract class FloodlightTileEntity extends TileEntitySynced
         markDirty();
     }
 
+    /** A neighbour block changed: re-cast on the next tick if the beam may see something new there. */
+    public void neighbourChanged(World world) {
+        if (beam.neighboursChanged(world)) {
+            controller.requestRecast();
+        }
+    }
+
     /** The block was removed: leave all light blocks (removing those this light was the last source of). */
     public void removeLights(World world) {
         beam.removeLights(world);

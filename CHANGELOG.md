@@ -9,6 +9,19 @@ turns *Unreleased* into the release section; `chiseledPublish` uploads exactly t
 
 ## [Unreleased]
 
+### Fixed
+
+- The grow light no longer grows its crop the moment it is placed or loaded (with a growth chance of 0 it now never grows)
+- A floodlight right behind a block lights up as soon as that block is removed, instead of after up to 30 seconds
+- Phantom light blocks whose lit state was changed by a command go back to matching their floodlights
+- UV light left behind by a UV floodlight removed without its removal hook no longer hurts and removes itself
+- Floodlights copied with their data (/clone, structures) cast their own beam at once
+- Floodlights and fluorescent lights in rotated or mirrored structures turn with them
+- The wide cone lights at least one block when the cone range is set below 4
+- The grow light's GUI explains the wait after turning off, like the floodlights' GUIs
+- The carbon floodlight's GUI no longer shows no time left in a cone mode with fuels of enormous burn time
+- Missing translations: the death message of a mob killed by UV light while fighting a player, the names of the phantom and UV light blocks in German and Russian, and the "Configured" tooltip in Russian
+
 ## [1.0.0-beta.9] - 2026-10-29
 
 ### Added

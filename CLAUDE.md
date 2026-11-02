@@ -257,7 +257,7 @@ Beam shapes (defined along +X, then rotated to the facing):
 | --- | --- | --- |
 | Straight | `rangeStraightFloodlight` | single ray along the facing |
 | Narrow cone | `rangeConeFloodlight` | 8 outer rays spreading `i/2` sideways (orthogonal + diagonal), plus 8 inner rays from distance 8 spreading `i/4`. An inner ray is skipped if its outer ray was blocked before distance 8. Aborts if the block in front is blocked. |
-| Wide cone | `rangeConeFloodlight / 4` | 8 outer rays spreading `i` sideways, plus 8 inner rays from distance 4 spreading `i/2`. Aborts if the block in front is opaque. |
+| Wide cone | `rangeConeFloodlight / 4`, at least 1 | 8 outer rays spreading `i` sideways, plus 8 inner rays from distance 4 spreading `i/2`. Aborts if the block in front is opaque. |
 | Fluorescent | 1 | front + the 4 sideways neighbours |
 | Cube light | 1 | all 6 neighbours |
 | Grow light | 1 | front block only (only in "normal lighting" mode) |

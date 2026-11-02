@@ -15,7 +15,8 @@ public enum BeamMode {
 
     /**
      * The shape of this mode for the configured ranges ({@code rangeStraightFloodlight}, {@code rangeConeFloodlight}).
-     * The wide cone reaches a quarter of the cone range. Not every block of a ray gets a light block, see
+     * The wide cone reaches a quarter of the cone range, at least 1 block (so a small cone range still lights
+     * something). Not every block of a ray gets a light block, see
      * {@link Spacing#STRAIGHT} and {@link Spacing#CONE}.
      */
     public BeamShape shape(int straightRange, int coneRange) {
@@ -23,7 +24,7 @@ public enum BeamMode {
             case NARROW_CONE:
                 return BeamShape.narrowCone(coneRange).withSpacing(Spacing.CONE);
             case WIDE_CONE:
-                return BeamShape.wideCone(coneRange / 4).withSpacing(Spacing.CONE);
+                return BeamShape.wideCone(Math.max(1, coneRange / 4)).withSpacing(Spacing.CONE);
             default:
                 return BeamShape.straight(straightRange).withSpacing(Spacing.STRAIGHT);
         }

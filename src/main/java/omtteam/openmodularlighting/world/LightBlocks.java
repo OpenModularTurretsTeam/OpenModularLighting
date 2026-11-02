@@ -76,6 +76,19 @@ public final class LightBlocks {
         apply(world, pos, light.setSourceActive(Positions.toPos(source), on));
     }
 
+    /**
+     * Refreshes the sources of the light block at {@code pos} ({@link LightTileEntity#refresh}) and makes its
+     * {@code LIT} follow them, also when the sources did not change but the blockstate disagrees with them (set by a
+     * command, or a switch that was lost).
+     */
+    public static void refresh(World world, BlockPos pos, LightTileEntity light) {
+        LightSources.Effect effect = light.refresh();
+        if (effect == LightSources.Effect.NONE) {
+            effect = light.sources().isLit() ? LightSources.Effect.TURN_ON : LightSources.Effect.TURN_OFF;
+        }
+        apply(world, pos, effect);
+    }
+
     /** Carries out an {@link LightSources.Effect} on the light block at {@code pos}. */
     public static void apply(World world, BlockPos pos, LightSources.Effect effect) {
         IBlockState state = world.getBlockState(pos);

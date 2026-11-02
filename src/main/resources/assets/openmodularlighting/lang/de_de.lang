@@ -1,3 +1,5 @@
+tile.openmodularlighting.phantom_light.name=Phantomlicht
+tile.openmodularlighting.uv_light.name=UV-Licht
 tile.openmodularlighting.electric_floodlight.name=Elektrisches Flutlicht
 tile.openmodularlighting.carbon_floodlight.name=Nicht-elektrisches Flutlicht
 tile.openmodularlighting.uv_floodlight.name=UV Flutlicht
@@ -35,4 +37,5 @@ tooltip.openmodularlighting.camouflage=Öffne das Tarnungsmenü, um die Lampe al
 tooltip.openmodularlighting.timeout_hint=Nach dem Ausschalten wartet die Lampe %s Sekunden, bevor sie wieder angehen kann. Jedes Umschalten aktualisiert die Helligkeit aller Blöcke im Strahl; die Pause verhindert, dass schnelles Schalten Lag verursacht.
 gui.openmodularlighting.turns_on_in=Die Lampe geht in %s Sekunden an.
 death.attack.openmodularlighting.uv_light=%1$s wurde von UV-Licht verbrannt
+death.attack.openmodularlighting.uv_light.player=%1$s wurde im Kampf mit %2$s von UV-Licht verbrannt
 option.openmodularlighting.light=Open Modular Lighting: Lampen

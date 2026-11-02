@@ -15,6 +15,8 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.BlockRenderLayer;
 import net.minecraft.util.EnumFacing;
+import net.minecraft.util.Mirror;
+import net.minecraft.util.Rotation;
 import net.minecraft.util.NonNullList;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.TextComponentString;
@@ -151,6 +153,34 @@ public abstract class FloodlightBlock extends Block {
     public IBlockState getStateForPlacement(World world, BlockPos pos, EnumFacing facing, float hitX, float hitY,
                                             float hitZ, int meta, EntityLivingBase placer) {
         return getDefaultState().withProperty(FACING, EnumFacing.getDirectionFromEntityLiving(pos, placer));
+    }
+
+    /** Structures and other rotated or mirrored placements turn the light with them. */
+    @Override
+    @SuppressWarnings("deprecation")
+    public IBlockState withRotation(IBlockState state, Rotation rotation) {
+        return state.withProperty(FACING, rotation.rotate(state.getValue(FACING)));
+    }
+
+    @Override
+    @SuppressWarnings("deprecation")
+    public IBlockState withMirror(IBlockState state, Mirror mirror) {
+        return state.withRotation(mirror.toRotation(state.getValue(FACING)));
+    }
+
+    /**
+     * A block next to the light changed: a wall in front may have gone, where no light block noticed it (the beam
+     * stopped there, or that position is left out by the thinning).
+     */
+    @Override
+    @SuppressWarnings("deprecation")
+    public void neighborChanged(IBlockState state, World world, BlockPos pos, Block neighbourBlock,
+                                BlockPos neighbourPos) {
+        if (world.isRemote) return;
+        TileEntity tile = world.getTileEntity(pos);
+        if (tile instanceof FloodlightTileEntity) {
+            ((FloodlightTileEntity) tile).neighbourChanged(world);
+        }
     }
 
     /** The lamp overlay of the floodlights has transparent pixels (CLAUDE.md §6.11). */

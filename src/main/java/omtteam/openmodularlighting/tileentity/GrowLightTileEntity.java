@@ -27,8 +27,14 @@ public class GrowLightTileEntity extends PanelLightTileEntity {
     private final ElectricPower power = new ElectricPower(
             () -> OMLConfig.get().general.energyUsageGrowLight, this::markDirty);
     private GrowMode mode = GrowMode.LIGHTING;
-    /** Game time of the next growth tick; not saved (1.7.10). */
-    private long nextGrowTick;
+    /** {@link #nextGrowTick} before the light first ran since it was placed or loaded. */
+    private static final long NOT_DRAWN = Long.MIN_VALUE;
+
+    /**
+     * Game time of the next growth tick; not saved (1.7.10), so it is drawn when the light first runs, and placing or
+     * loading the light gives no growth at once.
+     */
+    private long nextGrowTick = NOT_DRAWN;
 
     @Override
     protected LightPower power() {
@@ -71,7 +77,12 @@ public class GrowLightTileEntity extends PanelLightTileEntity {
      */
     @Override
     protected void afterTick(World world, BlockPos pos, IBlockState state, LightController.TickResult result) {
-        if (!result.running() || world.getTotalWorldTime() <= nextGrowTick) return;
+        if (!result.running()) return;
+        if (nextGrowTick == NOT_DRAWN) {
+            nextGrowTick = drawNextGrowTick(world);
+            return;
+        }
+        if (world.getTotalWorldTime() <= nextGrowTick) return;
         EnumFacing facing = facing();
         BlockPos front = pos.offset(facing);
         BlockPos target = pos.offset(facing, 2);
@@ -85,8 +96,11 @@ public class GrowLightTileEntity extends PanelLightTileEntity {
                 crop.grow(world, world.rand, target, targetState);
             }
         }
-        nextGrowTick = GrowChance.nextGrowTick(world.getTotalWorldTime(), OMLConfig.get().general.chanceGrowLight,
-                world.rand);
+        nextGrowTick = drawNextGrowTick(world);
+    }
+
+    private static long drawNextGrowTick(World world) {
+        return GrowChance.nextGrowTick(world.getTotalWorldTime(), OMLConfig.get().general.chanceGrowLight, world.rand);
     }
 
     @Override

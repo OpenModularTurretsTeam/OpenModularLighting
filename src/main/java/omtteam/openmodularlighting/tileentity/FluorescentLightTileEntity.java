@@ -1,6 +1,8 @@
 package omtteam.openmodularlighting.tileentity;
 
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.EnumFacing;
+import net.minecraft.util.Rotation;
 import omtteam.openmodularlighting.config.OMLConfig;
 import omtteam.openmodularlighting.core.beam.BeamShape;
 import omtteam.openmodularlighting.energy.ElectricPower;
@@ -29,6 +31,19 @@ public class FluorescentLightTileEntity extends PanelLightTileEntity {
     public void toggleRotated() {
         rotated = !rotated;
         syncToClient();
+    }
+
+    /**
+     * Structures turn the light: a quarter turn of a light on the floor or ceiling turns its strip too (on a wall it
+     * turns with the wall through the facing). Kept here, as the strip's state lives in the tile entity on 1.12.
+     */
+    @Override
+    public void rotate(Rotation rotation) {
+        boolean quarter = rotation == Rotation.CLOCKWISE_90 || rotation == Rotation.COUNTERCLOCKWISE_90;
+        if (quarter && world != null && facing().getAxis() == EnumFacing.Axis.Y) {
+            rotated = !rotated;
+            markDirty();
+        }
     }
 
     @Override

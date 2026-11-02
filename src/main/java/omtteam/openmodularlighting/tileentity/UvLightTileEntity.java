@@ -8,6 +8,7 @@ import net.minecraft.util.math.AxisAlignedBB;
 import omtteam.openmodularlighting.OML;
 import omtteam.openmodularlighting.block.LightBlock;
 import omtteam.openmodularlighting.config.OMLConfig;
+import omtteam.openmodularlighting.world.LightBlocks;
 
 /**
  * Block entity of the UV light block: its UV floodlight sources (see {@link LightTileEntity}), and the damage to
@@ -26,6 +27,11 @@ public class UvLightTileEntity extends LightTileEntity implements ITickable {
         if (world == null || world.isRemote || world.getTotalWorldTime() % DAMAGE_INTERVAL != DAMAGE_PHASE) return;
         IBlockState state = world.getBlockState(pos);
         if (!(state.getBlock() instanceof LightBlock) || !state.getValue(LightBlock.LIT)) return;
+        // check the sources first: a UV floodlight removed without its removal hook (chunks edited by other tools)
+        // must not leave harmful light behind until a random tick finds it
+        LightBlocks.refresh(world, pos, this);
+        IBlockState now = world.getBlockState(pos);
+        if (now.getBlock() != state.getBlock() || !now.getValue(LightBlock.LIT)) return;
         float damage = (float) OMLConfig.get().general.damageUVFloodlight;
         for (EntityLivingBase entity : world.getEntitiesWithinAABB(EntityLivingBase.class, new AxisAlignedBB(pos))) {
             entity.attackEntityFrom(UV_LIGHT, damage);

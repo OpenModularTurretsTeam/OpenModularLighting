@@ -88,7 +88,7 @@ class BeamCasterTest {
                 assertEquals(Legacy1710Beams.narrowConeSource(Pos.ORIGIN, facing, range, world),
                         castSet(BeamShape.narrowCone(range), Pos.ORIGIN, facing, world));
                 assertEquals(Legacy1710Beams.wideConeSource(Pos.ORIGIN, facing, range, world),
-                        castSet(BeamShape.wideCone(range / 4), Pos.ORIGIN, facing, world));
+                        castSet(BeamShape.wideCone(Math.max(1, range / 4)), Pos.ORIGIN, facing, world));
             }
         }
     }

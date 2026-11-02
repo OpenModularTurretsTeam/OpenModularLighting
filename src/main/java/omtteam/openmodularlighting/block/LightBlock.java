@@ -86,7 +86,7 @@ public abstract class LightBlock extends Block {
         if (world.isRemote) return;
         TileEntity tile = world.getTileEntity(pos);
         if (tile instanceof LightTileEntity) {
-            LightBlocks.apply(world, pos, ((LightTileEntity) tile).refresh());
+            LightBlocks.refresh(world, pos, (LightTileEntity) tile);
         }
     }
 

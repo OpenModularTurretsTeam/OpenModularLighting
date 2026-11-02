@@ -37,4 +37,5 @@ tooltip.openmodularlighting.camouflage=Open the camouflage menu to disguise this
 tooltip.openmodularlighting.timeout_hint=After turning off, the light waits %s seconds before it can turn on again. Every switch updates the light level of all blocks in its beam, so the delay keeps fast switching from causing lag.
 gui.openmodularlighting.turns_on_in=The light will turn on in %s seconds.
 death.attack.openmodularlighting.uv_light=%1$s was burned by UV light
+death.attack.openmodularlighting.uv_light.player=%1$s was burned by UV light while fighting %2$s
 option.openmodularlighting.light=Open Modular Lighting: lights

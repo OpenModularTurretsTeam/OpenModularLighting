@@ -13,6 +13,7 @@ import omtteam.omlib.container.WindowValues;
 import omtteam.openmodularlighting.block.CarbonFloodlightBlock;
 import omtteam.openmodularlighting.block.ElectricFloodlightBlock;
 import omtteam.openmodularlighting.block.FloodlightBlock;
+import omtteam.openmodularlighting.block.GrowLightBlock;
 import omtteam.openmodularlighting.tileentity.FloodlightTileEntity;
 
 import java.util.function.IntSupplier;
@@ -53,7 +54,8 @@ public abstract class FloodlightContainer extends Container {
         // the block at pos: the same on both sides, so both create the same slots
         Block block = light.getWorld().getBlockState(pos).getBlock();
         this.camoButton = block instanceof FloodlightBlock && ((FloodlightBlock) block).supportsCamo();
-        this.timeoutHint = block instanceof ElectricFloodlightBlock || block instanceof CarbonFloodlightBlock;
+        this.timeoutHint = block instanceof ElectricFloodlightBlock || block instanceof CarbonFloodlightBlock
+                || block instanceof GrowLightBlock;
         for (int y = 0; y < 3; y++) {
             for (int x = 0; x < 9; x++) {
                 addSlotToContainer(new Slot(playerInventory, 9 + x + y * 9, 8 + x * 18, 58 + y * 18));
@@ -75,7 +77,7 @@ public abstract class FloodlightContainer extends Container {
         return camoButton;
     }
 
-    /** Whether the GUI explains the timeout after turning off (the electric and carbon floodlights). */
+    /** Whether the GUI explains the timeout after turning off (the lights that have one: floodlights, grow light). */
     public boolean hasTimeoutHint() {
         return timeoutHint;
     }
