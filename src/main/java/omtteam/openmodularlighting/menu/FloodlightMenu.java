@@ -13,6 +13,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.phys.Vec3;
 import omtteam.openmodularlighting.block.CarbonFloodlightBlock;
+import omtteam.openmodularlighting.block.GrowLightBlock;
 import omtteam.openmodularlighting.block.ElectricFloodlightBlock;
 import omtteam.openmodularlighting.blockentity.FloodlightBlockEntity;
 import omtteam.omlib.camo.CamoBlock;
@@ -46,7 +47,8 @@ public abstract class FloodlightMenu extends AbstractContainerMenu {
         // the block at pos: the same on both sides, so both create the same slots
         Block block = playerInventory.player.level().getBlockState(pos).getBlock();
         this.camo = block instanceof CamoBlock;
-        this.timeoutHint = block instanceof ElectricFloodlightBlock || block instanceof CarbonFloodlightBlock;
+        this.timeoutHint = block instanceof ElectricFloodlightBlock || block instanceof CarbonFloodlightBlock
+                || block instanceof GrowLightBlock;
         for (int y = 0; y < 3; y++) {
             for (int x = 0; x < 9; x++) {
                 addSlot(new Slot(playerInventory, 9 + x + y * 9, 8 + x * 18, 58 + y * 18));
@@ -72,7 +74,7 @@ public abstract class FloodlightMenu extends AbstractContainerMenu {
         return camo;
     }
 
-    /** Whether the GUI explains the timeout after turning off (the electric and carbon floodlights). */
+    /** Whether the GUI explains the timeout after turning off (the lights that have one: floodlights, grow light). */
     public boolean hasTimeoutHint() {
         return timeoutHint;
     }
