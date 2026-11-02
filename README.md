@@ -56,8 +56,8 @@ Light Bulb**, the part needed for every electric light. The non-electric floodli
 made from a Mantle, a Fuel Dissolver and flint and steel. The **Cube Light** is made from glass, a light bulb and iron. All recipes are shown in the recipe book or in a recipe
 viewer.
 
-The **Lightblock Debug Tool** shows the invisible light blocks while you hold it: yellow for normal light, magenta for UV
-light.
+The **Lightblock Debug Tool** (creative only) shows the invisible light blocks while you hold it: yellow for normal light,
+magenta for UV light.
 
 ### Config
 
