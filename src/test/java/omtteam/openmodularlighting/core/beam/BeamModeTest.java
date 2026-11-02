@@ -42,4 +42,12 @@ class BeamModeTest {
         // 9 outer + 8 inner rays
         assertEquals(17, BeamMode.NARROW_CONE.shape(64, 32).rays().size());
     }
+
+    @Test
+    void wideConeReachesAtLeastOneBlock() {
+        for (int coneRange = 1; coneRange < 8; coneRange++) {
+            assertEquals(Math.max(1, coneRange / 4), BeamMode.WIDE_CONE.shape(64, coneRange).rays().get(0).steps().size(),
+                    "cone range " + coneRange);
+        }
+    }
 }

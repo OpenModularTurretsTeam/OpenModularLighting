@@ -11,6 +11,7 @@ import java.util.Set;
  * {@code oldmod/.../tileentity/TileEntityMetaFloodlight}, {@code TileEntitySmallFloodlight},
  * {@code TileEntityGrowLight} and {@code util/MathUtil}. Only the world access is replaced; placing a phantom
  * light becomes adding the position to the result. {@link BeamCaster} must produce the same positions.
+ * Deliberate changes to a shape are made here too and marked (the wide cone reaches at least 1 block).
  */
 final class Legacy1710Beams {
     private Legacy1710Beams() {
@@ -32,6 +33,9 @@ final class Legacy1710Beams {
     static Set<Pos> wideConeSource(Pos o, Facing orientation, int rangeConeFloodlight, LightWorld world) {
         Set<Pos> lit = new HashSet<>();
         boolean[] failedBeams = new boolean[9];
+        // changed on purpose (2026-11-02): at least 1 block; 1.7.10 divided by 4 only, which lit nothing below a cone
+        // range of 4
+        int length = Math.max(1, rangeConeFloodlight / 4);
         // 1.7.10: getBlock(...).isOpaqueCube(); an unloaded block read as air there
         if (world.cellAt(new Pos(o.x() + orientation.dx(), o.y() + orientation.dy(), o.z() + orientation.dz()))
                 == Cell.OPAQUE) {
@@ -39,7 +43,7 @@ final class Legacy1710Beams {
         }
         for (int j = 0; j <= 16; j++) {
             if (j <= 8) {
-                for (int i = 1; i <= rangeConeFloodlight / 4; i++) {
+                for (int i = 1; i <= length; i++) {
                     int b = 0;
                     int c = 0;
                     switch (j) {
@@ -65,7 +69,7 @@ final class Legacy1710Beams {
                     }
                 }
             } else if (!failedBeams[j - 9]) {
-                for (int i = 4; i <= rangeConeFloodlight / 4; i++) {
+                for (int i = 4; i <= length; i++) {
                     int b = 0;
                     int c = 0;
                     switch (j) {

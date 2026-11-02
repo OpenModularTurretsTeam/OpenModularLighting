@@ -17,6 +17,7 @@ turns *Unreleased* into the release section; `chiseledPublish` uploads exactly t
 - Minecraft 1.21.11: UV light left behind by a UV floodlight replaced with /setblock, /fill or /clone no longer hurts and removes itself
 - Floodlights copied with their data (/clone, structures) or turned without being replaced (debug stick) cast their own beam at once
 - Floodlights and fluorescent lights in rotated or mirrored structures turn with them
+- The wide cone lights at least one block when the cone range is set below 4
 
 ## [1.0.0-beta.10] - 2026-10-27
 
