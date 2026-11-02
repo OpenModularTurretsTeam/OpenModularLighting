@@ -167,6 +167,26 @@ public class PhantomLightGameTest implements OMLGameTests {
         helper.succeed();
     }
 
+    /** A {@code LIT} that disagrees with unchanged sources (set by a command) is corrected too. */
+    @GameTest(template = EMPTY_STRUCTURE)
+    public void randomTickCorrectsLitAgainstUnchangedSources(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        BlockPos light = helper.absolutePos(LIGHT);
+        TestLightSourceBlockEntity source = placeSource(helper, SOURCE_A);
+        source.covered.add(light);
+        LightBlocks.join(level, light, ModBlocks.PHANTOM_LIGHT, source.getBlockPos(), false);
+
+        level.setBlock(light, level.getBlockState(light).setValue(LightBlock.LIT, true), LightBlocks.FLAGS);
+        randomTick(level, light);
+        assertLit(helper, false, "lit by a command, but the source is off");
+        source.on = true;
+        randomTick(level, light);
+        level.setBlock(light, level.getBlockState(light).setValue(LightBlock.LIT, false), LightBlocks.FLAGS);
+        randomTick(level, light);
+        assertLit(helper, true, "unlit by a command, but the source is on");
+        helper.succeed();
+    }
+
     @GameTest(template = EMPTY_STRUCTURE)
     public void randomTickKeepsSourcesInUnloadedChunks(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();

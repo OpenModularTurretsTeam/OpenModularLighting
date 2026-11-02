@@ -49,7 +49,7 @@ public abstract class LightBlock extends Block implements EntityBlock {
     @Override
     public void randomTick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
         if (level.getBlockEntity(pos) instanceof LightBlockEntity light) {
-            LightBlocks.apply(level, pos, light.refresh());
+            LightBlocks.refresh(level, pos, light);
         }
     }
 

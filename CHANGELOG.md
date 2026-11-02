@@ -13,6 +13,7 @@ turns *Unreleased* into the release section; `chiseledPublish` uploads exactly t
 
 - The grow light no longer grows its crop the moment it is placed or loaded (with a growth chance of 0 it now never grows)
 - A floodlight right behind a block lights up as soon as that block is removed, instead of after up to 30 seconds
+- Phantom light blocks whose lit state was changed by a command go back to matching their floodlights
 
 ## [1.0.0-beta.10] - 2026-10-27
 
