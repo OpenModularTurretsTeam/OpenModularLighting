@@ -8,6 +8,8 @@ Before a release, `./gradlew releaseChangelog` turns *Unreleased* into the relea
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-11-03
+
 ### Fixed
 
 - The grow light no longer grows its crop the moment it is placed or loaded (with a growth chance of 0 it now never grows)
