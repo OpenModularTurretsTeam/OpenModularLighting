@@ -57,22 +57,22 @@ class BeamCasterTest {
             for (Facing facing : Facing.values()) {
                 String where = "seed " + seed + ", " + facing;
                 for (int range : RANGES) {
-                    assertEquals(thinned(Legacy1710Beams.straightSource(origin, facing, range, world), origin, facing,
+                    assertEquals(thinned(BeamTest.straightSource(origin, facing, range, world), origin, facing,
                                     Spacing.STRAIGHT),
                             castSet(BeamMode.STRAIGHT.shape(range, 1), origin, facing, world),
                             "straight " + range + ", " + where);
-                    assertEquals(thinned(Legacy1710Beams.narrowConeSource(origin, facing, range, world), origin, facing,
+                    assertEquals(thinned(BeamTest.narrowConeSource(origin, facing, range, world), origin, facing,
                                     Spacing.CONE),
                             castSet(BeamMode.NARROW_CONE.shape(1, range), origin, facing, world),
                             "narrow cone " + range + ", " + where);
-                    assertEquals(thinned(Legacy1710Beams.wideConeSource(origin, facing, range, world), origin, facing,
+                    assertEquals(thinned(BeamTest.wideConeSource(origin, facing, range, world), origin, facing,
                                     Spacing.CONE),
                             castSet(BeamMode.WIDE_CONE.shape(1, range), origin, facing, world),
                             "wide cone " + range + ", " + where);
                 }
-                assertEquals(Legacy1710Beams.smallSource(origin, facing, world),
+                assertEquals(BeamTest.smallSource(origin, facing, world),
                         castSet(BeamShape.fluorescent(), origin, facing, world), "fluorescent, " + where);
-                assertEquals(Legacy1710Beams.growSource(origin, facing, world),
+                assertEquals(BeamTest.growSource(origin, facing, world),
                         castSet(BeamShape.grow(), origin, facing, world), "grow, " + where);
             }
         }
@@ -83,9 +83,9 @@ class BeamCasterTest {
         TestWorld world = TestWorld.open();
         for (Facing facing : Facing.values()) {
             for (int range : RANGES) {
-                assertEquals(Legacy1710Beams.narrowConeSource(Pos.ORIGIN, facing, range, world),
+                assertEquals(BeamTest.narrowConeSource(Pos.ORIGIN, facing, range, world),
                         castSet(BeamShape.narrowCone(range), Pos.ORIGIN, facing, world));
-                assertEquals(Legacy1710Beams.wideConeSource(Pos.ORIGIN, facing, range, world),
+                assertEquals(BeamTest.wideConeSource(Pos.ORIGIN, facing, range, world),
                         castSet(BeamShape.wideCone(Math.max(1, range / 4)), Pos.ORIGIN, facing, world));
             }
         }

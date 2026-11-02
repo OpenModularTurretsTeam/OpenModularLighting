@@ -13,8 +13,8 @@ import java.util.Set;
  * light becomes adding the position to the result. {@link BeamCaster} must produce the same positions.
  * Deliberate changes to a shape are made here too and marked (the wide cone reaches at least 1 block).
  */
-final class Legacy1710Beams {
-    private Legacy1710Beams() {
+final class BeamTest {
+    private BeamTest() {
     }
 
     static Set<Pos> straightSource(Pos o, Facing orientation, int rangeStraightFloodlight, LightWorld world) {

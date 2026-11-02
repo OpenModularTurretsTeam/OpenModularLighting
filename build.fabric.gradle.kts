@@ -153,8 +153,8 @@ tasks.register<JavaExec>("pitest") {
             "--reportDir", reportDir.get().asFile.path,
             "--targetClasses", "omtteam.openmodularlighting.core.*",
             "--targetTests", "omtteam.openmodularlighting.core.*",
-            // the tests and their helpers (TestWorld, the reference loops Legacy1710Beams) share the core packages
-            "--excludedClasses", "*Test,*Test\$*,*.TestWorld*,*.Legacy1710Beams*",
+            // the tests and their helpers (TestWorld, the reference loops BeamTest) share the core packages
+            "--excludedClasses", "*Test,*Test\$*,*.TestWorld*",
             "--sourceDirs", sources.joinToString(","),
             "--threads", Runtime.getRuntime().availableProcessors().toString(),
             "--outputFormats", "HTML,XML",
