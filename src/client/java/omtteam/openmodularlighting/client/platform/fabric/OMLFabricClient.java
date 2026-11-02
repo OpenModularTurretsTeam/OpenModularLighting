@@ -6,7 +6,7 @@ import net.fabricmc.fabric.api.client.rendering.v1.ColorProviderRegistry;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.world.level.block.Block;
 import omtteam.openmodularlighting.client.OMLClient;
-import omtteam.omlib.client.camo.CamoModels;
+import omtteam.omlib.camo.CamoBlock;
 import omtteam.openmodularlighting.client.render.FloodlightTint;
 import omtteam.openmodularlighting.client.render.LightBlockDebugRenderer;
 import omtteam.openmodularlighting.registry.ModBlocks;
@@ -32,15 +32,17 @@ public final class OMLFabricClient implements ClientModInitializer {
         OMLClient.registerScreens(MenuScreens::register);
         ColorProviderRegistry.BLOCK.register(FloodlightTint::color, FloodlightTint.tintedBlocks());
         // NeoForge reads these from "render_type" in the block models; Fabric ignores that field.
-        // The lamp overlay of the floodlights (drawn alone over a disguise) is cut out.
+        // The lamp overlay of the floodlights (drawn alone over a disguise) is cut out. Only this mod's lights: other
+        // mods' camouflage blocks (Open Modular Turrets) choose their own layer.
+        Block[] camoLights = ModBlocks.LIGHT_SOURCES.stream().filter(CamoBlock.class::isInstance).toArray(Block[]::new);
         //? if >=1.21.11 {
         /*BlockRenderLayerMap.putBlock(ModBlocks.UV_LIGHT, ChunkSectionLayer.CUTOUT);
         BlockRenderLayerMap.putBlock(ModBlocks.LIGHTPROOF_GLASS, ChunkSectionLayer.TRANSLUCENT);
-        BlockRenderLayerMap.putBlocks(ChunkSectionLayer.CUTOUT, CamoModels.camoBlocks().toArray(Block[]::new));
+        BlockRenderLayerMap.putBlocks(ChunkSectionLayer.CUTOUT, camoLights);
         *///?} else {
         BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.UV_LIGHT, RenderType.cutout());
         BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.LIGHTPROOF_GLASS, RenderType.translucent());
-        BlockRenderLayerMap.INSTANCE.putBlocks(RenderType.cutout(), CamoModels.camoBlocks().toArray(Block[]::new));
+        BlockRenderLayerMap.INSTANCE.putBlocks(RenderType.cutout(), camoLights);
         //?}
         // light debug tool: wireframes around light blocks while it is held
         //? if >=1.21.11 {
