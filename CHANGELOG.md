@@ -9,6 +9,8 @@ turns *Unreleased* into the release section; `chiseledPublish` uploads exactly t
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-11-02
+
 ### Changed
 
 - Requires OMLib 4.0.0 or newer
