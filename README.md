@@ -4,7 +4,7 @@ Floodlights for **Fabric** (Minecraft 1.20.1, 1.21.1 and 1.21.11), **NeoForge** 
 Open Modular Lighting is a port of the Forge 1.7.10 mod *FloodLights* by Keridos.
 It lights up large areas with invisible light blocks placed along a beam, so you can light a cave, a farm or a base without placing torches everywhere.
 
-> Status: beta. Expect bugs, and back up your worlds.
+> Status: stable since 1.0.0.
 
 ## Features
 
@@ -20,8 +20,9 @@ It lights up large areas with invisible light blocks placed along a beam, so you
 | **Cube Light** | A full block that lights all 6 blocks around it. | Energy: 2 E/t, accepted from every side |
 | **Lightproof Glass** | See-through glass that lets no light through and stops light beams, with connected textures. Made from black stained glass and coal. | – |
 
-All lights turn on with a **redstone signal**. The signal can be inverted, so that a light is on without redstone and
-turns off when powered. After a light turns off, it waits 2 seconds before it can turn on again, to prevent flickering.
+All lights turn on with a **redstone signal**.
+The signal can be inverted, so that a light is on without redstone and turns off when powered.
+After a light turns off, it waits 2 seconds before it can turn on again, to prevent flickering.
 
 ### Using the lights
 
@@ -33,12 +34,13 @@ turns off when powered. After a light turns off, it waits 2 seconds before it ca
 | Sneak + right-click with a wrench | Picks the light up |
 | Right-click with dye | Tints the light in that colour; wool removes the tint |
 
-The electric, carbon and UV floodlights can be **disguised**: click the disguise slot in their GUI with a full, opaque block (stone, planks, bricks...) and the light looks like that block, with only its lamp showing on the front.
-Click the slot with an empty hand to remove the disguise.
+The electric, non-electric and UV floodlights can be **disguised**: the **Camouflage** button in their GUI opens the camouflage menu; click its slot with a full, opaque block (stone, planks, bricks...) and the light looks like that block, with only its lamp showing on the front.
+Click the slot with an empty hand to remove the disguise, and "Back" returns to the light's GUI.
 
-A light you break keeps its settings (mode, invert, colour, disguise, stored energy or burn time) on the item, and the tooltip
-shows "Configured". The beam follows changes in the world. It stops at solid blocks and shines through glass and
-plants. When you build into a beam or remove a block from it, the beam adjusts.
+A light you break keeps its settings (mode, invert, colour, disguise, stored energy or burn time) on the item, and the tooltip shows "Configured".
+The beam follows changes in the world.
+It stops at solid blocks and shines through glass and plants.
+When you build into a beam or remove a block from it, the beam adjusts.
 
 ### Power
 
@@ -51,19 +53,19 @@ plants. When you build into a beam or remove a block from it, the beam adjusts.
 
 ### Crafting
 
-Smelt **Raw Filament** (glowstone, redstone, gold) into **Glowing Filament**. Craft it into an **Electric Incandescent
-Light Bulb**, the part needed for every electric light. The non-electric floodlight needs a **Non-electric Lantern**,
-made from a Mantle, a Fuel Dissolver and flint and steel. The **Cube Light** is made from glass, a light bulb and iron. All recipes are shown in the recipe book or in a recipe
-viewer.
+Smelt **Raw Filament** (glowstone, redstone, gold) into **Glowing Filament**.
+Craft it into an **Electric Incandescent Light Bulb**, the part needed for every electric light.
+The non-electric floodlight needs a **Non-electric Lantern**, made from a Mantle, a Fuel Dissolver and flint and steel.
+The **Cube Light** is made from glass, a light bulb and iron.
+All recipes are shown in the recipe book or in a recipe viewer.
 
-The **Lightblock Debug Tool** (creative only) shows the invisible light blocks while you hold it: yellow for normal light,
-magenta for UV light.
+The **Lightblock Debug Tool** (creative only) shows the invisible light blocks while you hold it: yellow for normal light, magenta for UV light.
 
 ### Config
 
-The settings are in `config/openmodularlighting.json`, with a comment above each one. Ranges, energy use, burn time,
-grow chance, UV damage and the timeout can be changed, and each light can be disabled (its recipe is not loaded). On a
-server, the server's settings are sent to the players.
+The settings are in `config/openmodularlighting.json`, with a comment above each one.
+Ranges, energy use, burn time, grow chance, UV damage and the timeout can be changed, and each light can be disabled (its recipe is not loaded).
+On a server, the server's settings are sent to the players.
 
 ### Optional: Jade
 
@@ -78,8 +80,9 @@ Jade is not required.
 
 ## Building from source
 
-Gradle has to run on **Java 25 or newer**. The Java 17 and 21 toolchains for compiling are downloaded automatically
-if they are missing.
+Gradle has to run on **Java 25 or newer**.
+The Java 17 and 21 toolchains for compiling are downloaded automatically if they are missing.
+Clone with `--recurse-submodules` (or run `git submodule update --init`): the library OMLib, which every jar bundles, is the git submodule `omlib`.
 
 ```bash
 ./gradlew chiseledBuild              # build all versions and loaders (with unit tests and GameTests)
@@ -103,5 +106,4 @@ The projects art is licenced under the CC-BY-NC-SA 4.0 license [2].
 [2]https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode.txt
 ```
 
-The full license texts are in [`LICENSE`](LICENSE) (MIT, source code) and [`LICENSE-ART`](LICENSE-ART)
-(CC BY-NC-SA 4.0, textures, models and other art).
+The full license texts are in [`LICENSE`](LICENSE) (MIT, source code) and [`LICENSE-ART`](LICENSE-ART) (CC BY-NC-SA 4.0, textures, models and other art).

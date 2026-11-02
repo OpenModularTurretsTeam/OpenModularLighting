@@ -4,7 +4,8 @@ A guide to the code of Open Modular Lighting (OML) for people working on it: how
 It describes the code as it is; where it falls short of its own rules, the last section says so.
 
 **OMLib.** Since 2026-10-27 the code that both Open Modular mods used to share is in the library OMLib (git submodule `omlib`, bundled jar-in-jar): the platform layer, the compat helpers, energy and item transfer, the config machinery and the camouflage menu.
-Where this document names those classes under `omtteam.openmodularlighting`, they are in `omtteam.omlib` with the same names and sub-packages; the README of OMLib lists them.
+This document marks them as OMLib's where they come up (package `omtteam.omlib`, with the same names and sub-packages as before the move); the README of OMLib lists them.
+OMLib's own entrypoints also do the wiring every mod needs, see "Startup".
 
 Building, running and the Stonecutter commands are in the README and in `CLAUDE.md` (section 4).
 The gameplay rules (beam shapes, state machine, power) are specified in `CLAUDE.md` (sections 6.3 to 6.10); this document shows where they live in the code.
@@ -23,8 +24,8 @@ The Minecraft-facing code around it translates between the game and the core and
 flowchart TB
     client["client<br/>screens, tint, debug renderer, tooltips<br/><i>client only</i>"]
     game["game layer (main)<br/>blocks, block entities, items, menus, network,<br/>registry, config, world, energy"]
-    compat["compat<br/>1.20.1 / 1.21.1 differences"]
-    platform["platform<br/>service interfaces (Platform, Network, Menus, Energy, Fuel, LoaderInfo),<br/>implemented per loader in platform/&lt;loader&gt;"]
+    compat["compat (OMLib)<br/>version differences"]
+    platform["platform (OMLib)<br/>service interfaces (Platform, Network, Menus, Energy, Fuel, LoaderInfo),<br/>implemented per loader in OMLib's platform/&lt;loader&gt;"]
     core["core<br/>game rules, plain Java"]
     client --> game
     client --> compat
@@ -36,11 +37,11 @@ flowchart TB
 ```
 
 An arrow means "may use".
-The game layer and `compat` reach the loader only through the service interfaces in `platform`; `platform/<loader>` implements them and installs them first thing in its entrypoint.
-The one exception to the arrows are the entrypoints in `platform/<loader>`: they start the mod and wire the game layer to the loader (registration steps, capabilities, events), so they reference game classes such as `ModBlockEntities`.
+The game layer and `compat` reach the loader only through the service interfaces in OMLib's `platform`; OMLib's `platform/<loader>` implements them, and `Platform` creates them on first use, so no mod has to install them.
+The one exception to the arrows are OML's own entrypoints in `platform/<loader>`: they start the mod and wire the game layer to the loader (registration steps, capabilities, the recipe condition), so they reference game classes such as `ModBlockEntities`.
 The other directions are forbidden:
 
-- **core** uses only Java and itself: no Minecraft, loader or other OML packages.
+- **core** uses only Java, itself and OMLib's `core` (`omtteam.omlib.core`, plain Java as well): no Minecraft, loader or other OML packages.
   The `verifyCoreIsolation` task (part of `check`) fails the build if a file under `core/` imports `net.minecraft`, `net.fabricmc`, `net.neoforged`, `net.minecraftforge`, `com.mojang`, `team.reborn` or a non-core OML package, and `ArchitectureTest.coreDependsOnlyOnCoreAndJava` checks the same on the compiled classes.
 - **main** code never uses **client** code: the client classes do not exist on a dedicated server.
   The split source sets make it a compile error on every node (the `client` source set sees `main`, not the other way round), and `ArchitectureTest.mainCodeNeverDependsOnClientCode` checks it on the compiled classes.
@@ -55,7 +56,7 @@ This is the only place where the two meet, and the reason the core can be tested
 | `light.LightWorld` | `world.LevelLightWorld` | classifies a block position as a `Cell`: air, phantom light, UV light, opaque, transparent or unloaded |
 | `state.PowerSource` | `energy.ElectricPower`, `energy.FuelPower` (through `energy.LightPower`) | whether the light can run this tick, and paying for it |
 | `cluster.ClusterNode` | `blockentity.PanelLightBlockEntity` | who a light is connected to, for the shared energy of touching lights |
-| `energy.EnergyAccess` | the lights' `getEnergyAccess(side)` (the buffer of `energy.ElectricPower`, or `energy.ClusterEnergy.View` for panel lights, a `core.energy.EnergyGroup`) | what other blocks may do with a light's energy (insert; extract is never allowed) |
+| `energy.EnergyAccess` (OMLib's `omtteam.omlib.core.energy`) | the lights' `getEnergyAccess(side)` (the buffer of `energy.ElectricPower`, or `energy.ClusterEnergy.View` for panel lights, an OMLib `core.energy.EnergyGroup`) | what other blocks may do with a light's energy (insert; extract is never allowed) |
 
 Positions in core are the `Pos` record and directions the `Facing` enum (same ordinal order as `Direction`); `world.Positions` converts both ways.
 The block entities own one core object each and forward to it: `FloodlightBlockEntity` → `LightController`, `LightBlockEntity` → `LightSources`, `PanelLightBlockEntity` → `Cluster`.
@@ -68,14 +69,14 @@ Source sets (Loom split source sets on Fabric, the same split built by hand on N
 | Source set | Contents | Shipped |
 | --- | --- | --- |
 | `src/main` | everything that runs on both sides, including `fabric.mod.json`, `neoforge.mods.toml` and `mods.toml` (Forge; all templated) | yes |
-| `src/client` | screens, tint, disguise models, debug renderer, client networking | yes, client only |
+| `src/client` | screens, tint, debug renderer, the client half of the Jade plugin (the disguise models and the client networking are OMLib's) | yes, client only |
 | `src/test` | JUnit tests of the core and the config, and the architecture rules (`ArchitectureTest`) | no |
 | `src/gametest` | in-world GameTests as a separate test mod (own mod id), shared by all loaders and versions (from 1.21.11 on the test mod registers them itself, `GameTestCases`) | no |
 
-`src/main`, `src/client` and `src/gametest` each have two version source folders next to `java`: `mc1.20.1-1.21.1` and `mc1.21.11-`.
-They hold whole classes that differ between Minecraft versions (same package and class name, one variant per range), and `mod-common` adds the ones whose range contains the node's version.
+Only `src/gametest` has version source folders next to `java` in this repository: `mc1.20.1-1.21.1` and `mc1.21.11-` (the 1.21.11 test framework, the NeoForge test transfer and test battery).
+They hold whole classes that differ between Minecraft versions (same package and class name, one variant per range), and `mod-common` adds the ones whose range contains the node's version; `src/main` and `src/client` may get them the same way (OMLib has them for its NeoForge capability adapters and its disguise models).
 
-Packages below `omtteam.openmodularlighting` (main):
+Packages below `omtteam.openmodularlighting` (main); what they use from OMLib is named after the table:
 
 | Package | Responsibility |
 | --- | --- |
@@ -85,21 +86,21 @@ Packages below `omtteam.openmodularlighting` (main):
 | `core.light` | `BeamCaster` (walks the rays), `LightWorld` and `Cell`, `LightType`, `LightSources` (all and active sources of a light block), `ShapeDiff` |
 | `core.state` | `LightController` (the on/off state machine), `PowerSource`, `FuelTimer`, `RecheckTimer` |
 | `core.cluster` | `Cluster` and `ClusterNode`: connected groups with join, leave and split, generic enough to reuse for multiblocks |
-| `core.energy` | `EnergyStore` (the buffer) and `EnergyAccess` |
 | `core.formula` | `CarbonFuel`, `GrowChance`, `EnergyCost` |
 | `block` | `FloodlightBlock` (base of every light: `FACING`, `LIT`, drops) with its subclasses; `FloodlightInteraction` (right-click); `LightBlock` (base of the phantom and UV light blocks); `PanelShapes` |
 | `blockentity` | `FloodlightBlockEntity` (base of every light) and subclasses, `LightBeam` (its cached beam and the re-cast); `LightBlockEntity` (sources of a light block) with `PhantomLightBlockEntity` and `UvLightBlockEntity`; `LightSourceBlockEntity` |
 | `world` | `LightBlocks` (place, switch and remove light blocks), `LevelLightWorld`, `Positions` |
 | `energy` | `LightPower` with `ElectricPower` and `FuelPower`, `ClusterEnergy`, `Batteries` |
-| `inventory` | `ItemAccess`: the slot range and filters other blocks see (wrapped by the loader adapters) |
-| `menu` | the container menus (with the disguise slot) and `LongContainerData` |
-| `camo` | disguise of the floodlights: `CamoBlock` (marker of the lights that can be disguised), `CamoRules` (which blocks are valid), `CamoData` (the disguise and its NBT) |
-| `registry` | `ModBlocks`, `ModItems` (the crafting items and the light debug tool are plain `Item`s; what the tool does is in `FloodlightInteraction` and `client.render.LightBlockDebugRenderer`), `ModBlockEntities`, `ModMenus`, `ModCreativeTabs`, `ModDamageTypes`, `RegistrationStep` |
-| `network` | `OMLPackets` (the mod's packet types; the config sync is OMLib's) |
-| `config` | the JSON config: `ConfigData` (fields), `@Comment`, `@Range`, `ConfigWriter`, `ConfigRanges`, `ConfigValidator`, `OMLConfig` (load, save, sync) |
-| `compat` | every 1.20.1 / 1.21.1 difference (`VersionCompat`, `BlockEnabledCondition`), `CommonTags`, the recipe condition, and the server half of the optional Jade plugin (`compat/jade`; the tooltip is in `client.compat.jade`, because Jade's tooltip classes are client classes) |
-| `platform` | the loader services shared code calls (`Platform` holding `PlatformServices`: `LoaderInfo`, `Fuel`, `Network`, `Menus`, `Energy`); `platform.fabric`, `platform.neoforge` and `platform.forge` hold the entrypoints and implementations and only compile for their loader |
+| `menu` | the container menus: `FloodlightMenu` (the light's slot and the status values; on a `CamoBlock` its screen shows a "Camouflage" button) with `ElectricFloodlightMenu` and `CarbonFloodlightMenu` |
+| `camo` | `CamoRules`: which blocks are valid disguises of the floodlights (`CamoRules.RULES`, the `DisguiseRules` OMLib's camouflage menu asks for) |
+| `registry` | `ModBlocks`, `ModItems` (the crafting items and the light debug tool are plain `Item`s; what the tool does is in `FloodlightInteraction` and `client.render.LightBlockDebugRenderer`), `ModBlockEntities` (with `transferTypes()` for the loader lookups), `ModMenus`, `ModCreativeTabs`, `ModDamageTypes` |
+| `network` | `OMLPackets` (the mod's own packet types; none at the moment, the config sync and camouflage packets are OMLib's) |
+| `config` | the JSON config: `ConfigData` (fields), `ConfigMigrationSteps`, `OMLConfig` (an OMLib `ConfigManager` of `ConfigData`: load, save, sync) |
+| `compat` | `BlockEnabledCondition` (the logic of the recipe condition), and the server half of the optional Jade plugin (`compat/jade`; the tooltip is in `client.compat.jade`, because Jade's tooltip classes are client classes) |
+| `platform` | `platform.fabric`, `platform.neoforge` and `platform.forge`: the entrypoints and the loader's registration of the recipe condition; each only compiles for its loader |
 | `datagen` | recipes, loot tables, tags, damage types (Fabric only, generated per version in the server environment; the recipes are the same on every version, in `OMLRecipeProvider.Recipes`) |
+
+From OMLib (`omtteam.omlib`) the mod builds on the platform services (`platform.Platform` holding `PlatformServices`: `LoaderInfo`, `Fuel`, `Network`, `Menus`, `Energy`, with their loader classes), the version helpers (`compat`: `VersionCompat`, `CompatBlockEntity`, `CompatEntityBlock`, `BlockCodec`, `MenuCompat`, `CommonTags`, `nbt.NbtCompat`, `block.BlockCompat`, `network.NetworkCompat`; `client.compat`: `ClientCompat`, `ClientNetworkCompat`), `core.energy` (`EnergyStore`, `EnergyAccess`, `EnergyGroup`), `inventory.ItemAccess` and `blockentity.TransferHost`, `block.InteractiveBlock`, `registry.RegistrationStep`, the config machinery (`@Comment`, `@Range`, `ConfigWriter`, `ConfigRanges`, `ConfigValidator`, `ConfigMigration`, `ConfigManager`), `menu.LongContainerData`, and the camouflage (`camo.CamoBlock`, `CamoHost`, `CamoData`, `DisguiseRules`, `menu.CamoMenu` with its screen and packets, and the disguise models in `client.camo` and the loader packages).
 
 The block and block entity hierarchies mirror each other:
 
@@ -136,20 +137,22 @@ The upper tree in each half is the **lights** (they have a `FACING`, a GUI and a
 
 ### Startup
 
-The loader entrypoint (`OMLFabric`, `OMLNeoForge`, `OMLForge`) first installs the platform services, then calls `OML.init()`.
+The loader entrypoint (`OMLFabric`, `OMLNeoForge`, `OMLForge`) first calls `OML.init()`; it installs no platform services, because OMLib creates them on first use (`Platform`), whichever mod starts first.
 The order matters:
 
-1. `OMLPackets.init()`: the packet types (NeoForge accepts them only until its payload registration event).
+1. `OMLPackets.init()`: the mod's own packet types (none at the moment; NeoForge accepts them only until its payload registration event).
 2. `OMLConfig.init()`: blocks and recipes read the config, so it comes before any registration.
 
 Then the registrations of `OML.registrationSteps()`: blocks, items, block entities, menus, creative tab.
 Fabric runs them in this order; NeoForge and Forge run each in the `RegisterEvent` of its registry and fail at common setup if one never ran.
 A new registry class gets a `RegistrationStep` in that list, not a call in an entrypoint.
 
-Last, the entrypoint wires its loader to the shared code: the item and energy access of the lights (`FabricBlockLookups`, NeoForge capabilities, Forge capabilities attached in `AttachCapabilitiesEvent` by `ForgeBlockCapabilities`), block use (`InteractiveBlock.handleUse`), the config sync on join and the recipe condition.
+Last, the entrypoint wires its loader to the shared code: the item and energy access of the lights (OMLib's `FabricBlockLookups.register(ModBlockEntities.transferTypes())` on Fabric and `NeoForgeCapabilities.register(event, ModBlockEntities.transferTypes())` on NeoForge), the mod's own NeoForge packets (`NeoForgeNetwork.applyRegistrations` in `RegisterPayloadHandlersEvent`) and the recipe condition.
+OMLib's own entrypoints do the rest of the wiring every mod needs: block use (`InteractiveBlock.handleUse`), the config sync on join, the disconnect hook, the camouflage menu type and packets, and on Forge the item and energy capabilities (`ForgeBlockCapabilities`, attached in `AttachCapabilitiesEvent` to every `TransferHost`).
 
-On the client, the loader client entrypoint (`OMLFabricClient`, `OMLNeoForgeClient`, `OMLForgeClient`; Forge 1.20.1 has no client-only `@Mod` classes, so `OMLForge` constructs it by name) installs the client platform services and calls `OMLClient.init()`.
-It then registers what `OMLClient` lists with its loader: screens, the dye tint, tooltips and the debug renderer, and wraps the models of the `CamoBlock`s in the loader's disguise model (`FabricCamoModel`, `NeoForgeCamoModel`, `ForgeCamoModel`; the first two exist once per version folder, because 1.21.11 replaced baked models with block state models).
+On the client, the loader client entrypoint (`OMLFabricClient`, `OMLNeoForgeClient`, `OMLForgeClient`; Forge 1.20.1 has no client-only `@Mod` classes, so `OMLForge` constructs it by name) calls `OMLClient.init()` (empty at the moment: the mod has no client packet handlers).
+It then registers what `OMLClient` lists with its loader: screens, the dye tint, tooltips and the debug renderer.
+OMLib's client entrypoints wrap the models of the `CamoBlock`s in the loader's disguise model (`FabricCamoModel`, `NeoForgeCamoModel`, `ForgeCamoModel`; the first two exist once per version folder of OMLib, because 1.21.11 replaced baked models with block state models).
 Render layers are the one thing kept twice: `BlockRenderLayerMap` on Fabric, `"render_type"` in the block model JSON on NeoForge and Forge.
 
 ### A light's tick (server)
@@ -158,7 +161,7 @@ Render layers are the one thing kept twice: `BlockRenderLayerMap` on Fabric, `"r
 
 1. `beforePower`: panel lights keep their cluster up to date and pull energy from it.
 2. `power().prepare`: charge from the battery slot, or burn the next fuel item.
-3. A re-cast is flagged if the shape key (mode, ranges) differs from the one the cached shape was cast with (`LightBeam.needsRecast`), or if the periodic `RecheckTimer` fires (every 10 to 30 s).
+3. A re-cast is flagged if the shape key (mode, ranges), the position or the facing differ from those the cached shape was cast with (`LightBeam.needsRecast`), if a neighbour of the light is no longer what it was at the last cast (`FloodlightBlock.onNeighborChanged` → `LightBeam.neighboursChanged`, between ticks), or if the periodic `RecheckTimer` fires (every 10 to 30 s).
 4. `LightController.tick(redstone, power, timeout)` returns a `TickResult`: re-cast or not, switch on, off or neither, and whether the light ran (and paid) this tick.
 5. A re-cast runs first (`LightBeam.recast`), then the switch (`LightBeam.switchLights`), then the light's own `LIT` is set.
 6. `afterTick` is the hook of subclasses (the grow light's growth ticks).
@@ -177,7 +180,7 @@ The state machine itself, with the timeout against flicker, is `core.state.Light
    Joining positions that are already covered is a no-op, so this also repairs light blocks lost while a chunk was unloaded.
 4. The positions that joined become the cached shape (a `long[]` saved with the block entity, so a reload does not need a cast).
 
-`BeamCasterTest` checks `BeamCaster` against reference loops in the test sources (`Legacy1710Beams`, filtered by the same thinning) in random worlds.
+`BeamCasterTest` checks `BeamCaster` against reference loops in the test sources (`BeamTest`, filtered by the same thinning) in random worlds.
 
 ### Light blocks and their sources
 
@@ -205,9 +208,12 @@ The numbers are in `core.formula` (`EnergyCost`, `CarbonFuel`, `GrowChance`).
 
 Outside access goes through the loader:
 
-- Energy: `core.energy.EnergyAccess`, exposed as Team Reborn Energy on Fabric (`FabricEnergyStorages`) and as an FE capability on NeoForge (`NeoForgeEnergyHandler`; on 1.21.11 an `EnergyHandler` of NeoForge's transfer API, in the version folder `src/main/mc1.21.11-`) and Forge (`ForgeEnergyHandler`).
+The adapters are all OMLib's:
+
+- Energy: `core.energy.EnergyAccess`, exposed as Team Reborn Energy on Fabric (`FabricEnergyStorages`) and as an FE capability on NeoForge (`NeoForgeEnergyHandler`; on 1.21.11 an `EnergyHandler` of NeoForge's transfer API, in OMLib's version folder `src/main/mc1.21.11-`) and Forge (`ForgeEnergyHandler`).
   Only inserting is possible; there is no extraction.
-- Items: `inventory.ItemAccess.insertOnly`, exposed as `ItemStorage.SIDED` on Fabric (`FabricItemStorages`) and as `IItemHandler` on NeoForge and Forge (NeoForge 1.21.11: `ResourceHandler<ItemResource>`). The NeoForge capabilities are registered by `NeoForgeCapabilities`, one class per version folder.
+- Items: `inventory.ItemAccess.insertOnly`, exposed as `ItemStorage.SIDED` on Fabric (`FabricItemStorages`) and as `IItemHandler` on NeoForge and Forge (NeoForge 1.21.11: `ResourceHandler<ItemResource>`).
+  The NeoForge capabilities are registered by `NeoForgeCapabilities`, one class per version folder of OMLib.
 - Battery slot and fuel values: `platform.Energy` and `platform.Fuel`.
 
 ### Shared energy of panel lights
@@ -219,15 +225,16 @@ Each light keeps its own buffer; `ClusterEnergy` shows the whole cluster to the 
 ### A click on a light
 
 Right-click handling does not use vanilla's `use` methods, because they differ between 1.20.1 and 1.21.1.
-The loader's block-use event calls `InteractiveBlock.handleUse`, which calls `FloodlightBlock.onUse`; that hands it to `FloodlightInteraction`, one method per action:
+The loader's block-use event (registered once by OMLib) calls `InteractiveBlock.handleUse`, which calls `FloodlightBlock.onUse`; that hands it to `FloodlightInteraction`, one method per action:
 
 - sneak with an empty hand: toggle invert; stick or wrench: `configure` (cycle the mode, turn the small fluorescent light); wrench plus sneak: dismantle; dye or wool: set the colour;
-- anything else opens the menu: `MenuCompat.open` → `platform.Menus` → `ElectricFloodlightMenu` or `CarbonFloodlightMenu`.
-  On a `CamoBlock`, `FloodlightMenu` adds the phantom disguise slot: a click there calls `FloodlightBlockEntity.setCamo` on the server.
+- anything else opens the menu: `FloodlightBlock.openMenu` → `MenuCompat.open` → `platform.Menus` → `ElectricFloodlightMenu` or `CarbonFloodlightMenu`.
+  On a `CamoBlock`, the floodlight screen shows a "Camouflage" button: it sends OMLib's `OMLibPackets.OPEN_CAMO_MENU`, and the server opens OMLib's `CamoMenu` for the light (a `CamoHost`, rules `CamoRules.RULES`).
+  Its phantom slot calls `FloodlightBlockEntity.setCamo` on the server; "Back" (`OMLibPackets.CAMO_BACK`) reopens the floodlight GUI through `FloodlightBlockEntity.openParentMenu`.
 
 Changes that affect the beam (`setMode`) end in `shapeChanged()`, which re-casts at once.
-The server is the only place that changes state; the screens only show it (the menus sync energy and burn time with `LongContainerData`) and the colour and the disguise reach the client in the block entity's update tag.
-The disguise is drawn by the loader's model wrapper: the block entity hands it over as render data (`CompatBlockEntity.renderData`), and the wrapper emits the disguise's quads plus the lamp quads of the light's own model (tint index 1, a cutout overlay on the front face).
+The server is the only place that changes state; the screens only show it (the menus sync energy and burn time with OMLib's `LongContainerData`) and the colour and the disguise reach the client in the block entity's update tag.
+The disguise is drawn by OMLib's model wrapper of the loader: the block entity hands it over as render data (`CompatBlockEntity.renderData`), and the wrapper emits the disguise's quads plus the lamp quads of the light's own model (tint index 1, a cutout overlay on the front face).
 
 ### Config
 
@@ -238,13 +245,13 @@ See "A config value" below for adding one.
 
 ### A beam shape or mode
 
-Add the shape to `core.beam.BeamShape` / `BeamMode`, with a unit test in `core/beam` and, if the new shape belongs in the comparison, an entry in `Legacy1710Beams` that `BeamCasterTest` compares against.
+Add the shape to `core.beam.BeamShape` / `BeamMode`, with a unit test in `core/beam` and, if the new shape belongs in the comparison, an entry in `BeamTest` that `BeamCasterTest` compares against.
 The block entity returns it from `currentShape()` and puts everything it depends on into `shapeKey()`, so a change triggers a re-cast.
 
 ### A light
 
 1. A block extending `FloodlightBlock` (or `PanelLightBlock`) and a block entity extending `FloodlightBlockEntity` (or `PanelLightBlockEntity`); the block entity chooses `power()`, `currentShape()` and `shapeKey()`.
-2. Register block, item and block entity in `ModBlocks`, `ModItems`, `ModBlockEntities`; add it to the lookups of every loader if it has energy or item access (`FabricBlockLookups` and the capability registration in `OMLNeoForge` use `ModBlockEntities.transferTypes()`; Forge attaches its capabilities to every `TransferHost`, which `FloodlightBlockEntity` implements).
+2. Register block, item and block entity in `ModBlocks`, `ModItems`, `ModBlockEntities`; add it to the lookups of every loader if it has energy or item access (`FabricBlockLookups` and the capability registration in `OMLNeoForge` use `ModBlockEntities.transferTypes()`; on Forge, OMLib attaches its capabilities to every `TransferHost`, which `FloodlightBlockEntity` implements).
 3. Blockstate, model, item model definition (`assets/openmodularlighting/items/<id>.json`, which 1.21.4+ needs; without it the item shows the missing texture), lang entries (`en_us`, `de_de`, `ru_ru`), and the recipe, loot table and tags in `datagen`.
 4. A GameTest in `src/gametest` (and its entry in `src/gametest/resources/fabric.mod.json`), and an entry in `docs/id-mapping.md` if it replaces a block of the old mod.
 
@@ -255,19 +262,19 @@ Only `int`, `double`, `boolean` and `List<String>` are supported.
 
 ### A packet
 
-Define the payload (a record with `write` and `read`), list it in `network.OMLPackets` through `NetworkCompat`, and handle it on the other side (client handlers are registered through `ClientNetworkCompat`).
+Define the payload (a record with `write` and `read`), list it in `network.OMLPackets` through OMLib's `NetworkCompat`, and handle it on the other side (client handlers are registered through `ClientNetworkCompat`, from `OMLClient.init()`).
 A packet from the client must be validated on the server before it changes anything.
 
 ### A loader service
 
-If shared code needs something only a loader can do, define a small interface in `platform` (design it first, see `CLAUDE.md` section 7), add it to `PlatformServices` (every entrypoint then fails to compile until it supplies one) and implement it in `platform/fabric`, `platform/neoforge` and `platform/forge`.
-Whole loader-specific classes go into those packages; a small difference inside a shared class uses `//? if fabric {` / `//? if neoforge {` / `//? if forge {` (or `neoforge || forge` where both share an API), but only in `compat/` and `platform/`.
+The loader services are OMLib's: if shared code needs something only a loader can do, the interface goes into OMLib's `platform` (design it first, see `CLAUDE.md` section 7), is added to `PlatformServices` (`Platform` then fails to compile until every loader supplies one) and is implemented in OMLib's `platform/fabric`, `platform/neoforge` and `platform/forge`; the change is made in the OMLib repository, not in `omlib/` (`CLAUDE.md` section 4, "OMLib").
+Whole loader-specific classes of this mod (entrypoints, event wiring) go into its own `platform/<loader>` packages; a small difference inside a shared class uses `//? if fabric {` / `//? if neoforge {` / `//? if forge {` (or `neoforge || forge` where both share an API), but only in `compat/` and `platform/`.
 
 ### Code that differs between 1.20.1 and 1.21.1
 
 The source is written for 1.21.1; Stonecutter comments switch it to 1.20.1.
-Put the difference into a small helper in `compat` (for example `VersionCompat`) and call that, instead of `//? if` blocks in gameplay code.
-Block entities extend `compat.CompatBlockEntity` (override `readData` / `writeData`).
+Put the difference into a small helper (the shared ones are in OMLib's `compat`, for example `VersionCompat`) and call that, instead of `//? if` blocks in gameplay code.
+Block entities extend OMLib's `compat.CompatBlockEntity` (override `readData` / `writeData`).
 A class that differs completely between versions (as many do on 1.21.11) goes into a version source folder instead, `src/<source set>/mc<first>-<last>/java`, once per range and with the same name.
 Stonecutter processes those folders like the rest, so they are written in the 1.21.1 state too (`ResourceLocation`, which it turns into `Identifier` on 1.21.11).
 The table of known differences is in `CLAUDE.md`, section 5.
@@ -276,7 +283,7 @@ The table of known differences is in `CLAUDE.md`, section 5.
 
 Never handwrite files under `data/`: add them to the providers in `datagen` and run `./gradlew :1.21.1-fabric:runDatagen :1.20.1-fabric:runDatagen :1.21.11-fabric:runDatagen`.
 The output is committed per version.
-The NeoForge build converts the Fabric 1.21.1 output and the Forge build the Fabric 1.20.1 output at build time (`convertFabricData` in `buildSrc`), so nothing loader-specific is committed.
+The NeoForge build converts the Fabric 1.21.1 output and the Forge build the Fabric 1.20.1 output at build time (`convertFabricData` in `omlib/build-logic`), so nothing loader-specific is committed.
 
 ## Rules the build checks
 
@@ -284,11 +291,11 @@ The NeoForge build converts the Fabric 1.21.1 output and the Forge build the Fab
 
 | Rule | Checked by |
 | --- | --- |
-| core uses only Java and core | `ArchitectureTest.coreDependsOnlyOnCoreAndJava` and the `verifyCoreIsolation` task |
+| core uses only Java, core and OMLib's core | `ArchitectureTest.coreDependsOnlyOnCoreAndJava` and the `verifyCoreIsolation` task |
 | main code never uses client code | `ArchitectureTest.mainCodeNeverDependsOnClientCode` |
 | no new package cycles, and the known ones only shrink | `ArchitectureTest.noNewPackageCycles` (list `KNOWN_CYCLES`) |
 | core rules and the config behave as specified | unit tests in `src/test` (they run on the NeoForge and Forge nodes too) |
-| the beam shapes still equal the reference loops (with thinning) | `BeamCasterTest` against `Legacy1710Beams` |
+| the beam shapes still equal the reference loops (with thinning) | `BeamCasterTest` against `BeamTest` |
 | lights, light blocks, energy, items, recipes and Jade work in a real world | GameTests in `src/gametest`: Fabric `runGameTest`, NeoForge and Forge `runGameTestServer` |
 | formatting (tabs, trailing whitespace, final newline) | `spotlessCheck` |
 | the changelog has a section for the version being published | `publishMods` |
@@ -344,10 +351,11 @@ State on 2026-10-21:
 Things that make the code harder to work with than they should be.
 They are known and measured, not hidden:
 
-- **One large package cycle.** The root package (`OML`), `block`, `blockentity`, `compat`, `compat.network`, `config`, `energy`, `menu`, `network`, `platform`, `registry` and `world` all depend on each other (registry ↔ blocks ↔ block entities, as in most Minecraft mods, plus the platform facades); `noNewPackageCycles` keeps it from growing.
+- **One large package cycle.** The root package (`OML`), `block`, `blockentity`, `energy`, `menu`, `registry` and `world` all depend on each other (registry ↔ blocks ↔ block entities, as in most Minecraft mods); `noNewPackageCycles` keeps it from growing.
 - **2 PMD findings**, both accepted: the coupling of `FloodlightBlock` (23; the types of the vanilla block methods it overrides) and of `FloodlightBlockEntity` (23).
-- **`FloodlightBlockEntity` does a lot** (about 330 lines): ticking, settings, the colour, the disguise, the slot and saving.
+- **`FloodlightBlockEntity` does a lot** (about 400 lines): ticking, settings, the colour, the disguise, the slot and saving.
   The beam (cast, diff and shape cache) is already in `LightBeam`; the slot would be the next candidate to move out.
 - **Phantom lights beside skipped positions.** Because of the thinning (`core.beam.Spacing`), a block change next to a position without a light block may reach no light block at all, so the beam notices it only at the periodic re-check (10 to 30 s).
+  Right in front of the light this cannot happen: the floodlight watches its own neighbours.
 - **The client is untested** except by hand, since Fabric's client GameTests need Minecraft 1.21.4 or newer.
 - **Render layers are kept twice** (Fabric in code, NeoForge and Forge in the model JSON) and must be changed together.

@@ -71,9 +71,9 @@ Every Stonecutter node is named `<minecraft version>-<loader>`: `1.20.1-fabric`,
   ```
 
   Keep these blocks out of gameplay code.
-  Put version differences behind small helpers in `omtteam.openmodularlighting.compat` instead.
+  Put version differences behind small helpers instead; the shared ones are in OMLib's `omtteam.omlib.compat` (`VersionCompat` and others), while this mod's own `compat` package only holds the recipe condition (`BlockEnabledCondition`) and the Jade plugin (`compat/jade`).
   A class that differs completely between versions goes into a version source folder (`src/<source set>/mc<first>-<last>/java`), once per range.
-- Loader-specific code goes into the `platform/fabric`, `platform/neoforge` and `platform/forge` packages, and shared code reaches it through the small interfaces in `platform`.
+- Loader-specific code goes into the `platform/fabric`, `platform/neoforge` and `platform/forge` packages, and shared code reaches it through the small service interfaces in OMLib's `omtteam.omlib.platform`.
 - `assets/` (textures, models, blockstates, lang, sounds) are shared and written by hand in `src/main/resources`.
   Every item needs an item model definition in `assets/openmodularlighting/items/`.
 - `data/` (recipes, loot tables, tags) is **generated** with Fabric Datagen into `versions/<version>/src/main/generated`.
@@ -103,7 +103,7 @@ Every Stonecutter node is named `<minecraft version>-<loader>`: `1.20.1-fabric`,
 - Gameplay logic runs on the server.
   Clients only render and send requests.
 - Add a short Javadoc to any non-obvious formula, noting where it came from in the old mod.
-- Dependencies are limited to the loaders and their APIs (Fabric API on Fabric), Team Reborn Energy and Jade (optional, only in `compat/jade` and `client/compat/jade`).
+- Dependencies are limited to the loaders and their APIs (Fabric API on Fabric), OMLib (bundled jar-in-jar; the git submodule `omlib`, so clone with `--recurse-submodules`), Team Reborn Energy (bundled by OMLib, which holds the adapters) and Jade (optional, only in `compat/jade` and `client/compat/jade`).
   Ask before adding anything else.
 
 ## Pull requests
@@ -124,6 +124,5 @@ Every Stonecutter node is named `<minecraft version>-<loader>`: `1.20.1-fabric`,
 
 ## License
 
-By contributing, you agree that your code is licensed under the [MIT license](LICENSE) and your art (textures,
-models, sounds) under [CC BY-NC-SA 4.0](LICENSE-ART).
+By contributing, you agree that your code is licensed under the [MIT license](LICENSE) and your art (textures, models, sounds) under [CC BY-NC-SA 4.0](LICENSE-ART).
 You also agree to the terms of the [CLA](CLA.md).
