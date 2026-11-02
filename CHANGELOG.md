@@ -16,6 +16,7 @@ turns *Unreleased* into the release section; `chiseledPublish` uploads exactly t
 - Phantom light blocks whose lit state was changed by a command go back to matching their floodlights
 - Minecraft 1.21.11: UV light left behind by a UV floodlight replaced with /setblock, /fill or /clone no longer hurts and removes itself
 - Floodlights copied with their data (/clone, structures) or turned without being replaced (debug stick) cast their own beam at once
+- Floodlights and fluorescent lights in rotated or mirrored structures turn with them
 
 ## [1.0.0-beta.10] - 2026-10-27
 

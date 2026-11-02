@@ -5,6 +5,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
@@ -68,6 +69,14 @@ public class FluorescentLightBlock extends PanelLightBlock {
     @Override
     protected boolean hasConfiguration() {
         return small;
+    }
+
+    /** A quarter turn of a light on the floor or ceiling turns its strip too (on a wall it turns with the wall). */
+    @Override
+    public BlockState rotate(BlockState state, Rotation rotation) {
+        BlockState rotated = super.rotate(state, rotation);
+        boolean quarter = rotation == Rotation.CLOCKWISE_90 || rotation == Rotation.COUNTERCLOCKWISE_90;
+        return small && quarter && state.getValue(FACING).getAxis() == Direction.Axis.Y ? rotated.cycle(ROTATED) : rotated;
     }
 
     /** Turns the strip by 90°; without neighbour updates, which would make the beam re-cast. */

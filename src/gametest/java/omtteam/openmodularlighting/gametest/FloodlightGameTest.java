@@ -23,9 +23,12 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.Mirror;
+import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.lighting.LightEngine;
 import omtteam.openmodularlighting.block.FloodlightBlock;
+import omtteam.openmodularlighting.block.FluorescentLightBlock;
 import omtteam.openmodularlighting.block.LightBlock;
 import omtteam.openmodularlighting.blockentity.CarbonFloodlightBlockEntity;
 import omtteam.openmodularlighting.blockentity.ElectricFloodlightBlockEntity;
@@ -239,6 +242,23 @@ public class FloodlightGameTest implements OMLGameTests {
             remove(helper, pos);
             helper.succeed();
         });
+    }
+
+    /** Rotated and mirrored placements (structures) turn the lights, and the strip of a small fluorescent light. */
+    @GameTest(template = EMPTY_STRUCTURE)
+    public void rotatesAndMirrorsWithStructures(GameTestHelper helper) {
+        BlockState north = ModBlocks.ELECTRIC_FLOODLIGHT.defaultBlockState().setValue(FloodlightBlock.FACING, Direction.NORTH);
+        helper.assertTrue(north.rotate(Rotation.CLOCKWISE_90).getValue(FloodlightBlock.FACING) == Direction.EAST,
+                "rotated a quarter turn");
+        helper.assertTrue(north.mirror(Mirror.LEFT_RIGHT).getValue(FloodlightBlock.FACING) == Direction.SOUTH, "mirrored");
+        BlockState strip = ModBlocks.SMALL_FLUORESCENT_LIGHT.defaultBlockState().setValue(FloodlightBlock.FACING, Direction.UP);
+        helper.assertTrue(strip.rotate(Rotation.CLOCKWISE_90).getValue(FluorescentLightBlock.ROTATED), "strip turned");
+        helper.assertTrue(!strip.rotate(Rotation.CLOCKWISE_180).getValue(FluorescentLightBlock.ROTATED),
+                "half a turn keeps the strip");
+        BlockState wall = strip.setValue(FloodlightBlock.FACING, Direction.NORTH);
+        helper.assertTrue(!wall.rotate(Rotation.CLOCKWISE_90).getValue(FluorescentLightBlock.ROTATED),
+                "on a wall the strip turns with the wall");
+        helper.succeed();
     }
 
     @GameTest(template = EMPTY_STRUCTURE)
