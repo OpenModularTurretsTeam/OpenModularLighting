@@ -12,6 +12,7 @@ import omtteam.omlib.compat.VersionCompat;
 import omtteam.openmodularlighting.config.OMLConfig;
 import omtteam.openmodularlighting.registry.ModBlockEntities;
 import omtteam.openmodularlighting.registry.ModDamageTypes;
+import omtteam.openmodularlighting.world.LightBlocks;
 
 /**
  * Block entity of the UV light block: its UV floodlight sources (see {@link LightBlockEntity}), and the damage to
@@ -28,6 +29,11 @@ public class UvLightBlockEntity extends LightBlockEntity {
 
     public static void serverTick(Level level, BlockPos pos, BlockState state, UvLightBlockEntity light) {
         if (!state.getValue(LightBlock.LIT) || level.getGameTime() % DAMAGE_INTERVAL != DAMAGE_PHASE) return;
+        // check the sources first: a UV floodlight removed without its removal hook (on 1.21.11 /setblock, /fill and
+        // /clone skip it) must not leave harmful light behind until a random tick finds it
+        LightBlocks.refresh(level, pos, light);
+        BlockState now = level.getBlockState(pos);
+        if (!now.is(state.getBlock()) || !now.getValue(LightBlock.LIT)) return;
         // built from the damage type: DamageSources#source is private in vanilla 1.20.1 (Fabric API widens it, Forge does not)
         DamageSource source = new DamageSource(level.registryAccess().lookupOrThrow(Registries.DAMAGE_TYPE)
                 .getOrThrow(ModDamageTypes.UV_LIGHT));

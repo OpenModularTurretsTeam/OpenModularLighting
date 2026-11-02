@@ -28,6 +28,7 @@ import omtteam.openmodularlighting.block.LightBlock;
 import omtteam.openmodularlighting.blockentity.FloodlightBlockEntity;
 import omtteam.openmodularlighting.energy.ElectricPower;
 import omtteam.openmodularlighting.registry.ModBlocks;
+import omtteam.openmodularlighting.world.LightBlocks;
 
 /**
  * UV floodlight and UV light block (CLAUDE.md §6.3, §6.9): a beam of UV light blocks that damage living entities only
@@ -73,6 +74,27 @@ public class UvFloodlightGameTest implements OMLGameTests {
             helper.assertTrue(pig.getHealth() == health, "pig unharmed");
             pig.discard();
             remove(helper, pos);
+            helper.succeed();
+        });
+    }
+
+    /**
+     * A lit UV light whose UV floodlight is gone without its removal hook (on 1.21.11 {@code /setblock} skips it)
+     * checks its sources before it hurts, and removes itself.
+     */
+    @GameTest(template = EMPTY_STRUCTURE)
+    public void orphanedUvLightDoesNotHurt(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        BlockPos lightRel = new BlockPos(3, 0, 3);
+        BlockPos light = helper.absolutePos(lightRel);
+        helper.assertTrue(LightBlocks.join(level, light, ModBlocks.UV_LIGHT, helper.absolutePos(UV), true),
+                "lit UV light whose source position is empty");
+        Mob pig = pig(helper, lightRel);
+        float health = pig.getHealth();
+        helper.runAfterDelay(25, () -> {
+            helper.assertTrue(level.getBlockState(light).isAir(), "orphan removed at its damage check");
+            helper.assertTrue(pig.getHealth() == health, "pig unharmed");
+            pig.discard();
             helper.succeed();
         });
     }
