@@ -286,7 +286,7 @@ tasks.register("releaseChangelog") {
     group = "release"
     description = "Moves the Unreleased entries of CHANGELOG.md into a section for mod_version"
     val file = layout.projectDirectory.file("CHANGELOG.md").asFile
-    val version = providers.gradleProperty("mod_version").get()
+    val version = project.property("mod_version") as String
     doLast {
         val text = file.readText()
         val headings = versionHeading.findAll(text).toList()
