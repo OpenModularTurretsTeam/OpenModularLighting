@@ -149,6 +149,13 @@ public abstract class FloodlightBlockEntity extends CompatBlockEntity implements
         setChanged();
     }
 
+    /** A neighbour block changed: re-cast on the next tick if the beam may see something new there. */
+    public void neighbourChanged(Level level) {
+        if (beam.neighboursChanged(level)) {
+            controller.requestRecast();
+        }
+    }
+
     /** The block was removed: leave all light blocks (removing those this light was the last source of). */
     public void removeLights(Level level) {
         beam.removeLights(level);

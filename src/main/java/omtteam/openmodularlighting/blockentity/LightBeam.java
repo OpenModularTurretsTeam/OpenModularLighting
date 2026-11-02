@@ -1,11 +1,13 @@
 package omtteam.openmodularlighting.blockentity;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.Level;
 import omtteam.openmodularlighting.block.LightBlock;
 import omtteam.omlib.compat.nbt.NbtCompat;
 import omtteam.openmodularlighting.core.light.BeamCaster;
+import omtteam.openmodularlighting.core.light.Cell;
 import omtteam.openmodularlighting.core.light.ShapeDiff;
 import omtteam.openmodularlighting.core.math.Pos;
 import omtteam.openmodularlighting.world.LevelLightWorld;
@@ -32,6 +34,8 @@ final class LightBeam {
     private Set<BlockPos> shapeSet = Set.of();
     /** What the cached shape was cast for; null if there is no cached shape. */
     private int @Nullable [] shapeKey;
+    /** The cells of the six neighbours after the last cast (not saved: null until the first cast after loading). */
+    private Cell @Nullable [] neighbours;
 
     LightBeam(FloodlightBlockEntity light) {
         this.light = light;
@@ -40,6 +44,25 @@ final class LightBeam {
     /** Whether the cached shape is missing or was cast for a different key (mode, config). */
     boolean needsRecast() {
         return !Arrays.equals(shapeKey, light.shapeKey());
+    }
+
+    /**
+     * Whether a neighbour of the light is not what it was at the last cast (a block in front placed or removed): the
+     * block in front may hold no light block that would notice it (blocked beam, thinning). Neighbour updates that
+     * change nothing for the beam (a redstone signal) do not count.
+     */
+    boolean neighboursChanged(Level level) {
+        return !Arrays.equals(neighbours, neighbourCells(level));
+    }
+
+    private Cell[] neighbourCells(Level level) {
+        LevelLightWorld world = new LevelLightWorld(level);
+        Direction[] directions = Direction.values();
+        Cell[] cells = new Cell[directions.length];
+        for (int i = 0; i < directions.length; i++) {
+            cells[i] = world.cellAt(Positions.toPos(light.getBlockPos().relative(directions[i])));
+        }
+        return cells;
     }
 
     /** Casts the beam again and updates the light blocks that changed (diff against the cached shape). */
@@ -63,6 +86,7 @@ final class LightBeam {
         }
         setShape(joined);
         shapeKey = light.shapeKey();
+        neighbours = neighbourCells(level);
     }
 
     void switchLights(Level level, boolean on) {
@@ -78,6 +102,7 @@ final class LightBeam {
         }
         setShape(List.of());
         shapeKey = null;
+        neighbours = null;
     }
 
     List<BlockPos> positions() {

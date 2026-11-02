@@ -192,6 +192,29 @@ public class FloodlightGameTest implements OMLGameTests {
         });
     }
 
+    /**
+     * A wall right in front: the beam stops at once, so no light block can notice the wall going; the floodlight's
+     * own neighbour update does (otherwise only the periodic re-check after 10–30 s would).
+     */
+    @GameTest(template = EMPTY_STRUCTURE)
+    public void removingAWallRightInFrontCastsTheBeam(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        BlockPos pos = helper.absolutePos(LIGHT);
+        helper.setBlock(LIGHT.above(), Blocks.STONE);
+        ElectricFloodlightBlockEntity light = placeElectric(helper);
+        light.getEnergyStore().setAmountUnchecked(ElectricFloodlightBlockEntity.CAPACITY);
+        helper.setBlock(REDSTONE, Blocks.REDSTONE_BLOCK);
+        helper.runAfterDelay(3, () -> {
+            helper.assertTrue(light.getShape().isEmpty(), "no light blocks behind the wall");
+            level.setBlock(pos.above(), Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL);
+        });
+        helper.runAfterDelay(6, () -> {
+            assertBeam(helper, pos, true);
+            remove(helper, pos);
+            helper.succeed();
+        });
+    }
+
     @GameTest(template = EMPTY_STRUCTURE)
     public void lightproofGlassStopsTheBeamLikeAWall(GameTestHelper helper) {
         ElectricFloodlightBlockEntity light = placeElectric(helper);

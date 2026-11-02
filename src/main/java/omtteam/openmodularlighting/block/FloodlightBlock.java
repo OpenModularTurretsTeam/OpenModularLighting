@@ -117,6 +117,17 @@ public abstract class FloodlightBlock extends CompatEntityBlock implements Inter
         return FloodlightInteraction.use(this, state, level, pos, player, light);
     }
 
+    /**
+     * A block next to the light changed: a wall in front may have gone, where no light block noticed it (the beam
+     * stopped there, or that position is left out by the thinning).
+     */
+    @Override
+    protected void onNeighborChanged(BlockState state, Level level, BlockPos pos, @Nullable BlockPos neighbourPos) {
+        if (!level.isClientSide() && level.getBlockEntity(pos) instanceof FloodlightBlockEntity light) {
+            light.neighbourChanged(level);
+        }
+    }
+
     /** Whether {@link #configure} does something (otherwise a stick or wrench opens the GUI). */
     protected boolean hasConfiguration() {
         return false;
