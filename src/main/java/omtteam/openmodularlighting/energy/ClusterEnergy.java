@@ -28,7 +28,8 @@ public final class ClusterEnergy {
      * If the light cannot pay this tick: takes energy from the other lights of its cluster, each giving at most half
      * of what it has, fullest first (so lights do not drain each other empty and ping-pong).
      *
-     * @return false if the light did not need energy or found none (it should wait before looking again)
+     * @return false if the light needed energy but found none (it should wait before looking again); true if it got
+     *         some, or needed none (no cluster, or enough energy of its own)
      */
     public static boolean pull(PanelLightBlockEntity light) {
         Cluster<PanelLightBlockEntity> cluster = light.cluster();

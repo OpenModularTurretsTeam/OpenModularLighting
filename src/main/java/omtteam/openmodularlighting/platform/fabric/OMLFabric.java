@@ -6,7 +6,8 @@ import omtteam.openmodularlighting.OML;
 import omtteam.openmodularlighting.registry.ModBlockEntities;
 
 /**
- * Fabric entrypoint: installs the platform services, starts the mod and wires Fabric's callbacks to the shared code.
+ * Fabric entrypoint: starts the mod and wires Fabric's callbacks to the shared code. OMLib creates the platform
+ * services on first use and registers block use and the config sync itself.
  */
 public final class OMLFabric implements ModInitializer {
     @Override

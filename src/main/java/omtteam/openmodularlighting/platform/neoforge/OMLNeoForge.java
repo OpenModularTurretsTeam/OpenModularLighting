@@ -2,11 +2,9 @@ package omtteam.openmodularlighting.platform.neoforge;
 
 import omtteam.omlib.platform.neoforge.NeoForgeNetwork;
 import omtteam.omlib.platform.neoforge.NeoForgeCapabilities;
-import omtteam.omlib.platform.neoforge.NeoForgeCapabilities;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
-import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.registries.NeoForgeRegistries;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
@@ -22,8 +20,9 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * NeoForge entrypoint: installs the platform services, starts the mod, runs each registration step in the
- * {@link RegisterEvent} of its registry and wires NeoForge's events to the shared code.
+ * NeoForge entrypoint: starts the mod, runs each registration step in the {@link RegisterEvent} of its registry and
+ * wires NeoForge's events to the shared code. OMLib creates the platform services on first use and registers block use
+ * and the config sync itself.
  */
 @Mod(OML.MOD_ID)
 public final class OMLNeoForge {

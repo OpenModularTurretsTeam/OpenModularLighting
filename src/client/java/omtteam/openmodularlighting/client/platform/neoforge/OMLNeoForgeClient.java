@@ -15,15 +15,12 @@ import omtteam.openmodularlighting.client.OMLClient;
 import omtteam.omlib.client.compat.ClientCompat;
 import omtteam.openmodularlighting.client.render.FloodlightTint;
 import omtteam.openmodularlighting.client.render.LightBlockDebugRenderer;
-import omtteam.omlib.platform.Platform;
-//? if >=1.21.11 {
-/*import omtteam.omlib.camo.CamoBlock;
-*///?}
 
 /**
- * NeoForge client entrypoint: installs the client platform services, starts the client and wires NeoForge's client
- * events to the shared code ({@link OMLClient}). FML constructs it after the common {@code OMLNeoForge} (entrypoints for
- * more sides first), so {@link Platform} is already installed. Render types come from "render_type" in the block models.
+ * NeoForge client entrypoint: starts the client and wires NeoForge's client events to the shared code
+ * ({@link OMLClient}). FML constructs it after the common {@code OMLNeoForge} (entrypoints for more sides first). OMLib
+ * creates the platform services on first use and wraps the disguise models itself. Render types come from
+ * "render_type" in the block models.
  */
 @Mod(value = OML.MOD_ID, dist = Dist.CLIENT)
 public final class OMLNeoForgeClient {

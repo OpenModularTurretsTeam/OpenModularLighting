@@ -22,8 +22,8 @@ import net.minecraft.client.renderer.RenderType;
 //?}
 
 /**
- * Fabric client entrypoint: installs the client platform services, starts the client and wires Fabric's client
- * callbacks to the shared code ({@link OMLClient}).
+ * Fabric client entrypoint: starts the client and wires Fabric's client callbacks to the shared code
+ * ({@link OMLClient}). OMLib creates the client platform services and wraps the disguise models itself.
  */
 public final class OMLFabricClient implements ClientModInitializer {
     @Override
