@@ -22,6 +22,7 @@ turns *Unreleased* into the release section; `chiseledPublish` uploads exactly t
 - The carbon floodlight's GUI no longer shows no time left in a cone mode with fuels of enormous burn time
 - Fabric: each jar only loads on its own Minecraft version (1.20.1, 1.21.1 or 1.21.11), as on NeoForge and Forge
 - Fabric, with Open Modular Turrets installed: its turret bases and camouflage trap keep their own render layer
+- Missing translations: the death message of a mob killed by UV light while fighting a player, and the "Configured" tooltip in Russian
 
 ## [1.0.0-beta.10] - 2026-10-27
 
