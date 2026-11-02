@@ -33,6 +33,6 @@ public final class CarbonFuel {
     /** Ticks the light runs on {@code stored} burn time in this mode (rounded up, 0 only when empty). */
     public static int runTicks(int stored, BeamMode mode) {
         int drain = drain(mode);
-        return (stored + drain - 1) / drain;
+        return (int) (((long) stored + drain - 1) / drain); // long: stored may be Integer.MAX_VALUE (see ticks)
     }
 }

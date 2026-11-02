@@ -19,6 +19,7 @@ turns *Unreleased* into the release section; `chiseledPublish` uploads exactly t
 - Floodlights and fluorescent lights in rotated or mirrored structures turn with them
 - The wide cone lights at least one block when the cone range is set below 4
 - The grow light's GUI explains the wait after turning off, like the floodlights' GUIs
+- The carbon floodlight's GUI no longer shows no time left in a cone mode with fuels of enormous burn time
 
 ## [1.0.0-beta.10] - 2026-10-27
 

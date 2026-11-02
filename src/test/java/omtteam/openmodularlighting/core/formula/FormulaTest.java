@@ -21,6 +21,8 @@ class FormulaTest {
         assertEquals(2, CarbonFuel.drain(BeamMode.WIDE_CONE));
         assertEquals(1, CarbonFuel.runTicks(1, BeamMode.NARROW_CONE)); // rounded up
         assertEquals(0, CarbonFuel.runTicks(0, BeamMode.NARROW_CONE));
+        // the largest stored time (ticks caps at Integer.MAX_VALUE) must not overflow when rounded up
+        assertEquals(Integer.MAX_VALUE / 2 + 1, CarbonFuel.runTicks(Integer.MAX_VALUE, BeamMode.WIDE_CONE));
     }
 
     @Test
