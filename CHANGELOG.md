@@ -9,6 +9,10 @@ turns *Unreleased* into the release section; `chiseledPublish` uploads exactly t
 
 ## [Unreleased]
 
+### Changed
+
+- Requires OMLib 4.0.0 or newer
+
 ### Fixed
 
 - The grow light no longer grows its crop the moment it is placed or loaded (with a growth chance of 0 it now never grows)
