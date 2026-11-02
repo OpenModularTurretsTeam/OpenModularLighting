@@ -60,6 +60,18 @@ public class GrowLightGameTest implements OMLGameTests {
         });
     }
 
+    /** The first growth time is drawn when the light starts (10–30 ticks at the tests' chance of 1), not at once. */
+    @GameTest(template = EMPTY_STRUCTURE)
+    public void doesNotGrowRightAfterPlacing(GameTestHelper helper) {
+        setUp(helper);
+        BlockPos pos = helper.absolutePos(LIGHT);
+        helper.runAfterDelay(5, () -> {
+            helper.assertTrue(helper.getBlockState(CROP).getValue(CropBlock.AGE) == 0, "wheat did not grow yet");
+            remove(helper, pos);
+            helper.succeed();
+        });
+    }
+
     @GameTest(template = EMPTY_STRUCTURE)
     public void doesNotGrowThroughABlock(GameTestHelper helper) {
         // the glass first: placed next to the wheat it would update it, and wheat in a test area that is not lit yet

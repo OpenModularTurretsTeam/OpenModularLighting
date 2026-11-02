@@ -49,12 +49,14 @@ public final class OMLGameTestMod {
     }
 
     /**
-     * Sets the test beam ranges. Called when the server starts: entrypoints do not run in dependency order, so the main
+     * Sets the test beam ranges and the grow light's chance. Called when the server starts: entrypoints do not run in dependency order, so the main
      * mod may load the config after the test mod's entrypoint.
      */
     public static void onServerStarting() {
         OMLConfig.get().general.rangeStraightFloodlight = TEST_RANGE;
         OMLConfig.get().general.rangeConeFloodlight = TEST_RANGE;
         OMLConfig.get().general.rangeUVFloodlight = TEST_RANGE;
+        // the grow light's first growth comes 10–30 ticks after it starts (100–300 at the default chance)
+        OMLConfig.get().general.chanceGrowLight = 1;
     }
 }

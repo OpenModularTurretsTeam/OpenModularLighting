@@ -9,6 +9,10 @@ turns *Unreleased* into the release section; `chiseledPublish` uploads exactly t
 
 ## [Unreleased]
 
+### Fixed
+
+- The grow light no longer grows its crop the moment it is placed or loaded (with a growth chance of 0 it now never grows)
+
 ## [1.0.0-beta.10] - 2026-10-27
 
 ### Fixed

@@ -30,8 +30,14 @@ public class GrowLightBlockEntity extends PanelLightBlockEntity {
     private final ElectricPower power = new ElectricPower(
             () -> OMLConfig.get().general.energyUsageGrowLight, this::setChanged);
     private GrowMode mode = GrowMode.LIGHTING;
-    /** Game time of the next growth tick; not saved (1.7.10). */
-    private long nextGrowTick;
+    /** {@link #nextGrowTick} before the light first ran since it was placed or loaded. */
+    private static final long NOT_DRAWN = Long.MIN_VALUE;
+
+    /**
+     * Game time of the next growth tick; not saved (1.7.10), so it is drawn when the light first runs, and placing or
+     * loading the light gives no growth at once.
+     */
+    private long nextGrowTick = NOT_DRAWN;
 
     public GrowLightBlockEntity(BlockPos pos, BlockState state) {
         super(ModBlockEntities.GROW_LIGHT, pos, state);
@@ -78,7 +84,12 @@ public class GrowLightBlockEntity extends PanelLightBlockEntity {
      */
     @Override
     protected void afterTick(Level level, BlockPos pos, BlockState state, LightController.TickResult result) {
-        if (!result.running() || level.getGameTime() <= nextGrowTick || !(level instanceof ServerLevel server)) return;
+        if (!result.running() || !(level instanceof ServerLevel server)) return;
+        if (nextGrowTick == NOT_DRAWN) {
+            nextGrowTick = drawNextGrowTick(level);
+            return;
+        }
+        if (level.getGameTime() <= nextGrowTick) return;
         Direction facing = facing();
         BlockPos front = pos.relative(facing);
         BlockPos target = pos.relative(facing, 2);
@@ -89,7 +100,11 @@ public class GrowLightBlockEntity extends PanelLightBlockEntity {
                 && VersionCompat.isValidBonemealTarget(crop, level, target, targetState)) {
             crop.performBonemeal(server, level.random, target, targetState);
         }
-        nextGrowTick = GrowChance.nextGrowTick(level.getGameTime(), OMLConfig.get().general.chanceGrowLight,
+        nextGrowTick = drawNextGrowTick(level);
+    }
+
+    private static long drawNextGrowTick(Level level) {
+        return GrowChance.nextGrowTick(level.getGameTime(), OMLConfig.get().general.chanceGrowLight,
                 () -> level.random.nextLong());
     }
 
