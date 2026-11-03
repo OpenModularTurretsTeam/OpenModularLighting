@@ -294,6 +294,7 @@ The NeoForge build converts the Fabric 1.21.1 output and the Forge build the Fab
 | core uses only Java, core and OMLib's core | `ArchitectureTest.coreDependsOnlyOnCoreAndJava` and the `verifyCoreIsolation` task |
 | main code never uses client code | `ArchitectureTest.mainCodeNeverDependsOnClientCode` |
 | no new package cycles, and the known ones only shrink | `ArchitectureTest.noNewPackageCycles` (list `KNOWN_CYCLES`) |
+| every item has a recipe (unless `recipe-exempt.txt` names it with a reason), and every recipe makes an item of the mod | the `checkRecipes` task on every node (`omlib/build-logic/src/main/kotlin/RecipeCoverage.kt`), on the node's processed resources |
 | core rules and the config behave as specified | unit tests in `src/test` (they run on the NeoForge and Forge nodes too) |
 | the beam shapes still equal the reference loops (with thinning) | `BeamCasterTest` against `BeamTest` |
 | lights, light blocks, energy, items, recipes and Jade work in a real world | GameTests in `src/gametest`: Fabric `runGameTest`, NeoForge and Forge `runGameTestServer` |
