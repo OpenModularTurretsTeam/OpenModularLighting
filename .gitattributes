@@ -42,3 +42,6 @@
 *.[pP][sS]1             text eol=crlf
 
 *[aA][uU][tT][oO][gG][eE][nN][eE][rR][aA][tT][eE][dD]* binary
+
+# Every feature adds lines under ## [Unreleased]: keep both sides when merging (check for doubled ### headings)
+CHANGELOG.md merge=union
