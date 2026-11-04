@@ -211,6 +211,7 @@ Outside access goes through the loader:
 The adapters are all OMLib's:
 
 - Energy: `core.energy.EnergyAccess`, exposed as Team Reborn Energy on Fabric (`FabricEnergyStorages`) and as an FE capability on NeoForge (`NeoForgeEnergyHandler`; on 1.21.11 an `EnergyHandler` of NeoForge's transfer API, in OMLib's version folder `src/main/mc1.21.11-`) and Forge (`ForgeEnergyHandler`).
+  On Fabric 1.20.1 with NEEPMeat installed, OMLib also makes the lights sinks of its vascular network (`FabricNeepMeatPower`, 1 eJ = 1 E).
   Only inserting is possible; there is no extraction.
 - Items: `inventory.ItemAccess.insertOnly`, exposed as `ItemStorage.SIDED` on Fabric (`FabricItemStorages`) and as `IItemHandler` on NeoForge and Forge (NeoForge 1.21.11: `ResourceHandler<ItemResource>`).
   The NeoForge capabilities are registered by `NeoForgeCapabilities`, one class per version folder of OMLib.
