@@ -77,7 +77,7 @@ public abstract class LightBlock extends Block implements EntityBlock {
     }
 
     //? if <1.21.11 {
-    /** Replaced: {@link LightBlockEntity#onBlockRemoved} flags the sources for a re-cast. */
+    /** Replaced: {@code LightBlockEntity#onBlockRemoved} flags the sources for a re-cast. */
     @Override
     public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
         CompatBlockEntity.handleRemove(state, level, pos, newState);

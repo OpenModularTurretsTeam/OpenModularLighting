@@ -10,7 +10,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import omtteam.openmodularlighting.OML;
 import omtteam.openmodularlighting.blockentity.CarbonFloodlightBlockEntity;
 import omtteam.openmodularlighting.blockentity.ElectricFloodlightBlockEntity;
-import omtteam.openmodularlighting.blockentity.FloodlightBlockEntity;
 import omtteam.omlib.blockentity.TransferHost;
 import omtteam.openmodularlighting.blockentity.CubeLightBlockEntity;
 import omtteam.openmodularlighting.blockentity.FluorescentLightBlockEntity;

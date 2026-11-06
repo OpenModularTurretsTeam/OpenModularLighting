@@ -86,7 +86,7 @@ public abstract class PanelLightBlockEntity extends FloodlightBlockEntity implem
         if (level == null) return result;
         for (Direction side : Direction.values()) {
             BlockPos pos = worldPosition.relative(side);
-            if (level.hasChunkAt(pos) && level.getBlockEntity(pos) instanceof PanelLightBlockEntity other
+            if (level.isLoaded(pos) && level.getBlockEntity(pos) instanceof PanelLightBlockEntity other
                     && !other.isRemoved() && connectsTo(side, other)) {
                 result.add(other);
             }

@@ -92,7 +92,7 @@ public abstract class LightBlockEntity extends CompatBlockEntity {
         long before = sources.changeCount();
         LightSources.Effect effect = sources.refresh(source -> {
             BlockPos sourcePos = Positions.toBlockPos(source);
-            if (!world.hasChunkAt(sourcePos)) return SourceStatus.UNKNOWN;
+            if (!world.isLoaded(sourcePos)) return SourceStatus.UNKNOWN;
             if (!(sourceAt(world, sourcePos) instanceof LightSourceBlockEntity light)
                     || !light.coversLightAt(worldPosition)) {
                 return SourceStatus.GONE;
@@ -104,7 +104,7 @@ public abstract class LightBlockEntity extends CompatBlockEntity {
 
     /** The block entity at {@code pos}, without loading its chunk. */
     private static BlockEntity sourceAt(Level level, BlockPos pos) {
-        return level.hasChunkAt(pos) ? level.getBlockEntity(pos) : null;
+        return level.isLoaded(pos) ? level.getBlockEntity(pos) : null;
     }
 
     @Override

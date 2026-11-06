@@ -38,7 +38,7 @@ public class GrowLightGameTest implements OMLGameTests {
 
     @GameTest(template = EMPTY_STRUCTURE)
     public void growsTheCropAndLightsTheBlockBetween(GameTestHelper helper) {
-        GrowLightBlockEntity light = setUp(helper);
+        setUp(helper);
         BlockPos pos = helper.absolutePos(LIGHT);
         helper.succeedWhen(() -> {
             helper.assertTrue(helper.getBlockState(CROP).getValue(CropBlock.AGE) > 0, "wheat grew");

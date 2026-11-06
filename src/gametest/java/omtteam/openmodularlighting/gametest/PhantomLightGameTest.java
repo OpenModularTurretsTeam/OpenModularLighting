@@ -33,6 +33,9 @@ import omtteam.openmodularlighting.registry.ModBlocks;
 import omtteam.openmodularlighting.world.LightBlocks;
 import omtteam.openmodularlighting.world.Positions;
 
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.LockSupport;
+
 /**
  * In-world tests of the phantom light block (CLAUDE.md §6.3): persistent light blocks that are switched with
  * {@code LIT}, behave like air and clean up after themselves.
@@ -105,8 +108,8 @@ public class PhantomLightGameTest implements OMLGameTests {
         BlockPos light = helper.absolutePos(LIGHT);
         LightBlocks.join(level, light, ModBlocks.PHANTOM_LIGHT, helper.absolutePos(SOURCE_A), true);
         helper.succeedWhen(() -> {
-            helper.assertTrue(level.getBrightness(LightLayer.BLOCK, light) == 15, "block light 15");
-            helper.assertTrue(level.getBrightness(LightLayer.BLOCK, light.above()) == 14, "light spreads");
+            assertBlockLight(helper, light, 15, "block light 15");
+            assertBlockLight(helper, light.above(), 14, "light spreads");
         });
     }
 
@@ -114,7 +117,8 @@ public class PhantomLightGameTest implements OMLGameTests {
      * Own batch, so that no light from tests running at the same time reaches this one. Finished tests leave
      * beacons (light 15) next to their structures, so the area is not completely dark: the light has to return to
      * the level measured before placing the phantom light. The light engine works beside the server thread and can
-     * fall behind the ticks while the machine is busy (several test servers at once), hence the longer time limit.
+     * fall behind while the machine is busy (several test servers at once), hence the longer time limit, which
+     * {@link #assertBlockLight} keeps in real time.
      */
     @GameTest(template = EMPTY_STRUCTURE, batch = "phantom_light_darkness", timeoutTicks = 400)
     public void switchingOffRemovesTheLight(GameTestHelper helper) {
@@ -126,11 +130,9 @@ public class PhantomLightGameTest implements OMLGameTests {
         LightBlocks.join(level, light, ModBlocks.PHANTOM_LIGHT, source, true);
         // the light engine runs off the server thread: wait for each level instead of checking after a fixed delay
         helper.startSequence()
-                .thenWaitUntil(() -> helper.assertTrue(level.getBrightness(LightLayer.BLOCK, light) == 15, "lit first"))
+                .thenWaitUntil(() -> assertBlockLight(helper, light, 15, "lit first"))
                 .thenExecute(() -> LightBlocks.setActive(level, light, ModBlocks.PHANTOM_LIGHT, source, false))
-                .thenWaitUntil(() -> helper.assertTrue(level.getBrightness(LightLayer.BLOCK, light) == ambient,
-                        "back to the ambient light " + ambient + ", but block light is "
-                                + level.getBrightness(LightLayer.BLOCK, light)))
+                .thenWaitUntil(() -> assertBlockLight(helper, light, ambient, "back to the ambient light"))
                 .thenSucceed();
     }
 
@@ -192,7 +194,7 @@ public class PhantomLightGameTest implements OMLGameTests {
         ServerLevel level = helper.getLevel();
         BlockPos light = helper.absolutePos(LIGHT);
         BlockPos farAway = light.offset(1_000_000, 0, 0);
-        helper.assertTrue(!level.hasChunkAt(farAway), "test needs an unloaded source chunk");
+        helper.assertTrue(!level.isLoaded(farAway), "test needs an unloaded source chunk");
         LightBlocks.join(level, light, ModBlocks.PHANTOM_LIGHT, farAway, true);
         randomTick(level, light);
         assertLit(helper, true, "kept as it was");
@@ -277,6 +279,20 @@ public class PhantomLightGameTest implements OMLGameTests {
 
     private static void randomTick(ServerLevel level, BlockPos pos) {
         level.getBlockState(pos).randomTick(level, pos, level.getRandom());
+    }
+
+    /**
+     * Fails unless the block light at {@code pos} is {@code expected}, for waiting on the light engine. The game test
+     * server runs its ticks back to back without waiting for the next 50 ms, while the light engine works on its own
+     * threads, so a busy machine can use up a time limit in ticks before the light is there (seen on 1.20.1). While
+     * it is not there yet, the check waits a normal tick's length, so the time limit counts in real time again.
+     */
+    private static void assertBlockLight(GameTestHelper helper, BlockPos pos, int expected, String message) {
+        int actual = helper.getLevel().getBrightness(LightLayer.BLOCK, pos);
+        if (actual != expected) {
+            LockSupport.parkNanos(TimeUnit.MILLISECONDS.toNanos(50));
+            helper.assertTrue(false, message + ": block light " + actual + ", expected " + expected);
+        }
     }
 
     private static void assertLit(GameTestHelper helper, boolean lit, String message) {

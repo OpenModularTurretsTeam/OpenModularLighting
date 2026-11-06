@@ -30,7 +30,7 @@ public final class LightBlocks {
      * @return whether {@code pos} now has a light block of this type with this source
      */
     public static boolean join(Level level, BlockPos pos, LightBlock block, BlockPos source, boolean on) {
-        if (!level.hasChunkAt(pos)) return false;
+        if (!level.isLoaded(pos)) return false;
         BlockState state = level.getBlockState(pos);
         if (!state.is(block)) {
             if (!(state.isAir() || block.canReplace(state))
@@ -91,7 +91,7 @@ public final class LightBlocks {
     }
 
     private static LightBlockEntity lightAt(Level level, BlockPos pos, LightBlock block) {
-        if (!level.hasChunkAt(pos) || !level.getBlockState(pos).is(block)) return null;
+        if (!level.isLoaded(pos) || !level.getBlockState(pos).is(block)) return null;
         return level.getBlockEntity(pos) instanceof LightBlockEntity light ? light : null;
     }
 }

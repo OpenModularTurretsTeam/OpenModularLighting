@@ -335,6 +335,7 @@ A mutant that makes the tests loop forever counts as detected ("timed out").
 When a tool reports something:
 
 - **A PIT survivor:** add the missing assertion to the unit test of that class; if it is equivalent, leave it and say why.
+  The `pitest` task fails when the results get worse than the thresholds in `gradle.properties` (`pitest_mutation_threshold`, `pitest_coverage_threshold`, `pitest_max_surviving`, the state of 2026-11-06); raise `pitest_max_surviving` only for an equivalent survivor listed in the PIT row below.
 - **A PMD finding:** propose a fix (usually extracting a method or a small class) and let the user decide, or accept it with a reason under "Known weak spots".
   Coupling counts the types of fields, parameters, local variables and return types, so overriding vanilla methods alone can push a block class above 20.
 - **A new package cycle:** cut the cheapest dependency the test prints, rather than extending `KNOWN_CYCLES`.
@@ -344,7 +345,7 @@ State on 2026-10-21:
 | Measure | Value |
 | --- | --- |
 | Line coverage of `core` | 100 % |
-| PIT | 272 of 277 mutations detected (98 %); the 5 survivors are equivalent (`BeamMode` / `GrowMode.byOrdinal` lower bound, the tie-break in `Cluster.merge`, `Cluster.refresh` with one part, the saturation check in `GrowChance.nextGrowTick`) |
+| PIT (2026-11-06) | 241 of 247 mutations detected (98 %); the 6 survivors are equivalent (`BeamMode` / `GrowMode.byOrdinal` lower bound, the tie-break in `Cluster.merge`, `Cluster.refresh` with one part, the saturation check in `GrowChance.nextGrowTick`, `changes--` in `LightSources.remove`: the counter is only compared for a difference) |
 | PMD | 2 findings, both accepted (see below) |
 | Package cycles | 1 (see below) |
 

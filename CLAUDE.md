@@ -316,6 +316,7 @@ Quality tools (taken over from OMT; details in `docs/architecture.md`, "Rules th
 PMD (`gradle/pmd/ruleset.xml`, report only, active version) measures complexity and size: `versions/1.21.1-fabric/build/reports/pmd/`.
 JaCoCo records coverage in the unit tests and on the game test server; `check` prints the line coverage of `core` per package (active version only).
 PIT (`./gradlew :1.21.1-fabric:pitest`, on demand, not part of `check`) runs mutation testing on `core`; surviving mutations show behaviour the tests do not pin down.
+It fails when the results get worse than the thresholds in `gradle.properties` (`pitest_*`); see `docs/architecture.md`.
 
 The core layer works through small interfaces that `main` implements: `LightWorld.cellAt(pos)` classifies a block as a `Cell` (air, phantom light, UV light, opaque, transparent, unloaded; see its Javadoc for the mapping from `BlockState`), and `PowerSource` pays a tick's cost. Positions in core are the `Pos` record, not `BlockPos`; `Facing` has the same ordinal order as `Direction`.
 
