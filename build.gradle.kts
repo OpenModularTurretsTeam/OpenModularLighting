@@ -25,8 +25,9 @@ group = basePackage
 base.archivesName = property("archives_base_name") as String
 // jars: <mod_id>-<mod_version>-mc<minecraft_version>-forge[-dev|-sources].jar (name, version, Minecraft, loader, as in
 // the other OMTTeam 1.12 mods); the mod version and the release tag stay <mod_version>+<minecraft_version>-forge
+val archiveVersionName = "${property("mod_version")}-mc$minecraftVersion-forge"
 tasks.withType<Jar>().configureEach {
-    archiveVersion = "${project.property("mod_version")}-mc$minecraftVersion-forge"
+    archiveVersion = archiveVersionName
 }
 
 java {
@@ -347,7 +348,8 @@ val releaseNotes: Provider<String> = providers.fileContents(layout.projectDirect
 publishMods {
     // the reobfuscated (SRG) jar is the one players install
     file = tasks.named<org.gradle.jvm.tasks.Jar>("reobfJar").flatMap { it.archiveFile }
-    displayName = "$modName ${project.version}"
+    // Shown like the jar file name (<archives_base_name>-<mod_version>-mc<minecraft version>-forge), as on 1.20.1+
+    displayName = "${base.archivesName.get()}-$archiveVersionName"
     version = project.version.toString()
     changelog = releaseNotes
     type = when (property("release_type")) {
