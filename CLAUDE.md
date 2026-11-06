@@ -113,7 +113,7 @@ export JAVA_HOME=/usr/lib/jvm/java-25-openjdk   # Gradle needs 17+
 The game logic lives in the `core` package and is free of Minecraft imports, exactly as on the main branch: beam shapes, rotation, light-source bookkeeping, the light state machine, formulas, clusters and the energy store, with unit tests.
 `./gradlew check` runs `verifyCoreIsolation`, which fails if anything under `core/` imports `net.minecraft`, `net.minecraftforge`, `com.mojang` or non-core mod packages.
 The original beam loops are kept in the test sources as a reference (`core/light/Legacy1710Beams`); `BeamCasterTest` checks `BeamCaster` against them.
-`./gradlew pitest` (on demand, not part of `check`) runs PIT mutation testing of `core`, as `mod-common.gradle` does in the other mods; it skips the test helpers in the core packages (`TestWorld`, `Legacy1710Beams`). Report: `build/reports/pitest/index.html`.
+`./gradlew pitest` (on demand, not part of `check`) runs PIT mutation testing of `core`, as `mod-common.gradle` does in the other mods; it skips the test helpers in the core packages (`TestWorld`, `Legacy1710Beams`) and fails below the score `pitest_mutation_threshold` in `gradle.properties`. Report: `build/reports/pitest/index.html`.
 `core.EqualsContractTest` checks equals and hashCode of the core value classes with EqualsVerifier.
 The main branch's ArchUnit, JaCoCo and PMD setup is not on this branch.
 

@@ -95,6 +95,12 @@ class LightSourcesTest {
         long refreshed = sources.changeCount();
         assertTrue(refreshed > switched, "refresh switched it off");
         sources.refresh(source -> SourceStatus.GONE);
-        assertTrue(sources.changeCount() > refreshed, "refresh dropped it");
+        long dropped = sources.changeCount();
+        assertTrue(dropped > refreshed, "refresh dropped it");
+        sources.add(B, false);
+        long readded = sources.changeCount();
+        assertTrue(readded > dropped, "new source");
+        sources.remove(B);
+        assertTrue(sources.changeCount() > readded, "removed");
     }
 }

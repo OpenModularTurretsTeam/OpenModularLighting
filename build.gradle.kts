@@ -175,8 +175,8 @@ tasks {
 // ---- Mutation testing (PIT): ./gradlew pitest, on demand ----
 
 // Plants small mistakes in core (flipped conditions, changed boundaries, removed calls) and checks whether a unit test
-// fails, as gradle/mod-common.gradle does in the other mods. Report only, not part of check:
-// build/reports/pitest/index.html. PIT 1.17 is the last release that runs on Java 8.
+// fails, as gradle/mod-common.gradle does in the other mods. Not part of check; fails below pitest_mutation_threshold
+// (gradle.properties). Report: build/reports/pitest/index.html. PIT 1.17 is the last release that runs on Java 8.
 val pitest: Configuration by configurations.creating {
     // resolved by the pitest task only; not offered to other projects
     isCanBeConsumed = false
@@ -204,6 +204,10 @@ tasks.register<JavaExec>("pitest") {
     javaLauncher.set(javaToolchains.launcherFor { languageVersion.set(JavaLanguageVersion.of(toolchainVersion)) })
     val corePackage = "$basePackage.core"
     val sourceDirs = sourceSets.main.get().java.srcDirs.joinToString(",")
+    // the minimum mutation score in percent (gradle.properties): pitest fails below it
+    val threshold = findProperty("pitest_mutation_threshold")?.toString()
+    // a changed threshold runs PIT again instead of keeping the last result
+    inputs.property("mutationThreshold", threshold ?: "")
     doFirst {
         args = listOf(
             "--reportDir", reportDir.get().asFile.path,
@@ -217,7 +221,7 @@ tasks.register<JavaExec>("pitest") {
             "--threads", Runtime.getRuntime().availableProcessors().toString(),
             "--outputFormats", "HTML,XML",
             "--timestampedReports=false",
-        )
+        ) + (if (threshold != null) listOf("--mutationThreshold", threshold) else emptyList())
     }
     doLast {
         println("PIT report: ${reportDir.get().file("index.html").asFile.toURI()}")

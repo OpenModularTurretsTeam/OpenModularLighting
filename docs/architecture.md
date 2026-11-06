@@ -275,7 +275,7 @@ The ArchUnit, JaCoCo and PMD setup of the other mods is not on this branch.
 
 | Tool | Command | Output |
 | --- | --- | --- |
-| Mutation testing of `core` (PIT, on demand) | `./gradlew pitest` | `build/reports/pitest/index.html` |
+| Mutation testing of `core` (PIT, on demand; fails below `pitest_mutation_threshold` in `gradle.properties`) | `./gradlew pitest` | `build/reports/pitest/index.html` |
 
 Run Gradle with a JDK 17+ in `JAVA_HOME`; the mod compiles and tests on the Java 8 toolchain.
 PIT plants small mistakes in core (a flipped condition, `<` instead of `<=`, a removed call) and runs the unit tests against each one; a survivor marks behaviour the tests do not pin down, unless the change cannot be noticed (an equivalent mutant).
