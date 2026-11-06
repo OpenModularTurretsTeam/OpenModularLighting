@@ -53,9 +53,4 @@ public final class CamoRules {
         BlockState state = item.getBlock().defaultBlockState();
         return isValidDisguise(state) ? state : null;
     }
-
-    /** The item shown in the disguise slot of the GUI. */
-    public static ItemStack itemFor(@Nullable BlockState camo) {
-        return camo == null ? ItemStack.EMPTY : new ItemStack(camo.getBlock());
-    }
 }

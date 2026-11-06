@@ -1,6 +1,5 @@
 package omtteam.openmodularlighting.menu;
 
-import omtteam.omlib.menu.CamoMenu;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Inventory;

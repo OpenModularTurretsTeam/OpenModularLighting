@@ -147,7 +147,7 @@ public abstract class FloodlightBlock extends CompatEntityBlock implements Inter
     }
 
     //? if <1.21.11 {
-    /** Removed: {@link FloodlightBlockEntity#onBlockRemoved} leaves the phantom lights and drops the slot contents. */
+    /** Removed: {@code FloodlightBlockEntity#onBlockRemoved} leaves the phantom lights and drops the slot contents. */
     @Override
     public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
         CompatBlockEntity.handleRemove(state, level, pos, newState);

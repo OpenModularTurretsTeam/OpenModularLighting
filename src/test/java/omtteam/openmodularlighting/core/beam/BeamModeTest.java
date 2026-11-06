@@ -46,7 +46,7 @@ class BeamModeTest {
     @Test
     void wideConeReachesAtLeastOneBlock() {
         for (int coneRange = 1; coneRange < 8; coneRange++) {
-            assertEquals(Math.max(1, coneRange / 4), BeamMode.WIDE_CONE.shape(64, coneRange).rays().get(0).steps().size(),
+            assertEquals(1, BeamMode.WIDE_CONE.shape(64, coneRange).rays().get(0).steps().size(),
                     "cone range " + coneRange);
         }
     }

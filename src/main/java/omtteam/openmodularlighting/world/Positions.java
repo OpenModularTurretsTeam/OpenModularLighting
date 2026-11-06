@@ -24,8 +24,4 @@ public final class Positions {
     public static Facing toFacing(Direction direction) {
         return Facing.byOrdinal(direction.ordinal());
     }
-
-    public static Direction toDirection(Facing facing) {
-        return Direction.values()[facing.ordinal()];
-    }
 }

@@ -32,7 +32,7 @@ final class TestWorld implements LightWorld {
             if ((roll -= density / 2) < 0) return Cell.TRANSPARENT;
             if ((roll -= density / 10) < 0) return Cell.UNLOADED;
             if ((roll -= density / 10) < 0) return Cell.UV_LIGHT;
-            if ((roll -= 0.1) < 0) return Cell.PHANTOM_LIGHT;
+            if (roll < 0.1) return Cell.PHANTOM_LIGHT;
             return Cell.AIR;
         });
     }
