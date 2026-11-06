@@ -72,6 +72,11 @@ On a server, the server's settings are sent to the players.
 With [Jade](https://modrinth.com/mod/jade) installed, looking at a light shows its mode and whether it is inverted.
 Jade is not required.
 
+### Optional: NEEPMeat
+
+On Fabric 1.20.1, [NEEPMeat](https://modrinth.com/mod/neepmeat)'s vascular conduits power the electric lights, 1 eJ per energy unit.
+A full light takes no power from the network.
+
 ## Requirements
 
 - Fabric: Minecraft 1.20.1 (Java 17), 1.21.1 or 1.21.11 (Java 21), with [Fabric Loader](https://fabricmc.net/) and [Fabric API](https://modrinth.com/mod/fabric-api)

@@ -1,3 +1,5 @@
+import java.util.concurrent.Callable
+
 // Fabric nodes (Loom). Shared logic (Java, metadata templating, tests, publishing) is in buildSrc/mod-common.
 plugins {
     id("mod-common")
@@ -67,12 +69,42 @@ dependencies {
     modCompileOnly("maven.modrinth:jade:${property("jade_version")}")
     modLocalRuntime("maven.modrinth:jade:${property("jade_version")}")
 
+    // NEEPMeat (1.20.1 only; the other nodes have no neepmeat_version): OMLib's FabricNeepMeatPower lets its vascular
+    // network charge the electric lights. Not bundled, the mod needs nothing of it; NEEPMeat (with the mods nested in its
+    // jar, which Loom leaves out of its remapped copy: nestedModJars in omlib/build-logic) and GeckoLib (which it
+    // requires, also with the library nested in its jar) are in the dev runs and on the game test server, where
+    // gametest/platform/fabric/NeepMeatGameTest checks a floodlight
+    findProperty("neepmeat_version")?.let { version ->
+        val neepmeat = "maven.modrinth:neepmeat:$version"
+        modCompileOnly(neepmeat)
+        modLocalRuntime(neepmeat)
+        // resolved lazily, when Loom resolves modLocalRuntime (earlier, it would use the repository before Loom sets it up)
+        val geckolib = "maven.modrinth:geckolib:${property("geckolib_version")}"
+        modLocalRuntime(geckolib)
+        // GeckoLib nests a library too (mclib; without it the client's resource reload fails)
+        val nested = layout.buildDirectory.dir("nested-mods")
+        modLocalRuntime(files(Callable {
+            listOf(neepmeat, geckolib).flatMap { notation ->
+                val jar = configurations.detachedConfiguration(dependencies.create(notation)).apply { isTransitive = false }.singleFile
+                nestedModJars(jar, nested.get().asFile)
+            }
+        }))
+    }
+
     // Architecture rules (src/test/.../architecture): they read the compiled main and client classes
     testImplementation("com.tngtech.archunit:archunit-junit5:${property("archunit_version")}")
     testRuntimeOnly(sourceSets["client"].output)
 
     // equals/hashCode contracts of the core value records (src/test/.../core/EqualsContractTest)
     testImplementation("nl.jqno.equalsverifier:equalsverifier:${property("equalsverifier_version")}")
+}
+
+// NeepMeatGameTest exists only where NEEPMeat does (src/gametest/mc1.20.1-1.20.1): the other nodes drop its line from
+// the test mod's fabric-gametest entrypoints
+if (findProperty("neepmeat_version") == null) {
+    tasks.named<ProcessResources>("processGametestResources") {
+        filesMatching("fabric.mod.json") { filter { line -> if ("NeepMeatGameTest" in line) null else line } }
+    }
 }
 
 // ---- Test coverage (JaCoCo): check prints the line coverage of core ----

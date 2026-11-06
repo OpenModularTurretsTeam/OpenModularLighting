@@ -8,6 +8,10 @@ Before a release, `./gradlew releaseChangelog` turns *Unreleased* into the relea
 
 ## [Unreleased]
 
+### Added
+
+- NEEPMeat compatibility (Fabric 1.20.1): vascular conduits power electric lights (1 eJ = 1 E); a full electric light takes no power from the network
+
 ## [1.0.0] - 2026-11-03
 
 ### Fixed
