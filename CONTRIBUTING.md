@@ -15,7 +15,6 @@ Open an issue on the project's issue tracker and pick one of the templates:
   Include the Minecraft, mod and loader versions (Fabric Loader and Fabric API, NeoForge or Forge), and your log or crash report.
 - **Missing or different from 1.7.10** for anything that is missing or works differently than in the old mod.
 - **Feature request** for new ideas.
-  The port comes first, so new features may take a while.
 
 ## Development setup
 
@@ -36,7 +35,7 @@ git clone --recurse-submodules <url>        # or, in an existing clone: git subm
 
 The library [OMLib](https://github.com/OpenModularTurretsTeam/OMLib) is the git submodule `omlib`.
 The first Gradle run builds it for all versions and loaders into `omlib/build/maven`, and each jar bundles it; this takes a while the first time and is a no-op while the library is unchanged.
-To change the library, edit `omlib/` (it is a normal checkout of the OMLib repository), commit and push there, and commit the new submodule pointer here.
+To change the library, change and push it in its own clone of the OMLib repository (a pull request there), then move the `omlib` submodule here to that commit and commit the new pointer; never leave changes inside `omlib/` itself, the next checkout drops them.
 
 The jars end up in `versions/<minecraft version>-<loader>/build/libs/`.
 
@@ -87,7 +86,7 @@ Every Stonecutter node is named `<minecraft version>-<loader>`: `1.20.1-fabric`,
   `src/client/java` holds client-only code (renderers, screens).
   Never reference client classes from `main`.
 - `omtteam.openmodularlighting.core` holds the game logic (beam shapes, light source bookkeeping, the on/off state machine, fuel and growth formulas).
-  It must not import Minecraft or loader classes; `./gradlew check` fails if it does.
+  It must not import Minecraft or loader classes (OMLib's plain-Java `core` is allowed); `./gradlew check` fails if it does.
   Unit tests for it live in `src/test/java`.
 - `src/gametest` is a separate test mod with in-world GameTests, shared by all loaders.
   It is never shipped.

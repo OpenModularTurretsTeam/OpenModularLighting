@@ -206,9 +206,7 @@ A light's `LightPower` is chosen by its block entity: `ElectricPower` (an `Energ
 `prepare` runs before the logic each tick, `PowerSource.canRun()` / `run()` is what `LightController` calls.
 The numbers are in `core.formula` (`EnergyCost`, `CarbonFuel`, `GrowChance`).
 
-Outside access goes through the loader:
-
-The adapters are all OMLib's:
+Outside access goes through the loader; the adapters are all OMLib's:
 
 - Energy: `core.energy.EnergyAccess`, exposed as Team Reborn Energy on Fabric (`FabricEnergyStorages`) and as an FE capability on NeoForge (`NeoForgeEnergyHandler`; on 1.21.11 an `EnergyHandler` of NeoForge's transfer API, in OMLib's version folder `src/main/mc1.21.11-`) and Forge (`ForgeEnergyHandler`).
   Only inserting is possible; there is no extraction.
@@ -224,7 +222,7 @@ Each light keeps its own buffer; `ClusterEnergy` shows the whole cluster to the 
 
 ### A click on a light
 
-Right-click handling does not use vanilla's `use` methods, because they differ between 1.20.1 and 1.21.1.
+Right-click handling does not use vanilla's `use` methods, because they differ between the Minecraft versions.
 The loader's block-use event (registered once by OMLib) calls `InteractiveBlock.handleUse`, which calls `FloodlightBlock.onUse`; that hands it to `FloodlightInteraction`, one method per action:
 
 - sneak with an empty hand: toggle invert; stick or wrench: `configure` (cycle the mode, turn the small fluorescent light); wrench plus sneak: dismantle; dye or wool: set the colour;
@@ -270,9 +268,9 @@ A packet from the client must be validated on the server before it changes anyth
 The loader services are OMLib's: if shared code needs something only a loader can do, the interface goes into OMLib's `platform` (design it first, see `CLAUDE.md` section 7), is added to `PlatformServices` (`Platform` then fails to compile until every loader supplies one) and is implemented in OMLib's `platform/fabric`, `platform/neoforge` and `platform/forge`; the change is made in the OMLib repository, not in `omlib/` (`CLAUDE.md` section 4, "OMLib").
 Whole loader-specific classes of this mod (entrypoints, event wiring) go into its own `platform/<loader>` packages; a small difference inside a shared class uses `//? if fabric {` / `//? if neoforge {` / `//? if forge {` (or `neoforge || forge` where both share an API), but only in `compat/` and `platform/`.
 
-### Code that differs between 1.20.1 and 1.21.1
+### Code that differs between the Minecraft versions
 
-The source is written for 1.21.1; Stonecutter comments switch it to 1.20.1.
+The source is written for 1.21.1; Stonecutter comments switch it to 1.20.1 or 1.21.11.
 Put the difference into a small helper (the shared ones are in OMLib's `compat`, for example `VersionCompat`) and call that, instead of `//? if` blocks in gameplay code.
 Block entities extend OMLib's `compat.CompatBlockEntity` (override `readData` / `writeData`).
 A class that differs completely between versions (as many do on 1.21.11) goes into a version source folder instead, `src/<source set>/mc<first>-<last>/java`, once per range and with the same name.
@@ -283,7 +281,7 @@ The table of known differences is in `CLAUDE.md`, section 5.
 
 Never handwrite files under `data/`: add them to the providers in `datagen` and run `./gradlew :1.21.1-fabric:runDatagen :1.20.1-fabric:runDatagen :1.21.11-fabric:runDatagen`.
 The output is committed per version.
-The NeoForge build converts the Fabric 1.21.1 output and the Forge build the Fabric 1.20.1 output at build time (`convertFabricData` in `omlib/build-logic`), so nothing loader-specific is committed.
+The NeoForge builds convert the Fabric 1.21.1 and 1.21.11 output and the Forge build the Fabric 1.20.1 output at build time (`convertFabricData` in `omlib/build-logic`), so nothing loader-specific is committed.
 
 ## Rules the build checks
 
