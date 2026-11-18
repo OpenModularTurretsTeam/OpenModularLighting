@@ -57,7 +57,21 @@ repositories {
     mavenLocal {
         content { includeGroup("omtteam") }
     }
+    // the shared core (OpenModularCore, built by JitPack from its release tags); only the core comes from there
+    maven("https://jitpack.io") {
+        content { includeGroup("com.github.OpenModularTurretsTeam.OpenModularCore") }
+    }
 }
+
+// The game rules (omtteam.openmodularlighting.core) come from the shared core, OpenModularCore, as the Java 8 module
+// oml-core-j8: the same rules as every other Minecraft version, downgraded from Java 17 with the Java 9+ API it uses as
+// stubs under omtteam/openmodularlighting/jvmdg/. The jars carry its classes, so players still install one OML jar.
+val coreBundle: Configuration by configurations.creating {
+    // the core module alone (not transitive): its classes go into the OML jars
+    isCanBeConsumed = false
+    isTransitive = false
+}
+val coreModule = "com.github.OpenModularTurretsTeam.OpenModularCore:oml-core-j8:${property("core_version")}"
 
 dependencies {
     // OMLib, the shared library of the OpenModularTurretsTeam mods: in the OMTTeam 1.12 workspace the project of the same
@@ -70,14 +84,15 @@ dependencies {
     } else {
         implementation("omtteam:omlib:$minecraftVersion-${property("omlib_version")}:dev")
     }
+    // the shared core (on the compile, run and test classpaths; bundled into the jar by coreBundle)
+    implementation(coreModule)
+    coreBundle(coreModule)
     // Hwyla block info overlay (optional at runtime: compat.hwyla is only loaded by Hwyla)
     compileOnly(rfg.deobf("curse.maven:hwyla-253449:${property("hwyla_curse_file_id")}"))
 
-    // Unit tests for the core game logic and the config (test only, not shipped)
+    // Unit tests for the game-layer logic and the config (test only, not shipped); the core's tests are in OpenModularCore
     testImplementation(platform("org.junit:junit-bom:${property("junit_version")}"))
     testImplementation("org.junit.jupiter:junit-jupiter")
-    // equals/hashCode contracts of the core value classes (3.x: the last line running on Java 8)
-    testImplementation("nl.jqno.equalsverifier:equalsverifier:${property("equalsverifier_version")}")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
@@ -140,92 +155,18 @@ tasks {
         useJUnitPlatform()
     }
 
-    // The core game logic must stay independent of Minecraft so it can be unit-tested in isolation
-    val verifyCoreIsolation = register("verifyCoreIsolation") {
-        group = "verification"
-        description = "Fails if the core package imports Minecraft, Forge or other game classes"
-        val coreDir = file("src/main/java/${basePackage.replace('.', '/')}/core")
-        val root = projectDir
-        inputs.dir(coreDir)
-        doLast {
-            val ownPackage = Regex.escape(basePackage)
-            // OMLib's core is allowed (energy buffer), the rest of OMLib is game code
-            val forbidden = Regex("""^\s*import\s+(static\s+)?(net\.minecraft|net\.minecraftforge|com\.mojang|($ownPackage|omtteam\.omlib)\.(?!core\b))""")
-            val violations = coreDir.walkTopDown().filter { it.extension == "java" }.flatMap { file ->
-                file.readLines().withIndex().filter { forbidden.containsMatchIn(it.value) }
-                    .map { "${file.relativeTo(root)}:${it.index + 1}: ${it.value.trim()}" }
-            }.toList()
-            if (violations.isNotEmpty()) {
-                throw GradleException("Core logic must not depend on the game:\n" + violations.joinToString("\n"))
-            }
-        }
-    }
-
-    check {
-        dependsOn(verifyCoreIsolation)
-    }
-
     jar {
         // License files bundled into the jar
         from(files("LICENSE", "LICENSE-ART", "LICENSE-DUAL")) {
             rename { "${it}_${base.archivesName.get()}" }
         }
-    }
-}
-
-// ---- Mutation testing (PIT): ./gradlew pitest, on demand ----
-
-// Plants small mistakes in core (flipped conditions, changed boundaries, removed calls) and checks whether a unit test
-// fails, as gradle/mod-common.gradle does in the other mods. Not part of check; fails below pitest_mutation_threshold
-// (gradle.properties). Report: build/reports/pitest/index.html. PIT 1.17 is the last release that runs on Java 8.
-val pitest: Configuration by configurations.creating {
-    // resolved by the pitest task only; not offered to other projects
-    isCanBeConsumed = false
-}
-
-dependencies {
-    pitest("org.pitest:pitest-command-line:${property("pitest_version")}")
-    // without its JUnit Platform: the tests' own (testRuntime) is used, an older one breaks test discovery
-    pitest("org.pitest:pitest-junit5-plugin:${property("pitest_junit5_version")}") {
-        isTransitive = false
-    }
-}
-
-val toolchainVersion = javaVersion
-
-tasks.register<JavaExec>("pitest") {
-    group = "verification"
-    description = "Mutation testing of the core logic (report in build/reports/pitest)"
-    dependsOn("testClasses")
-    val reportDir = layout.buildDirectory.dir("reports/pitest")
-    outputs.dir(reportDir)
-    classpath = pitest + sourceSets.test.get().runtimeClasspath
-    mainClass.set("org.pitest.mutationtest.commandline.MutationCoverageReport")
-    // PIT 1.17 and the tests run on the Java 8 toolchain
-    javaLauncher.set(javaToolchains.launcherFor { languageVersion.set(JavaLanguageVersion.of(toolchainVersion)) })
-    val corePackage = "$basePackage.core"
-    val sourceDirs = sourceSets.main.get().java.srcDirs.joinToString(",")
-    // the minimum mutation score in percent (gradle.properties): pitest fails below it
-    val threshold = findProperty("pitest_mutation_threshold")?.toString()
-    // a changed threshold runs PIT again instead of keeping the last result
-    inputs.property("mutationThreshold", threshold ?: "")
-    doFirst {
-        args = listOf(
-            "--reportDir", reportDir.get().asFile.path,
-            "--targetClasses", "$corePackage.*",
-            "--targetTests", "$corePackage.*",
-            // the tests and their helpers share the core packages (fake world, 1.7.10 reference beams)
-            "--excludedClasses", "*Test,*Test$*,*.Fake*,*.TestWorld*,*.Legacy1710Beams*",
-            // boilerplate of the classes that stand in for records (Java 8); equals stays mutated
-            "--excludedMethods", "toString,hashCode",
-            "--sourceDirs", sourceDirs,
-            "--threads", Runtime.getRuntime().availableProcessors().toString(),
-            "--outputFormats", "HTML,XML",
-            "--timestampedReports=false",
-        ) + (if (threshold != null) listOf("--mutationThreshold", threshold) else emptyList())
-    }
-    doLast {
-        println("PIT report: ${reportDir.get().file("index.html").asFile.toURI()}")
+        // The core classes and their stubs are part of the dev jar, and so of reobfJar (made from it; the core names no
+        // Minecraft class, so reobfuscation leaves it alone): only omtteam/openmodularlighting/core and .../jvmdg
+        val bundle = coreBundle
+        inputs.files(bundle)
+        from({ bundle.map { zipTree(it) } }) {
+            include("omtteam/openmodularlighting/core/**", "omtteam/openmodularlighting/jvmdg/**")
+        }
     }
 }
 

@@ -100,7 +100,8 @@ public class GrowLightTileEntity extends PanelLightTileEntity {
     }
 
     private static long drawNextGrowTick(World world) {
-        return GrowChance.nextGrowTick(world.getTotalWorldTime(), OMLConfig.get().general.chanceGrowLight, world.rand);
+        return GrowChance.nextGrowTick(world.getTotalWorldTime(), OMLConfig.get().general.chanceGrowLight,
+                world.rand::nextLong);
     }
 
     @Override

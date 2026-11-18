@@ -160,7 +160,7 @@ public abstract class FloodlightTileEntity extends TileEntitySynced
         if (beam.needsRecast()) {
             controller.requestRecast(); // placed, loaded without cache, mode or config changed
         }
-        if (recheck.tick(world.rand)) {
+        if (recheck.tick(world.rand::nextLong)) {
             controller.requestRecast();
         }
         LightController.TickResult result = controller.tick(world.isBlockPowered(pos), power(), timeoutTicks());
