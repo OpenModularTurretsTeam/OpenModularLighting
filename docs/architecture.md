@@ -16,6 +16,7 @@ A **light** (floodlight, grow light, fluorescent light, cube light, UV floodligh
 The beam itself is made of **light blocks** (invisible phantom lights, or UV lights) that the light places in the air along the beam and then leaves in place.
 Turning a light on or off only switches the `LIT` blockstate of those light blocks; they are placed and removed only when the beam changes shape or the light is broken.
 All game rules (beam shapes, which positions a ray reaches, which sources keep a light block alive, the on/off state machine, energy and fuel formulas) are plain Java in `core`, without any Minecraft class, so they are unit-tested in milliseconds.
+The core is not in this repository: it comes from the shared repository [OpenModularCore](https://github.com/OpenModularTurretsTeam/OpenModularCore) (module `oml-core`, the same on every Minecraft version, version `core_version` in `gradle.properties`), which also holds its unit tests, and `mod-common` bundles its classes into the jar.
 The Minecraft-facing code around it translates between the game and the core and is kept as thin as possible.
 
 ## Layers
@@ -41,15 +42,15 @@ The game layer and `compat` reach the loader only through the service interfaces
 The one exception to the arrows are OML's own entrypoints in `platform/<loader>`: they start the mod and wire the game layer to the loader (registration steps, capabilities, the recipe condition), so they reference game classes such as `ModBlockEntities`.
 The other directions are forbidden:
 
-- **core** uses only Java, itself and OMLib's `core` (`omtteam.omlib.core`, plain Java as well): no Minecraft, loader or other OML packages.
-  The `verifyCoreIsolation` task (part of `check`) fails the build if a file under `core/` imports `net.minecraft`, `net.fabricmc`, `net.neoforged`, `net.minecraftforge`, `com.mojang`, `team.reborn` or a non-core OML package, and `ArchitectureTest.coreDependsOnlyOnCoreAndJava` checks the same on the compiled classes.
+- **core** uses only Java and itself: no Minecraft, loader or other OML packages.
+  OpenModularCore's build checks this; here, the `verifyNoCoreSources` task (part of `check`) fails the build if the sources have a file in the core package, so a core change is never made as a copy in this repository.
 - **main** code never uses **client** code: the client classes do not exist on a dedicated server.
   The split source sets make it a compile error on every node (the `client` source set sees `main`, not the other way round), and `ArchitectureTest.mainCodeNeverDependsOnClientCode` checks it on the compiled classes.
 
 ### How core talks to the game
 
 The core defines small interfaces for what it needs from the world; the game layer implements them.
-This is the only place where the two meet, and the reason the core can be tested with fakes (`src/test/.../core/light/TestWorld`).
+This is the only place where the two meet, and the reason the core can be tested with fakes (`TestWorld` in OpenModularCore's `oml-core` tests).
 
 | Core interface (`core`) | Implemented by (game layer) | What it gives the core |
 | --- | --- | --- |
@@ -70,13 +71,13 @@ Source sets (Loom split source sets on Fabric, the same split built by hand on N
 | --- | --- | --- |
 | `src/main` | everything that runs on both sides, including `fabric.mod.json`, `neoforge.mods.toml` and `mods.toml` (Forge; all templated) | yes |
 | `src/client` | screens, tint, debug renderer, the client half of the Jade plugin (the disguise models and the client networking are OMLib's) | yes, client only |
-| `src/test` | JUnit tests of the core and the config, and the architecture rules (`ArchitectureTest`) | no |
+| `src/test` | JUnit tests of the config, and the architecture rules (`ArchitectureTest`); the core's tests are in OpenModularCore | no |
 | `src/gametest` | in-world GameTests as a separate test mod (own mod id), shared by all loaders and versions (from 1.21.11 on the test mod registers them itself, `GameTestCases`) | no |
 
 Only `src/gametest` has version source folders next to `java` in this repository: `mc1.20.1-1.21.1` and `mc1.21.11-` (the 1.21.11 test framework, the NeoForge test transfer and test battery).
 They hold whole classes that differ between Minecraft versions (same package and class name, one variant per range), and `mod-common` adds the ones whose range contains the node's version; `src/main` and `src/client` may get them the same way (OMLib has them for its NeoForge capability adapters and its disguise models).
 
-Packages below `omtteam.openmodularlighting` (main); what they use from OMLib is named after the table:
+Packages below `omtteam.openmodularlighting` (main; the `core` packages come from OpenModularCore); what they use from OMLib is named after the table:
 
 | Package | Responsibility |
 | --- | --- |
@@ -243,7 +244,7 @@ See "A config value" below for adding one.
 
 ### A beam shape or mode
 
-Add the shape to `core.beam.BeamShape` / `BeamMode`, with a unit test in `core/beam` and, if the new shape belongs in the comparison, an entry in `BeamTest` that `BeamCasterTest` compares against.
+Add the shape to `core.beam.BeamShape` / `BeamMode` in OpenModularCore, with a unit test in `core/beam` and, if the new shape belongs in the comparison, an entry in `BeamTest` that `BeamCasterTest` compares against; then release the core and raise `core_version` (the root `CLAUDE.md` of the workspaces, "Shared core logic").
 The block entity returns it from `currentShape()` and puts everything it depends on into `shapeKey()`, so a change triggers a re-cast.
 
 ### A light
@@ -289,12 +290,11 @@ The NeoForge builds convert the Fabric 1.21.1 and 1.21.11 output and the Forge b
 
 | Rule | Checked by |
 | --- | --- |
-| core uses only Java, core and OMLib's core | `ArchitectureTest.coreDependsOnlyOnCoreAndJava` and the `verifyCoreIsolation` task |
+| the core package has no sources here (it comes from OpenModularCore) | the `verifyNoCoreSources` task |
 | main code never uses client code | `ArchitectureTest.mainCodeNeverDependsOnClientCode` |
 | no new package cycles, and the known ones only shrink | `ArchitectureTest.noNewPackageCycles` (list `KNOWN_CYCLES`) |
 | every item has a recipe (unless `recipe-exempt.txt` names it with a reason), and every recipe makes an item of the mod | the `checkRecipes` task on every node (`omlib/build-logic/src/main/kotlin/RecipeCoverage.kt`), on the node's processed resources |
-| core rules and the config behave as specified | unit tests in `src/test` (they run on the NeoForge and Forge nodes too) |
-| the beam shapes still equal the reference loops (with thinning) | `BeamCasterTest` against `BeamTest` |
+| the config behaves as specified | unit tests in `src/test` (they run on the NeoForge and Forge nodes too) |
 | lights, light blocks, energy, items, recipes and Jade work in a real world | GameTests in `src/gametest`: Fabric `runGameTest`, NeoForge and Forge `runGameTestServer` |
 | formatting (tabs, trailing whitespace, final newline) | `spotlessCheck` |
 | the changelog has a section for the version being published | `publishMods` |
@@ -313,10 +313,11 @@ These tools measure the code but do not fail the build:
 | Tool | Command | Output |
 | --- | --- | --- |
 | PMD: complexity, size, nesting, parameters, coupling (rules in `gradle/pmd/ruleset.xml`, the same as OpenModularTurrets') | `./gradlew :1.21.1-fabric:pmdMain :1.21.1-fabric:pmdClient` (also part of `check`) | `versions/1.21.1-fabric/build/reports/pmd/main.html`, `client.html` (and `.xml`) |
-| Test coverage of `core` (JaCoCo, from the unit tests and the GameTests) | part of `check`, which prints the line coverage per package | `versions/1.21.1-fabric/build/reports/jacoco/test/html/index.html` |
-| Mutation testing of `core` (PIT, with the unit tests) | `./gradlew :1.21.1-fabric:pitest` (on demand, not part of `check`) | `versions/1.21.1-fabric/build/reports/pitest/index.html` (and `mutations.xml`) |
+| Test coverage of the mod's own classes, without the core (JaCoCo, from the unit tests and the GameTests) | part of `check`, which prints the line coverage per top-level package | `versions/1.21.1-fabric/build/reports/jacoco/test/html/index.html` |
+| Mutation testing of the config classes `ConfigData` and `ConfigMigrationSteps` (PIT, with the unit tests; the list is `pitestTargets` in `build.fabric.gradle.kts`) | `./gradlew :1.21.1-fabric:pitest` (on demand, not part of `check`) | `versions/1.21.1-fabric/build/reports/pitest/index.html` (and `mutations.xml`) |
 
 They run on the active Fabric node only (all nodes share the source); code in `platform/neoforge` and `platform/forge` is covered by their GameTests, not by coverage or mutation testing.
+The core's coverage and mutation testing run in OpenModularCore.
 The tool versions are in `gradle.properties` (`pmd_version`, `jacoco_version`, `pitest_version`, `archunit_version`).
 
 PMD reports only for now; it does not fail the build.
@@ -324,7 +325,7 @@ Once the limits are agreed, switching off `isIgnoreFailures` in `build.fabric.gr
 A method is reported from a cyclomatic or cognitive complexity of 15, an NPath complexity of 200, 60 statements, 8 parameters or ifs nested three deep; a class from 500 statements or when it uses more than 20 other types.
 
 Coverage says which lines the tests run; mutation testing says whether they check the results.
-PIT plants small mistakes in core (a flipped condition, `<` instead of `<=`, a removed call, a changed return value) and runs the unit tests against each one.
+PIT plants small mistakes in the mutated classes (a flipped condition, `<` instead of `<=`, a removed call, a changed return value) and runs the unit tests against each one.
 A mistake no test notices ("survived") marks behaviour the tests do not pin down, often an edge case: a boundary value, the `false` case of a getter, a method no test calls.
 Not every survivor is a gap: where `>` and `>=` behave the same for every possible value (an "equivalent mutant"), the change cannot be noticed, and the code should not be bent to make it noticeable.
 A mutant that makes the tests loop forever counts as detected ("timed out").
@@ -332,7 +333,7 @@ A mutant that makes the tests loop forever counts as detected ("timed out").
 When a tool reports something:
 
 - **A PIT survivor:** add the missing assertion to the unit test of that class; if it is equivalent, leave it and say why.
-  The `pitest` task fails when the results get worse than the thresholds in `gradle.properties` (`pitest_mutation_threshold`, `pitest_coverage_threshold`, `pitest_max_surviving`, the state of 2026-11-06); raise `pitest_max_surviving` only for an equivalent survivor listed in the PIT row below.
+  The `pitest` task fails when the results get worse than the thresholds in `gradle.properties` (`pitest_mutation_threshold`, `pitest_coverage_threshold`, `pitest_max_surviving`, the state of 2026-11-18); raise `pitest_max_surviving` only for an equivalent survivor listed in the PIT row below.
 - **A PMD finding:** propose a fix (usually extracting a method or a small class) and let the user decide, or accept it with a reason under "Known weak spots".
   Coupling counts the types of fields, parameters, local variables and return types, so overriding vanilla methods alone can push a block class above 20.
 - **A new package cycle:** cut the cheapest dependency the test prints, rather than extending `KNOWN_CYCLES`.
@@ -341,8 +342,8 @@ State on 2026-10-21:
 
 | Measure | Value |
 | --- | --- |
-| Line coverage of `core` | 100 % |
-| PIT (2026-11-06) | 241 of 247 mutations detected (98 %); the 6 survivors are equivalent (`BeamMode` / `GrowMode.byOrdinal` lower bound, the tie-break in `Cluster.merge`, `Cluster.refresh` with one part, the saturation check in `GrowChance.nextGrowTick`, `changes--` in `LightSources.remove`: the counter is only compared for a difference) |
+| Line coverage of the mod's own classes, without the core (2026-11-18, unit tests and GameTests) | 75 % (908 of 1205 lines; `datagen`, which runs only in `runDatagen`, has 0 %) |
+| PIT (2026-11-18, the config classes; the core's mutation testing is in OpenModularCore since then) | 2 of 2 mutations detected, 19 of 19 lines covered |
 | PMD | 2 findings, both accepted (see below) |
 | Package cycles | 1 (see below) |
 

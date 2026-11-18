@@ -45,6 +45,7 @@ Core gameplay:
 - **Forge** 47.x (1.20.1 only), built with the legacy variant of ModDevGradle (`net.neoforged.moddev.legacyforge`, same artifact and version as `moddev`; build-time only), requested by the user.
   On Forge, the Fabric-only APIs are replaced by Forge's own (capabilities, events, event network channels); see §4 "Forge 1.20.1".
 - Build and test tools only, never in the jar (approved by the user, as in OMT): **ArchUnit** (test dependency), **JaCoCo**, **PIT** (plain `JavaExec`, no Gradle plugin) and **PMD**; versions in `gradle.properties`.
+- **OpenModularCore** (the shared game rules, `../../OpenModularCore`, approved by the user with JitPack on 2026-11-16): module `oml-core` from JitPack (`com.github.OpenModularTurretsTeam.OpenModularCore`), bundled into the jar; see §4 "Core Game Logic Source".
 - **OMLib** (the user's own library, `../OMLib`, branch `1.20.1+`), mounted as the git submodule `omlib` and bundled into every jar (jar-in-jar; Fabric `include`, NeoForge and Forge `jarJar`; requested by the user on 2026-10-27).
   It holds the code both mods used to share (platform services, version compat, energy and item transfer, config, the camouflage menu) and the build logic.
   The library is a mod of its own (`omlib`), declared as a required dependency in the mod metadata, and built as a nested step of the mod build, see §4 "OMLib".
@@ -68,7 +69,7 @@ Core gameplay:
 1.21.11 (Fabric and NeoForge) is built like 1.21.1: Java 21, Fabric API `0.141.x+1.21.11`, NeoForge 21.11.x, the same Gradle plugins.
 
 - Build system: Gradle 9.8 (Kotlin DSL) + **Stonecutter 0.9**, with Fabric Loom 1.18 (`net.fabricmc.fabric-loom-remap`, the variant for obfuscated MC versions) on the Fabric nodes, ModDevGradle 2.0 (`net.neoforged.moddev`) on the NeoForge nodes and its legacy variant on the Forge node.
-- Shared build logic is the convention plugin `omlib/build-logic/src/main/kotlin/mod-common.gradle.kts` (Java toolchain, metadata templating, JUnit, `verifyCoreIsolation`, `checkRecipes`, licenses in the jar via `bundled_licenses` (default: all three), publishing).
+- Shared build logic is the convention plugin `omlib/build-logic/src/main/kotlin/mod-common.gradle.kts` (Java toolchain, metadata templating, JUnit, the shared core from OpenModularCore, `verifyNoCoreSources`, `checkRecipes`, licenses in the jar via `bundled_licenses` (default: all three), publishing).
   It is mod-independent (everything comes from `gradle.properties`) and lives in its own repository, `OMLib` (`../OMLib`), which every mod mounts as the git submodule `omlib` (the branch `1.20.1+` of the OMLib repository, clean history; an included build in `pluginManagement` of `settings.gradle.kts`).
   Never edit inside `omlib/`: change and commit it in `../OMLib`, then move each mod's submodule to that commit and commit the new pointer there (steps in the workspace `CLAUDE.md`, "OMLib in the mods"); clone a mod with `--recurse-submodules` (or run `git submodule update --init`).
   The few source files that the mods still copy from each other are listed in `omlib/shared-sources.txt`; after changing one, run `python3 -I omlib/tools/shared_sources.py sync --from . --write . ../OpenModularTurrets` and then `check`.
@@ -137,7 +138,7 @@ Do not hard-code guesses into the build without verifying.
     ├── main/mc<first>-<last>/java/  # version source folders: whole classes for a range of Minecraft versions (§4)
     ├── main/resources/         # SHARED assets + fabric.mod.json, META-INF/neoforge.mods.toml and META-INF/mods.toml (templated)
     ├── client/java/omtteam/openmodularlighting/...   # client-only code (split source sets)
-    ├── test/java/omtteam/openmodularlighting/...      # JUnit tests (core/, config)
+    ├── test/java/omtteam/openmodularlighting/...      # JUnit tests (config, architecture); the core's tests are in OpenModularCore
     └── gametest/                                     # in-world GameTests: separate test mod, never shipped
 ```
 
@@ -236,7 +237,7 @@ The rules for loader differences mirror those for version differences, with one 
 - **Small differences** inside a shared class use the loader constants: `//? if fabric {` / `//? if neoforge {` / `//? if forge {` (set in `stonecutter.gradle.kts`); `//? if neoforge || forge {` where both share an API (model data), with separate import blocks because the packages differ.
   Loader and version checks combine: `//? if (neoforge && <1.21.11) || forge {`.
   Keep them inside `compat/` and `platform/`, never in gameplay code.
-- `core/` stays loader-free (`verifyCoreIsolation` also forbids `net.neoforged` and `net.minecraftforge`).
+- `core` stays loader-free; it comes from OpenModularCore, whose build checks that.
 - **Everything compiles on NeoForge and Forge except `datagen`,** which is Fabric-only by design (NeoForge and Forge get the converted Fabric output, §5 "Resources strategy").
 - **Start-up:** all three entrypoints call `OML.init()` (config, packets) first.
   Fabric then runs `OML.registrationSteps()` in order; NeoForge and Forge run each `RegistrationStep` in the `RegisterEvent` of its registry and throw at common setup if a step never ran.
@@ -284,7 +285,7 @@ The node `1.20.1-forge` follows the NeoForge setup; these are the differences:
 ./gradlew :1.21.11-fabric:runClient               # 1.21.11 clients (also :1.21.11-neoforge:runClient)
 ./gradlew :1.20.1-forge:runClient                 # Forge client (run dir versions/1.20.1-forge/run)
 ./gradlew :1.20.1-forge:runGameTestServer         # Forge GameTests (also part of check/build)
-./gradlew :1.21.1-fabric:pitest                   # mutation testing of core -> versions/1.21.1-fabric/build/reports/pitest/index.html
+./gradlew :1.21.1-fabric:pitest                   # mutation testing of the config classes -> versions/1.21.1-fabric/build/reports/pitest/index.html
 ./gradlew chiseledPublish                         # upload all nodes to CurseForge/Modrinth (custom task)
 ./gradlew :1.21.1-fabric:publishMods              # upload one node
 ```
@@ -354,7 +355,10 @@ The node `1.20.1-forge` follows the NeoForge setup; these are the differences:
 
 ### Core Game Logic Source
 
-The game logic of the mod lives in the `core` package and is completely free of Minecraft imports.
+The game logic of the mod lives in the `core` package (`omtteam.openmodularlighting.core`) and is completely free of Minecraft imports.
+It is not in this repository: since 2026-11-18 it comes from the shared repository OpenModularCore (`../../OpenModularCore`, module `oml-core`; the same core on every Minecraft version, see the root `CLAUDE.md`, "Shared core logic").
+`gradle.properties` names `core_module=oml-core` and `core_version` (the same in every mod and workspace); `mod-common` (OMLib's build logic) gets the module from JitPack and extracts its classes into a classes folder of the main source set, so every jar bundles them and the dev runs, game tests and unit tests load them as part of the mod on every loader.
+A core change is made in OpenModularCore (never as a copy here: `verifyNoCoreSources`, part of `check`, fails on any file in the core package), released there by the user, and then `core_version` is raised in every mod.
 It contains:
 
 1. **Beam shapes.** Pure functions that return the ordered list of offsets for a light, given facing, mode and range (see §6.3).
@@ -365,23 +369,22 @@ It contains:
    Plus the shape diff (old positions vs new positions → removed / added) used for mode changes and re-casts.
 4. **Light state machine.** Active/inactive, redstone + invert, timeout after turning off, "needs re-cast" flag, per-tick energy or fuel cost.
 5. **Formulas.** Carbon burn time, grow-tick interval, energy cost per mode.
-6. **Unit tests** for all of the above.
+6. **Unit tests** for all of the above (in OpenModularCore, with its isolation check, architecture rules, coverage and mutation testing).
 
-`./gradlew check` runs `verifyCoreIsolation`, which fails if anything under `core/` imports `net.minecraft`, `net.fabricmc`, `net.neoforged`, `net.minecraftforge`, `com.mojang`, `team.reborn` or non-core mod packages (OMLib's `core` is allowed).
-Tests live in `src/test/java` (JUnit, test-only dependency).
+The mod's own unit tests (config, architecture rules) live in `src/test/java` (JUnit, test-only dependency).
 `./gradlew check` also runs `checkRecipes` (from `mod-common`): every item (item model) of the mod needs a recipe on that node, unless `recipe-exempt.txt` lists it as `<id> # <reason>`, and every recipe result of the mod's namespace must be one of its items.
 
 Quality tools (taken over from OMT; details in `docs/architecture.md`, "Rules the build checks" and "Measuring code quality"):
-`ArchitectureTest` (`src/test/.../architecture`, ArchUnit, Fabric nodes only) checks core isolation, that main never uses client code, and package cycles against its `KNOWN_CYCLES` list (a ratchet: update the list when a cycle shrinks; never add to it without asking the user).
+`ArchitectureTest` (`src/test/.../architecture`, ArchUnit, Fabric nodes only) checks that main never uses client code, and package cycles against its `KNOWN_CYCLES` list (a ratchet: update the list when a cycle shrinks; never add to it without asking the user).
 PMD (`gradle/pmd/ruleset.xml`, report only, active version) measures complexity and size: `versions/1.21.1-fabric/build/reports/pmd/`.
-JaCoCo records coverage in the unit tests and on the game test server; `check` prints the line coverage of `core` per package (active version only).
-PIT (`./gradlew :1.21.1-fabric:pitest`, on demand, not part of `check`) runs mutation testing on `core`; surviving mutations show behaviour the tests do not pin down.
+JaCoCo records coverage in the unit tests and on the game test server; `check` prints the line coverage of the mod's own classes (without the core) per top-level package (active version only).
+PIT (`./gradlew :1.21.1-fabric:pitest`, on demand, not part of `check`) runs mutation testing on the config classes (`pitestTargets`); surviving mutations show behaviour the tests do not pin down.
 It fails when the results get worse than the thresholds in `gradle.properties` (`pitest_*`); see `docs/architecture.md`.
 
 The core layer works through small interfaces that `main` implements: `LightWorld.cellAt(pos)` classifies a block as a `Cell` (air, phantom light, UV light, opaque, transparent, unloaded; see its Javadoc for the mapping from `BlockState`), and `PowerSource` pays a tick's cost.
 Positions in core are the `Pos` record, not `BlockPos`; `Facing` has the same ordinal order as `Direction`.
 
-The original beam loops are kept in the test sources as a reference (`core/light/BeamTest`).
+The original beam loops are kept in OpenModularCore's test sources as a reference (`core/light/BeamTest`).
 `BeamCasterTest` checks that `BeamCaster` produces their positions (filtered by the same `Spacing`) in random worlds, for every facing and many ranges.
 If you change a shape on purpose, change the reference too and say so.
 
@@ -473,7 +476,7 @@ omtteam.openmodularlighting
 ├── OML                            shared start-up: init() (packets, config) and registrationSteps() (OMLib's RegistrationStep:
 │                                  registry + call), both used by the loader entrypoints; constants (MOD_ID, LOGGER), id(path)
 │
-├── core/                          ── pure Java, NO Minecraft imports (enforced by verifyCoreIsolation) ──
+├── core/                          ── pure Java, NO Minecraft imports; from OpenModularCore (oml-core), not in this repo ──
 │   ├── math/                      Pos (int x,y,z record), Facing (6 directions), Rotation (port of MathUtil.rotate)
 │   ├── beam/                      BeamShape (straight, narrow cone, wide cone, fluorescent, cube, grow, UV), Ray, Spacing
 │   │                              (thinning), BeamMode (floodlight modes), GrowMode (lighting / black light)
@@ -747,7 +750,7 @@ Also:
   Call `performBonemeal` on it.
   Growth only happens on ticks the light runs (and pays), also in black-light mode.
 - The next grow tick is random: `nextGrowTick = now + rand(20 / chance) + 0.5 × 20 / chance` (one growth per `1 / chanceGrowLight` seconds on average).
-  With `chanceGrowLight = 0` the crop never grows.
+  With `chanceGrowLight = 0` the crop never grows; a chance so small that the delay does not fit in a `long` saturates, so the crop practically never grows either (before the shared core, 2026-11-18, the delay overflowed and the crop grew every tick).
   `nextGrowTick` is not saved: it is drawn on the first tick the light runs after being placed or loaded, so placing or loading gives no growth at once.
 
 ### 6.9 UV light damage
@@ -832,7 +835,7 @@ Taken over from OpenModularTurrets; the shared part (menu, screen, packets, `Cam
 
 ## 7. Change Workflow
 
-1. Implement gameplay logic in `core/` (with unit tests) where possible; keep Minecraft-facing code thin.
+1. Implement gameplay logic in the core (with unit tests) where possible, in OpenModularCore (root `CLAUDE.md`, "Changing the core"); keep Minecraft-facing code thin.
 2. Wrap version differences in `compat/`.
 3. Add assets, lang entries and datagen entries; regenerate data for **all three** Minecraft versions (the Fabric nodes).
 4. Add a `CHANGELOG.md` entry for user-visible changes.
@@ -891,15 +894,15 @@ Update this checklist as work progresses.
 
 - [x] Gradle + Loom + Stonecutter skeleton; both versions build with an empty mod
 - [x] `fabric.mod.json` templating, split source sets, datagen per version
-- [x] `verifyCoreIsolation` task + JUnit setup
+- [x] `verifyCoreIsolation` task + JUnit setup (since 2026-11-18 the core comes from OpenModularCore and `verifyNoCoreSources` replaces it)
 - [x] Spotless
-- [x] Quality tools from OMT: ArchUnit architecture rules, PMD report, JaCoCo coverage of core, PIT mutation testing
+- [x] Quality tools from OMT: ArchUnit architecture rules, PMD report, JaCoCo coverage, PIT mutation testing (of the core until it moved to OpenModularCore, now of the config classes)
 - [x] GameTests (`src/gametest`, headless server, part of `check`)
 - [x] `compat/` helpers (id, NBT save/load, item data, block entity base, block interaction, menus, networking, client rendering)
 - [x] Config system (incl. server → client sync on join; joining a dedicated server works on all nodes, workspace `checkJoin` since 2026-10-29; the synced values themselves were not checked)
 - [x] Publishing + `CHANGELOG.md` (CurseForge and Modrinth project IDs set)
 
-### Core (`core/`, with tests)
+### Core (`core/`, with tests; in OpenModularCore since 2026-11-18)
 
 - [x] `Pos`, `Facing`, `Rotation` (port of `MathUtil.rotate`)
 - [x] Beam shapes: straight, narrow cone, wide cone, fluorescent, grow, UV

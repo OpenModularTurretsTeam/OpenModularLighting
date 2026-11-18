@@ -46,7 +46,7 @@ Every Stonecutter node is named `<minecraft version>-<loader>`: `1.20.1-fabric`,
 ```bash
 ./gradlew chiseledBuild                          # build all nodes (unit tests and GameTests included)
 ./gradlew :1.21.1-fabric:runClient               # start a client (also :runServer; any node works)
-./gradlew check                                  # unit tests, GameTests and the core isolation check
+./gradlew check                                  # unit tests, GameTests and the build checks
 ./gradlew :1.21.1-fabric:runGameTest             # in-world GameTests, Fabric nodes
 ./gradlew :1.21.1-neoforge:runGameTestServer     # in-world GameTests, NeoForge and Forge nodes
 ./gradlew :1.21.1-fabric:runDatagen              # regenerate recipes, loot tables, tags (run for every Fabric node)
@@ -86,8 +86,9 @@ Every Stonecutter node is named `<minecraft version>-<loader>`: `1.20.1-fabric`,
   `src/client/java` holds client-only code (renderers, screens).
   Never reference client classes from `main`.
 - `omtteam.openmodularlighting.core` holds the game logic (beam shapes, light source bookkeeping, the on/off state machine, fuel and growth formulas).
-  It must not import Minecraft or loader classes (OMLib's plain-Java `core` is allowed); `./gradlew check` fails if it does.
-  Unit tests for it live in `src/test/java`.
+  It is plain Java without Minecraft or loader classes and lives in the shared repository [OpenModularCore](https://github.com/OpenModularTurretsTeam/OpenModularCore) (module `oml-core`, the same on every Minecraft version), together with its unit tests; the build bundles it into the jar.
+  Changes to it go there, not into this repository (`./gradlew check` fails on sources in the core package).
+- Unit tests for the rest (config, architecture rules) live in `src/test/java`.
 - `src/gametest` is a separate test mod with in-world GameTests, shared by all loaders.
   It is never shipped.
   Add a GameTest for new in-world behaviour where you can.
