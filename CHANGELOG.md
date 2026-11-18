@@ -8,6 +8,10 @@ Before a release, `./gradlew releaseChangelog` turns *Unreleased* into the relea
 
 ## [Unreleased]
 
+### Fixed
+
+- The grow light no longer grows its crop every tick when its growth chance is configured extremely small
+
 ## [1.0.0] - 2026-11-03
 
 ### Fixed

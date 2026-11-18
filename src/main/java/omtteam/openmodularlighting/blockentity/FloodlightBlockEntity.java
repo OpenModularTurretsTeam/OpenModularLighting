@@ -119,7 +119,7 @@ public abstract class FloodlightBlockEntity extends CompatBlockEntity implements
         if (light.beam.needsRecast()) {
             light.controller.requestRecast(); // placed, loaded without cache, mode or config changed
         }
-        if (light.recheck.tick(() -> level.random.nextLong())) {
+        if (light.recheck.tick(level.random::nextLong)) {
             light.controller.requestRecast();
         }
         LightController.TickResult result = light.controller.tick(level.hasNeighborSignal(pos), light.power(),

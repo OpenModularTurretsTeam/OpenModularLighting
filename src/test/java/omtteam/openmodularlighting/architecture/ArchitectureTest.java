@@ -19,7 +19,6 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
-import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -47,15 +46,6 @@ class ArchitectureTest {
         classes = new ClassFileImporter()
                 .withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)
                 .importPackages(BASE);
-    }
-
-    /** Core stays plain Java: no Minecraft, Fabric or other mod packages (also enforced by verifyCoreIsolation). */
-    @Test
-    void coreDependsOnlyOnCoreAndJava() {
-        classes().that().resideInAPackage(BASE + ".core..")
-                .should().onlyDependOnClassesThat().resideInAnyPackage(BASE + ".core..", "omtteam.omlib.core..", "java..")
-                .because("the core game logic must stay testable without the game")
-                .check(classes);
     }
 
     /** Client-only code (renderers, screens) must never be loaded on a dedicated server. */

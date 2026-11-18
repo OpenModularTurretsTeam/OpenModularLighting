@@ -105,7 +105,7 @@ public class GrowLightBlockEntity extends PanelLightBlockEntity {
 
     private static long drawNextGrowTick(Level level) {
         return GrowChance.nextGrowTick(level.getGameTime(), OMLConfig.get().general.chanceGrowLight,
-                () -> level.random.nextLong());
+                level.random::nextLong);
     }
 
     @Override
