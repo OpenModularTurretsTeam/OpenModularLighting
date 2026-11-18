@@ -8,7 +8,7 @@ This branch is the **Forge 1.12.2** port; the modern versions (Fabric 1.20.1/1.2
 ## 1. Project Overview
 
 **Floodlights (FL)** is a port of the Forge 1.7.10 mod *FloodLights* (`oldmod/`, package `de.keridos.floodlights`, mod ID `FloodLights`; gitignored, read it from the main checkout).
-This branch builds it for **Minecraft 1.12.2 on Forge** (requested by the user on 2026-10-24) and reuses the main branch's code: `core/` and `config/` are the same classes (converted to Java 8), and the Minecraft-facing code was rewritten for 1.12.2 with the same structure, names and behaviour.
+This branch builds it for **Minecraft 1.12.2 on Forge** (requested by the user on 2026-10-24) and reuses the main branch's code: the game rules (`core`) come from the shared core `OpenModularCore` (§4 "Core Game Logic Source"), `config/` is the main branch's (converted to Java 8), and the Minecraft-facing code was rewritten for 1.12.2 with the same structure, names and behaviour.
 Exception in `config/`: the JSON config framework (`Comment`, `Range`, `ConfigRanges`, `ConfigValidator`, `ConfigWriter`, `ConfigMigration`, with their tests) lives in OMLib on the main branch; OMLib 1.12 has Forge config only, so this branch keeps its own copies.
 
 `oldmod/` is the **read-only reference**. Never edit it and never build it.
@@ -24,8 +24,11 @@ Core gameplay (the same as on the main branch):
 
 ### Keeping the branches together
 
-- `core/` and `config/` (and their unit tests) should stay identical to the main branch except for Java 8 syntax (no records, switch expressions, `instanceof` patterns, `List.of`, `RandomGenerator`; core takes `java.util.Random`). When a change lands on one branch, port it to the other, and tell the user.
-  Exception: `core.energy` (`EnergyStore`, `EnergyAccess`) comes from OMLib (`omtteam.omlib.core.energy`, the same classes) and is not part of this mod.
+- `core` is not in this repo any more: every Minecraft version uses the same released `OpenModularCore` (`oml-core`, here its Java 8 module `oml-core-j8`), so the rules cannot drift (`../../CLAUDE.md`, "Shared core logic").
+  A core change is made there, never here.
+- `config/` (and its unit tests) should stay identical to the main branch except for Java 8 syntax (no records, switch expressions, `instanceof` patterns, `List.of`).
+  When a change lands on one branch, port it to the other, and tell the user.
+  `core.energy` (`EnergyStore`, `EnergyAccess`) is OMLib's core (`omtteam.omlib.core.energy`), which OMLib takes from `omlib-core-j8`.
 - Gameplay changes on the main branch usually belong here too; the Minecraft-facing classes have the same names and packages, except that this branch uses the MCP-style names of the OMTTeam 1.12 workspace (decided by the user, 2026-10-25): `blockentity` → `tileentity` (`…BlockEntity` → `…TileEntity`, `ModBlockEntities` → `ModTileEntities`, `CompatBlockEntity` → OMLib's `tileentity.TileEntitySynced`), `menu` → `container` (`…Menu` → `…Container`, `OMLGuiHandler` in `handler`), `client.screen` → `client.gui` (`…Screen` → `…Gui`).
 - Never merge this branch into `1.20.1+` or the other way round: the build and most of `main` differ completely. Cherry-pick or port by hand.
 
@@ -33,7 +36,8 @@ Core gameplay (the same as on the main branch):
 
 - **Forge 1.12.2** (14.23.5.x, chosen by RetroFuturaGradle) and **Forge Energy** (`CapabilityEnergy`, part of Forge; replaces Team Reborn Energy / NeoForge FE, 1 E = 1 FE).
 - **OMLib** (required, `required-after:omlib`): the shared library of the OpenModularTurretsTeam mods (`../OMLib` in the OMTTeam 1.12 workspace). Code it already has is used from there, not duplicated: the energy buffer (`core.energy`) and its Forge Energy adapter (`power.EnergyAccessStorage`), its wrench (`ItemMultiTool`, accepted by `CommonTags.isWrench`), the chunk-safe tile entity lookup (`util.world.WorldUtil.getTileEntity`) the camouflage (`ICamoSupport`, the camouflage menu, `CamoRules`, §6.11) the server → client config sync (`config.ConfigSync`, §5) the tile entity base (`tileentity.TileEntitySynced`, §5) the window property sync of the GUIs (`container.WindowValues`, §5), the item capability wrapper (`inventory.AutomationItemHandler`) and the drops on break (`InvUtil.dropItems`).
-- Build-time only: **RetroFuturaGradle** (`com.gtnewhorizons.retrofuturagradle`, the maintained 1.12.2 toolchain, from the GTNH maven), the mod publish plugin, Spotless, JUnit 5 (5.13: the last line that runs on Java 8), EqualsVerifier (3.x: the last line that runs on Java 8) and PIT (1.17, likewise).
+- Build-time only: **RetroFuturaGradle** (`com.gtnewhorizons.retrofuturagradle`, the maintained 1.12.2 toolchain, from the GTNH maven), the mod publish plugin, Spotless and JUnit 5 (5.13: the last line that runs on Java 8).
+- **OpenModularCore** (`com.github.OpenModularTurretsTeam.OpenModularCore:oml-core-j8:<core_version>`, from JitPack, which the build asks only for that group): the shared game rules, downgraded to Java 8 with their Java 9+ API as stubs under `omtteam/openmodularlighting/jvmdg/`, bundled into the jar (§4).
 - **Hwyla** (optional, compile-only; the mod from CurseMaven, maven.tehnut.info no longer serves it): the block info overlay instead of Jade, which does not exist on 1.12.2 (requested by the user on 2026-10-24). `compat.hwyla.OMLWailaPlugin` (`@WailaPlugin`, only loaded by Hwyla) registers `FloodlightWailaProvider`; the content is `FloodlightTooltip` (invert and mode, as the main branch's Jade tooltip), switchable in Hwyla's config (`option.openmodularlighting.light`).
 - Nothing else without asking the user first. No mixins, no Jabel, no CTM/TOP dependency. A The One Probe integration would be optional and is not done; ask the user first.
 
@@ -52,7 +56,7 @@ Core gameplay (the same as on the main branch):
 - **Gradle itself must run on Java 17+** (Gradle 9). In the user's shell `JAVA_HOME` points to Java 8, so run Gradle with `JAVA_HOME=/usr/lib/jvm/java-25-openjdk` (or any JDK 17+); the compile and test toolchain is Java 8 regardless.
 - The decompiled Minecraft + Forge sources are in `build/rfg/minecraft-src/java` after `./gradlew setupDecompWorkspace`. Look up exact MCP names there instead of guessing.
 - **OMLib** comes from mavenLocal (`omtteam:omlib:1.12.2-<omlib_version>`, `omlib_version` in `gradle.properties`): run `./gradlew -b build.gradle publishToMavenLocal` in OMLib first. `OML.DEPENDENCIES` says `omlib@[0.0.0,)` in the sources (dev runs, where OMLib's version stays unreplaced); `replaceOmlibRange` compiles a copy of `OML.java` with `[<omlib_version>,<next major>.0.0-alpha)`.
-- **Workspace build:** in the OMTTeam 1.12 workspace (the folder above) this mod is also built by `gradle/workspace/OpenModularLighting.gradle` (ForgeGradle 3, Gradle 4.9) against the OMLib sources and runs with the other mods in `runenv`; that build ignores `build.gradle.kts` and sets up the tests and `verifyCoreIsolation` itself.
+- **Workspace build:** in the OMTTeam 1.12 workspace (the folder above) this `build.gradle.kts` is a subproject of the workspace build, against the OMLib project instead of its mavenLocal jar, and runs with the other mods in `runenv`.
 - **RFG and the shared MCP cache:** RFG unpacks the MCP data (`joined.srg`, `joined.exc`, patches) into `~/.gradle/caches/minecraft/de/oceanlabs/mcp/mcp_<channel>/<version>` only if that folder does not exist yet; a folder created by ForgeGradle 2 holds only the CSVs and makes `generateForgeSrgMappings` fail ("joined.srg doesn't exist"). `mcp_stable/39` was created by RFG itself, so this only matters when switching mappings: copy those files from an RFG mapping folder (they do not depend on the names).
 - Formatting: Spotless (tabs → spaces, trailing whitespace, final newline), as on the main branch. Run `./gradlew spotlessApply` before committing.
 - Language: Java only.
@@ -64,14 +68,14 @@ Core gameplay (the same as on the main branch):
 ```text
 .
 ├── CLAUDE.md, CHANGELOG.md, README.md, CONTRIBUTING.md, CLA.md, LICENSE*   # as on the main branch
-├── build.gradle.kts            # RetroFuturaGradle, tests, verifyCoreIsolation, Spotless, changelog tasks, publishing
+├── build.gradle.kts            # RetroFuturaGradle, shared core (bundled), tests, Spotless, changelog tasks, publishing
 ├── settings.gradle.kts
 ├── gradle.properties           # mod_id, mod_version, mapping version, publishing settings …
 ├── docs/                       # id-mapping.md; architecture.md describes the main branch
 └── src/
     ├── main/java/omtteam/openmodularlighting/...   # common and client code (one source set)
     ├── main/resources/         # mcmod.info (templated) and assets/ (models, blockstates, lang, textures, recipes)
-    └── test/java/omtteam/openmodularlighting/...   # JUnit tests (core/, config)
+    └── test/java/omtteam/openmodularlighting/...   # JUnit tests of the game layer and the config
 ```
 
 - **Mod ID:** `openmodularlighting`. **Base package:** `omtteam.openmodularlighting` (keep it, as on the main branch).
@@ -86,7 +90,7 @@ Core gameplay (the same as on the main branch):
 
 ```bash
 export JAVA_HOME=/usr/lib/jvm/java-25-openjdk   # Gradle needs 17+
-./gradlew build                  # compile, unit tests, verifyCoreIsolation, spotlessCheck, reobfuscated jar
+./gradlew build                  # compile, unit tests, spotlessCheck, reobfuscated jar
 ./gradlew setupDecompWorkspace   # decompiled MC + Forge sources in build/rfg/minecraft-src
 ./gradlew runClient              # dev client (run dir run/)
 ./gradlew runServer              # dev server; RetroFuturaGradle asks for the EULA: never accept it for the user
@@ -111,11 +115,12 @@ export JAVA_HOME=/usr/lib/jvm/java-25-openjdk   # Gradle needs 17+
 
 ### Core Game Logic Source
 
-The game logic lives in the `core` package and is free of Minecraft imports, exactly as on the main branch: beam shapes, rotation, light-source bookkeeping, the light state machine, formulas, clusters and the energy store, with unit tests.
-`./gradlew check` runs `verifyCoreIsolation`, which fails if anything under `core/` imports `net.minecraft`, `net.minecraftforge`, `com.mojang` or non-core mod packages.
-The original beam loops are kept in the test sources as a reference (`core/light/Legacy1710Beams`); `BeamCasterTest` checks `BeamCaster` against them.
-`./gradlew pitest` (on demand, not part of `check`) runs PIT mutation testing of `core`, as `mod-common.gradle` does in the other mods; it skips the test helpers in the core packages (`TestWorld`, `Legacy1710Beams`) and fails below the score `pitest_mutation_threshold` in `gradle.properties`. Report: `build/reports/pitest/index.html`.
-`core.EqualsContractTest` checks equals and hashCode of the core value classes with EqualsVerifier.
+The game logic (package `omtteam.openmodularlighting.core`: beam shapes, rotation, light-source bookkeeping, the light state machine, formulas, clusters) is free of Minecraft imports and lives in the shared core repo `OpenModularCore` (`../../OpenModularCore`, module `oml-core`), the same code for every Minecraft version.
+This branch uses its Java 8 module `oml-core-j8` in the version `core_version` (`gradle.properties`, the same in every mod and workspace), from JitPack.
+- The `jar` task copies the module's classes and its JvmDowngrader stubs (`omtteam/openmodularlighting/core/**`, `omtteam/openmodularlighting/jvmdg/**`, through the non-transitive `coreBundle` configuration) into the dev jar, and so into `reobfJar`: players install one jar, and no other mod's core classes are in it.
+- Dev runs and the unit tests get the module as a plain library on the classpath.
+- Public core signatures use only Java 8 types: randomness is a `LongSupplier` (`world.rand::nextLong`).
+- The core's unit tests, its isolation check and its PIT run are in the core repo; this repo tests the game layer and the config.
 The main branch's ArchUnit, JaCoCo and PMD setup is not on this branch.
 
 ---
@@ -167,7 +172,7 @@ Differences to the main branch, and the 1.12.2 pitfalls the code handles. Keep t
 omtteam.openmodularlighting
 ├── OML                 @Mod entrypoint (pre-init: config, network, event handlers; init: GUI handler, smelting), MOD_ID, LOGGER, id(path)
 ├── CommonProxy         server side of the @SidedProxy (client: client.ClientProxy)
-├── core/               ── pure Java 8, NO Minecraft imports; the same classes as on the main branch ──
+├── core/               ── from OpenModularCore (oml-core-j8), not in this repo; NO Minecraft imports ──
 ├── block/              FloodlightBlock (+ FloodlightInteraction) → Electric…, Carbon…, UvFloodlightBlock, CubeLightBlock,
 │                       PanelLightBlock (PanelShapes) → FluorescentLightBlock, GrowLightBlock; LightBlock → PhantomLightBlock,
 │                       UvLightBlock; LightproofGlassBlock
@@ -386,7 +391,7 @@ Taken over from OpenModularTurrets (`../../OMTTeam1.20.1+/OpenModularTurrets`, `
 
 ## 7. Change Workflow
 
-1. Implement gameplay logic in `core/` (with unit tests) where possible; keep Minecraft-facing code thin.
+1. Implement gameplay logic in the shared core (`OpenModularCore`, with unit tests, for every Minecraft version at once) where possible; keep Minecraft-facing code thin.
 2. Check whether the change belongs on the main branch too (§1 "Keeping the branches together").
 3. Add assets, lang entries (all three `.lang` files) and recipe JSON by hand.
 4. Add a `CHANGELOG.md` entry for user-visible changes.
