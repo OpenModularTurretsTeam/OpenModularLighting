@@ -5,7 +5,7 @@ plugins {
     `maven-publish`
     // Code quality report (gradle/pmd/ruleset.xml): complexity and size, report only
     pmd
-    // Test coverage of core, from the unit tests and the game tests
+    // Test coverage of the mod's own classes, from the unit tests and the game tests
     jacoco
 }
 
@@ -72,11 +72,11 @@ dependencies {
     testRuntimeOnly(sourceSets["client"].output)
 }
 
-// ---- Test coverage (JaCoCo): check prints the line coverage of core ----
+// ---- Test coverage (JaCoCo): check prints the line coverage of the mod's own classes ----
 // Both the unit tests and the game test server record coverage. Active version only (all Fabric nodes share the source).
+// The core (omtteam.openmodularlighting.core, bundled from OpenModularCore) is measured in the core repository.
 // Report: versions/<v>/build/reports/jacoco/test/html/index.html
 val coverageActive = stonecutter.current.isActive
-val coveredPackages = listOf("omtteam/openmodularlighting/core/**")
 jacoco {
     toolVersion = property("jacoco_version") as String
 }
@@ -92,7 +92,8 @@ tasks.jacocoTestReport {
     dependsOn(tasks.test, tasks.named("runGameTest"))
     executionData.setFrom(layout.buildDirectory.files("jacoco/test.exec", "jacoco/runGameTest.exec"))
     sourceDirectories.setFrom(sourceSets.main.get().java.srcDirs)
-    classDirectories.setFrom(sourceSets.main.get().output.classesDirs.asFileTree.matching { include(coveredPackages) })
+    // only the mod's own classes: main's classes folders also hold the bundled OpenModularCore classes (mod-common)
+    classDirectories.setFrom(sourceSets.main.get().java.classesDirectory)
     reports {
         csv.required = true
         xml.required = true
@@ -101,22 +102,20 @@ tasks.jacocoTestReport {
     val csv = reports.csv.outputLocation
     val html = reports.html.outputLocation
     doLast {
-        // line coverage per package, summed per area
+        // line coverage per top-level package (below omtteam.openmodularlighting; "(root)" for the package itself)
         val rows = csv.get().asFile.readLines().drop(1).map { it.split(',') }
-        val byPackage = sortedMapOf<String, IntArray>()
+        val byArea = sortedMapOf<String, IntArray>()
         for (row in rows) {
-            val lines = byPackage.getOrPut(row[1].removePrefix("omtteam.openmodularlighting.")) { IntArray(2) }
+            val name = row[1].removePrefix("omtteam.openmodularlighting").removePrefix(".")
+            val lines = byArea.getOrPut(name.substringBefore('.').ifEmpty { "(root)" }) { IntArray(2) }
             lines[0] += row[7].toInt() // LINE_MISSED
             lines[1] += row[8].toInt() // LINE_COVERED
         }
         fun percent(l: IntArray) = "%5.1f%%  (%d/%d lines)".format(100.0 * l[1] / maxOf(1, l[0] + l[1]), l[1], l[0] + l[1])
-        println("Test coverage (unit and game tests):")
-        for (area in listOf("core")) {
-            val packages = byPackage.filterKeys { it == area || it.startsWith("$area.") }
-            val total = IntArray(2).also { t -> packages.values.forEach { t[0] += it[0]; t[1] += it[1] } }
-            println("  %-24s %s".format(area, percent(total)))
-            packages.forEach { (name, lines) -> println("    %-22s %s".format(name, percent(lines))) }
-        }
+        val total = IntArray(2).also { t -> byArea.values.forEach { t[0] += it[0]; t[1] += it[1] } }
+        println("Test coverage (unit and game tests, without the core):")
+        println("  %-24s %s".format("all", percent(total)))
+        byArea.forEach { (area, lines) -> println("    %-22s %s".format(area, percent(lines))) }
         println("  Report: ${html.get().asFile.resolve("index.html").toURI()}")
     }
 }
@@ -125,9 +124,14 @@ tasks.check {
 }
 
 // ---- Mutation testing (PIT): ./gradlew :1.21.1-fabric:pitest, on demand ----
-// Plants small mistakes in core (flipped conditions, changed boundaries, removed calls) and checks whether a unit test
-// fails. Surviving mistakes show behaviour the tests do not pin down. Report only, not part of check.
+// Plants small mistakes in the config classes (flipped conditions, changed boundaries, removed calls) and checks whether
+// a unit test fails. Surviving mistakes show behaviour the tests do not pin down. Report only, not part of check.
 // Report: versions/<v>/build/reports/pitest/index.html
+// The core (omtteam.openmodularlighting.core) is mutation-tested in OpenModularCore; OMLConfig needs the running game.
+val pitestTargets = listOf(
+    "omtteam.openmodularlighting.config.ConfigData*",
+    "omtteam.openmodularlighting.config.ConfigMigrationSteps*",
+)
 val pitest = configurations.create("pitest") {
     isCanBeConsumed = false
 }
@@ -137,7 +141,7 @@ dependencies {
 }
 tasks.register<JavaExec>("pitest") {
     group = "verification"
-    description = "Mutation testing of the core logic (report in build/reports/pitest)"
+    description = "Mutation testing of the config classes (report in build/reports/pitest)"
     dependsOn(tasks.testClasses)
     classpath = pitest + sourceSets.test.get().runtimeClasspath
     mainClass = "org.pitest.mutationtest.commandline.MutationCoverageReport"
@@ -156,10 +160,10 @@ tasks.register<JavaExec>("pitest") {
     argumentProviders.add(CommandLineArgumentProvider {
         listOf(
             "--reportDir", reportDir.get().asFile.path,
-            "--targetClasses", "omtteam.openmodularlighting.core.*",
-            "--targetTests", "omtteam.openmodularlighting.core.*",
-            // the tests and their helpers (TestWorld, the reference loops BeamTest) share the core packages
-            "--excludedClasses", "*Test,*Test\$*,*.TestWorld*",
+            "--targetClasses", pitestTargets.joinToString(","),
+            // the config tests only: ArchitectureTest (ArchUnit) crashes PIT's coverage minion and tests nothing here
+            "--targetTests", "omtteam.openmodularlighting.config.*",
+            "--excludedClasses", "*Test,*Test\$*",
             "--sourceDirs", sources.joinToString(","),
             "--threads", Runtime.getRuntime().availableProcessors().toString(),
             "--outputFormats", "HTML,XML",
