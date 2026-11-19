@@ -161,7 +161,7 @@ The state machine itself, with the timeout against flicker, is `core.state.Light
    Joining positions that are already covered is a no-op, so this also repairs light blocks lost while a chunk was unloaded.
 4. The positions that joined become the cached shape (saved with the tile entity as a flat `int` array, so a reload does not need a cast).
 
-`BeamCasterTest` checks `BeamCaster` against the original 1.7.10 loops kept in the test sources (`Legacy1710Beams`, filtered by the same thinning) in random worlds.
+`BeamCasterTest` in OpenModularCore checks `BeamCaster` against the original 1.7.10 loops kept in the core's test sources (`core/light/BeamTest`, filtered by the same thinning) in random worlds.
 
 ### Light blocks and their sources
 
