@@ -121,6 +121,7 @@ This branch uses its Java 8 module `oml-core-j8` in the version `core_version` (
 - Dev runs and the unit tests get the module as a plain library on the classpath.
 - Public core signatures use only Java 8 types: randomness is a `LongSupplier` (`world.rand::nextLong`).
 - The core's unit tests, its isolation check and its PIT run are in the core repo; this repo tests the game layer and the config.
+- When `../../OpenModularCore` exists, `settings.gradle.kts` (and the workspace's `settings.gradle`) includes it, so the build uses its source instead of the JitPack artifact and a core edit is live without a release; `-Pomm.noLocalCore` or `OMM_NO_LOCAL_CORE=1` turns that off, as a build without the folder does (`../../CLAUDE.md`, "Local development").
 The main branch's ArchUnit, JaCoCo and PMD setup is not on this branch.
 
 ---
