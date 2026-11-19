@@ -359,6 +359,7 @@ The game logic of the mod lives in the `core` package (`omtteam.openmodularlight
 It is not in this repository: since 2026-11-18 it comes from the shared repository OpenModularCore (`../../OpenModularCore`, module `oml-core`; the same core on every Minecraft version, see the root `CLAUDE.md`, "Shared core logic").
 `gradle.properties` names `core_module=oml-core` and `core_version` (the same in every mod and workspace); `mod-common` (OMLib's build logic) gets the module from JitPack and extracts its classes into a classes folder of the main source set, so every jar bundles them and the dev runs, game tests and unit tests load them as part of the mod on every loader.
 A core change is made in OpenModularCore (never as a copy here: `verifyNoCoreSources`, part of `check`, fails on any file in the core package), released there by the user, and then `core_version` is raised in every mod.
+When `../../OpenModularCore` exists, `settings.gradle.kts` includes it, so the build (and the `omlib/` bootstrap) uses its source instead of the JitPack artifact and a core edit is live without a release; `-Pomm.noLocalCore` or `OMM_NO_LOCAL_CORE=1` turns that off, as on CI (root `CLAUDE.md`, "Local development").
 It contains:
 
 1. **Beam shapes.** Pure functions that return the ordered list of offsets for a light, given facing, mode and range (see §6.3).
