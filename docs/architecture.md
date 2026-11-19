@@ -4,7 +4,7 @@ A guide to the code of Open Modular Lighting (OML) on Minecraft 1.12.2 (branch `
 It describes the code as it is; where it falls short of its own rules, the last section says so.
 
 This is the 1.12.2 version of the guide.
-The modern versions (Fabric 1.20.1 / 1.21.1, NeoForge, Forge 1.20.1) have their own on the branch `1.20.1+`; the 1.12.2 port has the same `core/` and `config/` (in Java 8) and the same class names, with the MCP-style package names of the OMTTeam 1.12 mods (`tileentity`, `container`, `client.gui`), without the Stonecutter build and the `platform/` layer, because 1.12.2 has one loader.
+The modern versions (Fabric 1.20.1 / 1.21.1, NeoForge, Forge 1.20.1) have their own on the branch `1.20.1+`; the 1.12.2 port has the same `core` (the shared OpenModularCore, see below), the same `config/` (in Java 8) and the same class names, with the MCP-style package names of the OMTTeam 1.12 mods (`tileentity`, `container`, `client.gui`), without the Stonecutter build and the `platform/` layer, because 1.12.2 has one loader.
 OML requires OMLib (`required-after:omlib`) and uses it for the energy buffer, the wrench, camouflage, the config sync, the tile entity base and more; see OMLib's `docs/architecture.md`.
 
 Building, running, releases and the gameplay rules (beam shapes, state machine, power) are in `CLAUDE.md` of this repository (sections 4 to 6) and in the workspace `CLAUDE.md`; this document shows where they live in the code.
@@ -16,6 +16,8 @@ A **light** (floodlight, grow light, fluorescent light, cube light, UV floodligh
 The beam itself is made of **light blocks** (invisible phantom lights, or UV lights) that the light places in the air along the beam and then leaves in place.
 Turning a light on or off only switches the `LIT` state of those light blocks; they are placed and removed only when the beam changes shape or the light is broken.
 All game rules (beam shapes, which positions a ray reaches, which sources keep a light block alive, the on/off state machine, energy and fuel formulas) are plain Java in `core`, without any Minecraft class, so they are unit-tested in milliseconds.
+The core is not in this repository: it comes from the shared repository [OpenModularCore](https://github.com/OpenModularTurretsTeam/OpenModularCore) (module `oml-core-j8`, the Java 17 source of every Minecraft version downgraded to Java 8, version `core_version` in `gradle.properties`), which also holds its unit tests, and the build bundles its classes into the jar.
+When a folder above this repository holds `OpenModularCore/` (in the OMM root: `../../OpenModularCore`), `settings.gradle.kts` includes it, so the build uses its source instead of the JitPack artifact; `-Pomm.noLocalCore` or `OMM_NO_LOCAL_CORE=1` turns that off.
 The Minecraft-facing code around it translates between the game and the core and is kept as thin as possible.
 
 ## Layers
@@ -38,7 +40,7 @@ An arrow means "may use".
 The other directions are forbidden:
 
 - **core** uses only Java and itself (and OMLib's `core.energy`): no Minecraft, Forge, `com.mojang` or non-core OML packages.
-  The `verifyCoreIsolation` task (part of `check`) fails the build if a file under `core/` imports `net.minecraft`, `net.minecraftforge`, `com.mojang` or a non-core OML package.
+  OpenModularCore's build checks this (`CoreArchitectureTest`); this repository has no core sources.
 - **common code** never uses **client** code: client classes do not exist on a dedicated server.
   1.12 dev environments have no separate client source set, so `client` is a package; common code reaches it only through the proxy (`@SidedProxy`: `CommonProxy`, `client.ClientProxy`).
   Unlike OMLib, OMT and OMPD, this mod has no ArchUnit test for it yet.
@@ -46,7 +48,7 @@ The other directions are forbidden:
 ### How core talks to the game
 
 The core defines small interfaces for what it needs from the world; the game layer implements them.
-This is the only place where the two meet, and the reason the core can be tested with fakes (`src/test/.../core/light/TestWorld`).
+This is the only place where the two meet, and the reason the core can be tested with fakes (`TestWorld` in OpenModularCore's `oml-core` tests).
 
 | Core interface | Implemented by (game layer) | What it gives the core |
 | --- | --- | --- |
@@ -65,7 +67,7 @@ A light's beam is the game-layer class `tileentity.LightBeam`, which calls `Beam
 | --- | --- | --- |
 | `src/main/java` | all code; client code in the `client` package | yes |
 | `src/main/resources` | `mcmod.info` (templated), `assets/openmodularlighting`: models, blockstates, lang (`.lang`), textures, handwritten recipes | yes |
-| `src/test/java` | JUnit 5 tests of the core, the config, the energy classes and the panel shapes | no |
+| `src/test/java` | JUnit 5 tests of the config, the energy classes, the positions and the panel shapes; the core's tests are in OpenModularCore | no |
 
 Packages below `omtteam.openmodularlighting`:
 
@@ -224,7 +226,7 @@ See "A config value" below for adding one.
 
 ### A beam shape or mode
 
-Add the shape to `core.beam.BeamShape` / `BeamMode`, with a unit test in `core/beam` and, if the new shape belongs in the comparison, an entry in `Legacy1710Beams` that `BeamCasterTest` compares against.
+Add the shape to `core.beam.BeamShape` / `BeamMode` in OpenModularCore, with a unit test in `core/beam` and, if the new shape belongs in the comparison, an entry in `BeamTest` that `BeamCasterTest` compares against; then release the core and raise `core_version` in every mod (the OMM root `CLAUDE.md`, "Shared core logic").
 The tile entity returns it from `currentShape()` and puts everything it depends on into `shapeKey()`, so a change triggers a re-cast.
 
 ### A light
@@ -260,10 +262,7 @@ No datagen on 1.12: recipes are handwritten JSON in `assets/openmodularlighting/
 
 | Rule | Checked by |
 | --- | --- |
-| core uses only Java and core | the `verifyCoreIsolation` task |
-| core rules and the config behave as specified | unit tests in `src/test` |
-| the beam shapes still equal the reference loops (with thinning) | `BeamCasterTest` against `Legacy1710Beams` |
-| equals and hashCode of the core value classes | `core.EqualsContractTest` (EqualsVerifier) |
+| the config, the energy classes, the positions and the panel shapes behave as specified | unit tests in `src/test` |
 | formatting (spaces, trailing whitespace, final newline) | `spotlessCheck` |
 | the changelog has a section for the version being published | `publishMods` |
 
@@ -275,10 +274,10 @@ The ArchUnit, JaCoCo and PMD setup of the other mods is not on this branch.
 
 | Tool | Command | Output |
 | --- | --- | --- |
-| Mutation testing of `core` (PIT, on demand; fails below `pitest_mutation_threshold` in `gradle.properties`) | `./gradlew pitest` | `build/reports/pitest/index.html` |
+| Mutation testing of the core (PIT) | `./gradlew :oml-core:pitest` in OpenModularCore | `oml-core/build/reports/pitest/index.html` there |
 
 Run Gradle with a JDK 17+ in `JAVA_HOME`; the mod compiles and tests on the Java 8 toolchain.
-PIT plants small mistakes in core (a flipped condition, `<` instead of `<=`, a removed call) and runs the unit tests against each one; a survivor marks behaviour the tests do not pin down, unless the change cannot be noticed (an equivalent mutant).
+The core's rules are measured in OpenModularCore (its thresholds in `oml-core/gradle.properties`), so this repository has no `pitest` task.
 
 ## Known weak spots
 
@@ -291,4 +290,4 @@ They are known, not hidden:
 - **Phantom lights beside skipped positions.** Because of the thinning (`core.beam.Spacing`), a block change next to a position without a light block may reach no light block at all, so the beam notices it only at the periodic re-check (10 to 30 s).
 - **The invert toggle** is OML's own; OMLib's `core.machine.MachineMode` is not used, because the 1.20.1+ lights do not work that way (postponed by the user).
 - **The client is untested** except by hand: placing, beams, GUIs, disguise rendering and tint need a check with `runClient`.
-- **`core/` and `config/` are kept in step with the `1.20.1+` branch by hand**, apart from Java 8 syntax and the energy classes, which come from OMLib.
+- **`config/` is kept in step with the `1.20.1+` branch by hand**, apart from Java 8 syntax; the core is the same source on every version (OpenModularCore).
