@@ -342,7 +342,7 @@ The node `1.20.1-forge` follows the NeoForge setup; these are the differences:
   `NeoForgeTestTransfer` and `NeoForgeTestBattery` exist once per version folder (`mc1.21.11-`: NeoForge's transfer API).
 - **No test class may sit in a main-mod package:** NeoForge loads the test mod as its own module, and two modules cannot share a package.
   Reach protected block entity methods through vanilla's public ones (`BlockEntityData.save` / `load` / `clientData`).
-- Tests in the same batch run side by side, and test structures have beacons (light 15) next to them: from the start on 1.20.1 (at (-1, -1, -1) of the structure, a light gray one while the test runs), after the end on the other versions.
+- Tests in the same batch run side by side, and every test structure gets a beacon (light 15) next to it when the test starts (light gray while it runs, lime or red after it; on 1.20.1 at (-1, -1, -1) of the structure; seen in the 1.20.1 and 1.21.1 code).
   The beacon's light can arrive after the test has begun (the light engine runs beside the server thread), so a light level read at the start is no reference.
   A test that checks for darkness closes the measured spot in with opaque blocks and expects 0 (`PhantomLightGameTest.switchingOffRemovesTheLight`).
 - The test mod must not load in normal dev runs: NeoForge's `client` and `server` runs set `loadedMods` to the main mod only (ModDevGradle loads every registered mod by default), and Loom's `runClient` never includes it.
