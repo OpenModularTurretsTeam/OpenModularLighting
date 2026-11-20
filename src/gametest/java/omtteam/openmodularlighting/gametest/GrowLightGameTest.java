@@ -41,7 +41,7 @@ public class GrowLightGameTest implements OMLGameTests {
         setUp(helper);
         BlockPos pos = helper.absolutePos(LIGHT);
         helper.succeedWhen(() -> {
-            helper.assertTrue(helper.getBlockState(CROP).getValue(CropBlock.AGE) > 0, "wheat grew");
+            helper.assertTrue(grownByLight(helper), "wheat grew");
             helper.assertTrue(helper.getLevel().getBlockState(pos.below()).is(ModBlocks.PHANTOM_LIGHT)
                     && helper.getLevel().getBlockState(pos.below()).getValue(LightBlock.LIT), "block between is lit");
             remove(helper, pos);
@@ -54,7 +54,7 @@ public class GrowLightGameTest implements OMLGameTests {
         light.setMode(GrowMode.BLACK_LIGHT);
         BlockPos pos = helper.absolutePos(LIGHT);
         helper.succeedWhen(() -> {
-            helper.assertTrue(helper.getBlockState(CROP).getValue(CropBlock.AGE) > 0, "wheat grew");
+            helper.assertTrue(grownByLight(helper), "wheat grew");
             helper.assertTrue(helper.getLevel().getBlockState(pos.below()).isAir(), "no light block in black light mode");
             remove(helper, pos);
         });
@@ -66,7 +66,7 @@ public class GrowLightGameTest implements OMLGameTests {
         setUp(helper);
         BlockPos pos = helper.absolutePos(LIGHT);
         helper.runAfterDelay(5, () -> {
-            helper.assertTrue(helper.getBlockState(CROP).getValue(CropBlock.AGE) == 0, "wheat did not grow yet");
+            helper.assertTrue(!grownByLight(helper), "wheat did not grow yet");
             remove(helper, pos);
             helper.succeed();
         });
@@ -80,7 +80,7 @@ public class GrowLightGameTest implements OMLGameTests {
         setUp(helper);
         BlockPos pos = helper.absolutePos(LIGHT);
         helper.runAfterDelay(40, () -> {
-            helper.assertTrue(helper.getBlockState(CROP).getValue(CropBlock.AGE) == 0, "wheat did not grow");
+            helper.assertTrue(!grownByLight(helper), "wheat did not grow");
             remove(helper, pos);
             helper.succeed();
         });
@@ -95,6 +95,15 @@ public class GrowLightGameTest implements OMLGameTests {
         GrowLightBlockEntity light = (GrowLightBlockEntity) helper.getLevel().getBlockEntity(helper.absolutePos(LIGHT));
         light.electricPower().store().setAmountUnchecked(ElectricPower.CAPACITY);
         return light;
+    }
+
+    /**
+     * Whether the grow light has grown the wheat: its bonemeal adds 2 to 5 ages ({@code CropBlock.getBonemealAgeIncrease}).
+     * The test server keeps random ticks on, and a random tick grows the wheat by 1 (on dry farmland about once in 13
+     * random ticks), so age 1 does not count.
+     */
+    private static boolean grownByLight(GameTestHelper helper) {
+        return helper.getBlockState(CROP).getValue(CropBlock.AGE) >= 2;
     }
 
     private static void remove(GameTestHelper helper, BlockPos pos) {

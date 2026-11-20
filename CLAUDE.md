@@ -345,6 +345,8 @@ The node `1.20.1-forge` follows the NeoForge setup; these are the differences:
 - Tests in the same batch run side by side, and every test structure gets a beacon (light 15) next to it when the test starts (light gray while it runs, lime or red after it; on 1.20.1 at (-1, -1, -1) of the structure; seen in the 1.20.1 and 1.21.1 code).
   The beacon's light can arrive after the test has begun (the light engine runs beside the server thread), so a light level read at the start is no reference.
   A test that checks for darkness closes the measured spot in with opaque blocks and expects 0 (`PhantomLightGameTest.switchingOffRemovesTheLight`).
+- The test server keeps random ticks on (it only turns off mob spawning and weather), so crops in a test also grow on their own.
+  A random tick adds 1 age to wheat, the grow light's bonemeal 2 to 5, so the grow light tests count growth only from age 2 (`GrowLightGameTest.grownByLight`; before 2026-11-20, `doesNotGrowThroughABlock` failed now and then on CI).
 - The test mod must not load in normal dev runs: NeoForge's `client` and `server` runs set `loadedMods` to the main mod only (ModDevGradle loads every registered mod by default), and Loom's `runClient` never includes it.
   Otherwise its range override below applies in play.
 - 1.21 encloses every test structure in barriers.
