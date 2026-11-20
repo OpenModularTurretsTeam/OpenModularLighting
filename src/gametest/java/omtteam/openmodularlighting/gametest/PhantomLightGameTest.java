@@ -12,6 +12,7 @@ import net.minecraftforge.gametest.PrefixGameTestTemplate;
 /*import omtteam.openmodularlighting.OML;
 *///?}
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 //? if <1.21.11 {
 import net.minecraft.gametest.framework.GameTest;
 //?}
@@ -114,25 +115,27 @@ public class PhantomLightGameTest implements OMLGameTests {
     }
 
     /**
-     * Own batch, so that no light from tests running at the same time reaches this one. Finished tests leave
-     * beacons (light 15) next to their structures, so the area is not completely dark: the light has to return to
-     * the level measured before placing the phantom light. The light engine works beside the server thread and can
-     * fall behind while the machine is busy (several test servers at once), hence the longer time limit, which
-     * {@link #assertBlockLight} keeps in real time.
+     * The light sits in a closed stone box, so no other light reaches it and it has to go back to 0. On 1.20.1 every
+     * test starts with a beacon (light 15) at (-1, -1, -1) of its structure, 9 blocks from the light, whose light can
+     * arrive only after the test has begun; finished tests leave beacons next to their structures too. The light
+     * engine works beside the server thread and can fall behind while the machine is busy (several test servers at
+     * once), hence the longer time limit, which {@link #assertBlockLight} keeps in real time.
      */
-    @GameTest(template = EMPTY_STRUCTURE, batch = "phantom_light_darkness", timeoutTicks = 400)
+    @GameTest(template = EMPTY_STRUCTURE, timeoutTicks = 400)
     public void switchingOffRemovesTheLight(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
         BlockPos light = helper.absolutePos(LIGHT);
         BlockPos source = helper.absolutePos(SOURCE_A);
-        int ambient = level.getBrightness(LightLayer.BLOCK, light);
-        helper.assertTrue(ambient < 15, "test area must not be fully lit already");
-        LightBlocks.join(level, light, ModBlocks.PHANTOM_LIGHT, source, true);
+        for (Direction side : Direction.values()) {
+            helper.setBlock(LIGHT.relative(side), Blocks.STONE);
+        }
         // the light engine runs off the server thread: wait for each level instead of checking after a fixed delay
         helper.startSequence()
+                .thenWaitUntil(() -> assertBlockLight(helper, light, 0, "dark inside the box"))
+                .thenExecute(() -> LightBlocks.join(level, light, ModBlocks.PHANTOM_LIGHT, source, true))
                 .thenWaitUntil(() -> assertBlockLight(helper, light, 15, "lit first"))
                 .thenExecute(() -> LightBlocks.setActive(level, light, ModBlocks.PHANTOM_LIGHT, source, false))
-                .thenWaitUntil(() -> assertBlockLight(helper, light, ambient, "back to the ambient light"))
+                .thenWaitUntil(() -> assertBlockLight(helper, light, 0, "dark again"))
                 .thenSucceed();
     }
 
