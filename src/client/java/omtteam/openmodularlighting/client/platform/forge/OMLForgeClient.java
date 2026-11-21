@@ -16,14 +16,14 @@ import omtteam.omlib.client.compat.ClientCompat;
 
 /**
  * Forge client entrypoint: starts the client and wires Forge's client events to the shared code ({@link OMLClient}).
- * Forge 1.20.1 has no client-only {@code @Mod} classes: the common {@code OMLForge} constructs this one by name on a
+ * Forge has no client-only {@code @Mod} classes: the common {@code OMLForge} constructs this one by name on a
  * client. OMLib creates the platform services on first use and wraps the disguise models itself. Render types come
  * from "render_type" in the block models.
  */
 public final class OMLForgeClient {
     public OMLForgeClient(IEventBus modBus) {
         OMLClient.init();
-        // no screen registration event on Forge 1.20.1: register on the main thread during client setup
+        // no screen registration event on Forge: register on the main thread during client setup
         modBus.addListener((FMLClientSetupEvent event) ->
                 event.enqueueWork(() -> OMLClient.registerScreens(MenuScreens::register)));
         modBus.addListener((RegisterColorHandlersEvent.Block event) ->

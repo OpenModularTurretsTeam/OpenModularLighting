@@ -19,8 +19,8 @@ import java.util.Set;
 /**
  * Forge entrypoint: starts the mod, runs each registration step in the {@link RegisterEvent} of its registry and wires
  * Forge's events to the shared code. OMLib creates the platform services on first use and registers block use and the
- * config sync itself. Forge 1.20.1 has no client-only
- * {@code @Mod} classes, so it also starts the client entrypoint ({@code OMLForgeClient}) on a client.
+ * config sync itself. Forge has no client-only {@code @Mod} classes, so it also starts the client entrypoint
+ * ({@code OMLForgeClient}) on a client.
  */
 @Mod(OML.MOD_ID)
 public final class OMLForge {

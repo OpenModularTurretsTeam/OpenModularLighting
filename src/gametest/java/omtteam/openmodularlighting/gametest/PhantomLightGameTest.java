@@ -109,11 +109,11 @@ public class PhantomLightGameTest implements OMLGameTests {
     }
 
     /**
-     * The light sits in a closed stone box, so no other light reaches it and it has to go back to 0. On 1.20.1 every
-     * test starts with a beacon (light 15) at (-1, -1, -1) of its structure, 9 blocks from the light, whose light can
-     * arrive only after the test has begun; finished tests leave beacons next to their structures too. The light
-     * engine works beside the server thread and can fall behind while the machine is busy (several test servers at
-     * once), hence the longer time limit, which {@link #assertBlockLight} keeps in real time.
+     * The light sits in a closed stone box, so no other light reaches it and it has to go back to 0. Every test
+     * starts with a beacon (light 15) at (-1, -1, -1) of its structure, 9 blocks from the light, whose light can arrive
+     * only after the test has begun; finished tests leave beacons next to their structures too. The light engine works
+     * beside the server thread and can fall behind while the machine is busy (several test servers at once), hence the
+     * longer time limit, which {@link #assertBlockLight} keeps in real time.
      */
     @GameTest(template = EMPTY_STRUCTURE, timeoutTicks = 400)
     public void switchingOffRemovesTheLight(GameTestHelper helper) {
@@ -277,7 +277,7 @@ public class PhantomLightGameTest implements OMLGameTests {
     /**
      * Fails unless the block light at {@code pos} is {@code expected}, for waiting on the light engine. The game test
      * server runs its ticks back to back without waiting for the next 50 ms, while the light engine works on its own
-     * threads, so a busy machine can use up a time limit in ticks before the light is there (seen on 1.20.1). While
+     * threads, so a busy machine can use up a time limit in ticks before the light is there. While
      * it is not there yet, the check waits a normal tick's length, so the time limit counts in real time again.
      */
     private static void assertBlockLight(GameTestHelper helper, BlockPos pos, int expected, String message) {

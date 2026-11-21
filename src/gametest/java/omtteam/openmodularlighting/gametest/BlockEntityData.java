@@ -6,7 +6,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 
 /**
  * Saves and loads block entities through vanilla's public methods (which call {@code writeData} / {@code readData} /
- * {@code writeClientData} of {@code CompatBlockEntity}). Test classes must not sit in the main mod's packages: NeoForge
+ * {@code writeClientData} of {@code CompatBlockEntity}). Test classes must not sit in the main mod's packages: Forge
  * loads the test mod as its own module, and two modules cannot share a package.
  */
 public final class BlockEntityData {

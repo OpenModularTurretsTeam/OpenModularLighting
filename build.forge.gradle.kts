@@ -1,5 +1,5 @@
-// Forge nodes (1.20.1; legacy ModDevGradle). Shared logic (Java, metadata templating, tests, publishing) is in
-// buildSrc/mod-common. Forge 1.20.1 runs on SRG names: the jar is reobfuscated (reobfJar), and mods from other
+// Forge node (legacy ModDevGradle). Shared logic (Java, metadata templating, tests, publishing) is in
+// omlib/build-logic (mod-common). Forge runs on SRG names: the jar is reobfuscated (reobfJar), and mods from other
 // sources (Jade) are remapped to Mojang names through the mod* configurations.
 plugins {
     id("mod-common")
@@ -22,7 +22,7 @@ sourceSets.main { java { exclude("$packagePath/datagen/**") } }
 sourceSets.test { java { exclude("$packagePath/architecture/**") } }
 
 // In-world tests (src/gametest): a separate test mod (openmodularlighting_gametest) that is never shipped, sharing
-// its test classes with Fabric and NeoForge. `check` runs them on a headless GameTest server.
+// its test classes with Fabric. `check` runs them on a headless GameTest server.
 val gametest: SourceSet = sourceSets.create("gametest") {
     compileClasspath += sourceSets.main.get().output
     runtimeClasspath += sourceSets.main.get().output
@@ -45,7 +45,7 @@ legacyForge {
     }
 
     runs {
-        // Run directory: versions/<v>/run (kept apart from the Fabric runs, whose worlds would not load here)
+        // Run directory: versions/<node>/run (kept apart from the Fabric runs, whose worlds would not load here)
         // Without the test mod: it shortens the beam ranges to fit its test structures (OMLGameTestMod.TEST_RANGE)
         register("client") {
             client()
@@ -71,7 +71,7 @@ legacyForge {
 val localRuntime: Configuration = configurations.create("localRuntime")
 val modLocalRuntime: Configuration = obfuscation.createRemappingConfiguration(localRuntime)
 configurations.runtimeClasspath { extendsFrom(localRuntime) }
-// Not on the GameTest server, as on NeoForge.
+// Not on the GameTest server.
 
 dependencies {
     // OMLib (git submodule omlib, built before this project is configured): a mod of its own, jar-in-jar. The jar is
@@ -101,7 +101,8 @@ configurations.named("clientCompileOnly") { extendsFrom(configurations.compileOn
 
 // ---- Data (recipes, loot tables, tags, advancements) ----
 // Not generated here: copied from the Fabric datagen output of the same Minecraft version (datagen_from) with Forge
-// load conditions ("conditions", read by Forge 1.20.1 on recipes and advancements; see convertFabricData in buildSrc).
+// load conditions ("conditions", read by Forge on recipes and advancements; see convertFabricData in
+// omlib/build-logic).
 
 val fabricData: File = rootProject.file("versions/${property("datagen_from")}/src/main/generated")
 val forgeData: Provider<Directory> = layout.buildDirectory.dir("generated/forgeData")
@@ -116,8 +117,8 @@ val convertFabricData = tasks.register("convertFabricData") {
 }
 sourceSets.main { resources.srcDir(convertFabricData) }
 
-// Forge 1.20.1 only loads a mod's resources and data as a pack if it has a pack.mcmeta (Fabric and NeoForge 1.21 need
-// none, and a shared one would carry the wrong pack_format there), so this node generates it for both mods.
+// Forge only loads a mod's resources and data as a pack if it has a pack.mcmeta (Fabric needs none, and a shared one
+// would carry the wrong pack_format there), so this node generates it for both mods.
 fun packMetadata(name: String, description: String) = tasks.register(name) {
     group = "build"
     val output = layout.buildDirectory.dir("generated/$name")
@@ -132,8 +133,8 @@ gametest.resources.srcDir(packMetadata("gametestPackMetadata", "${property("mod_
 
 tasks.check { dependsOn("runGameTestServer") }
 
-// A game test server whose mod fails to load can still exit normally (Forge did), so `check` also needs the server's own
-// "All N required tests passed" line in its log.
+// A game test server whose mod fails to load can still exit normally (seen with Forge), so `check` also needs the
+// server's own "All N required tests passed" line in its log.
 tasks.named("runGameTestServer") {
     val log = layout.projectDirectory.file("run/logs/latest.log")
     doLast {

@@ -14,8 +14,7 @@ import java.util.List;
 
 /**
  * Forge registration of {@link BlockEnabledCondition} ({@code ICondition}, its {@link #SERIALIZER} registered under
- * {@link BlockEnabledCondition#ID} with {@code CraftingHelper.register}). Forge 1.20.1 reads it on recipes and
- * advancements.
+ * {@link BlockEnabledCondition#ID} with {@code CraftingHelper.register}). Forge reads it on recipes and advancements.
  * <p>
  * Recipe JSON: {@code "conditions": [{"type": "openmodularlighting:block_enabled", "blocks": [...]}]}.
  */

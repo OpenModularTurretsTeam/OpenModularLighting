@@ -14,9 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Fabric registration of {@link BlockEnabledCondition} (resource conditions). The condition API differs between 1.20.1
- * ({@code ConditionJsonProvider}) and 1.21 ({@code ResourceCondition}, whose {@code test} takes a registry lookup
- * since 1.21.2; the condition does not need it).
+ * Fabric registration of {@link BlockEnabledCondition} (resource conditions, through {@code ConditionJsonProvider}).
  * <p>
  * Recipe JSON: {@code "fabric:load_conditions": [{"condition": "openmodularlighting:block_enabled", "blocks": [...]}]}.
  */

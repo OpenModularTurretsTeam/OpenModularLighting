@@ -37,7 +37,7 @@ public final class OML {
 
     /**
      * Loads the config and registers the packets. Both entrypoints call it first, before any registration (recipes and
-     * block properties come from the config; NeoForge accepts packets only until its payload registration event).
+     * block properties come from the config).
      */
     public static void init() {
         LOGGER.info("Initializing Open Modular Lighting");
@@ -47,7 +47,7 @@ public final class OML {
 
     /**
      * The registration steps in dependency order, each with the registry it fills. Fabric runs them in this order;
-     * NeoForge runs each in the {@code RegisterEvent} of its registry.
+     * Forge runs each in the {@code RegisterEvent} of its registry.
      */
     public static List<RegistrationStep> registrationSteps() {
         return List.of(

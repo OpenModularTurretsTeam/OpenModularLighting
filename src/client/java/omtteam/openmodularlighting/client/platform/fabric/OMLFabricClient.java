@@ -24,7 +24,7 @@ public final class OMLFabricClient implements ClientModInitializer {
         OMLClient.init();
         OMLClient.registerScreens(MenuScreens::register);
         ColorProviderRegistry.BLOCK.register(FloodlightTint::color, FloodlightTint.tintedBlocks());
-        // NeoForge reads these from "render_type" in the block models; Fabric ignores that field.
+        // Forge reads these from "render_type" in the block models; Fabric ignores that field.
         // The lamp overlay of the floodlights (drawn alone over a disguise) is cut out. Only this mod's lights: other
         // mods' camouflage blocks (Open Modular Turrets) choose their own layer.
         Block[] camoLights = ModBlocks.LIGHT_SOURCES.stream().filter(CamoBlock.class::isInstance).toArray(Block[]::new);

@@ -23,7 +23,7 @@ public final class FloodlightTint {
 
     /**
      * The block colour of a light ({@code BlockColor}; the loaders register it for {@link #tintedBlocks()}). On a
-     * disguised light, tinted quads other than the lamp belong to the disguise and get its colour (NeoForge; Fabric's
+     * disguised light, tinted quads other than the lamp belong to the disguise and get its colour (Forge; Fabric's
      * camouflage model applies that colour itself).
      */
     public static int color(BlockState state, @Nullable BlockAndTintGetter level, @Nullable BlockPos pos, int tintIndex) {

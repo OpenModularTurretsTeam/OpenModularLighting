@@ -7,7 +7,7 @@ import net.minecraft.world.level.Level;
 
 /**
  * Energy and items through the loader's API, as other mods see a block (Fabric: Team Reborn Energy / Transfer API,
- * NeoForge: capabilities). Tests use it to check the loader adapters.
+ * Forge: capabilities). Tests use it to check the loader adapters.
  */
 public interface TestTransfer {
     /** Whether the block exposes energy on {@code side}. */

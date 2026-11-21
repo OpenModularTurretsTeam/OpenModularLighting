@@ -7,8 +7,8 @@ import omtteam.openmodularlighting.gametest.TestItems;
 import team.reborn.energy.api.EnergyStorage;
 
 /**
- * Fabric entrypoint of the test mod. Before 1.21.11 Fabric registers the test classes (the {@code fabric-gametest}
- * entrypoints); from 1.21.11 on {@code FabricGameTestRegistration} does.
+ * Fabric entrypoint of the test mod. Fabric registers the test classes through the {@code fabric-gametest}
+ * entrypoints.
  */
 public final class OMLFabricGameTests implements ModInitializer {
     @Override
