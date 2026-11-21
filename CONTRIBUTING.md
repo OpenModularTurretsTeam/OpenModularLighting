@@ -20,40 +20,140 @@ Open an issue on the project's issue tracker and pick one of the templates:
 
 You need:
 
-- **Java 25 or newer** to run Gradle (a Fabric Loom 1.18 requirement).
-  The Java 17 and 21 compile toolchains are downloaded automatically if they are missing.
-- Git and an IDE with Gradle support (IntelliJ IDEA is recommended).
+- **Java 25 or newer** to run Gradle (Fabric Loom 1.18 requires it).
+  Gradle runs on the JDK in `JAVA_HOME`, or on the Gradle JVM set in your IDE; the build does not pin one.
+  The toolchains the nodes compile with, Java 17 (1.20.1) and Java 21 (1.21.1 and 1.21.11), are downloaded automatically if they are missing.
+- Git.
+- A POSIX `sh` with `find`, `sort`, `xargs` and `sha256sum` on the `PATH`: the build runs the shell script `omlib/tools/bootstrap.sh` (on Windows, for example from Git Bash).
+- An IDE with Gradle support (IntelliJ IDEA is recommended).
 
-### Building the mod for all versions and loaders
+The Gradle wrapper (Gradle 9.8.1) is part of the repository, so always use `./gradlew`.
 
-Clone the repository with its submodule, then run in its directory:
+### Getting the code
 
 ```bash
-git clone --recurse-submodules <url>        # or, in an existing clone: git submodule update --init
-./gradlew chiseledBuild
+git clone --recurse-submodules -b 1.20.1+ https://github.com/OpenModularTurretsTeam/OpenModularLighting.git
+cd OpenModularLighting
+git submodule update --init    # only if you cloned without --recurse-submodules
 ```
 
-The library [OMLib](https://github.com/OpenModularTurretsTeam/OMLib) is the git submodule `omlib`.
-The first Gradle run builds it for all versions and loaders into `omlib/build/maven`, and each jar bundles it; this takes a while the first time and is a no-op while the library is unchanged.
-To change the library, change and push it in its own clone of the OMLib repository (a pull request there), then move the `omlib` submodule here to that commit and commit the new pointer; never leave changes inside `omlib/` itself, the next checkout drops them.
-
-The jars end up in `versions/<minecraft version>-<loader>/build/libs/`.
-
-### Useful commands
-
-Every Stonecutter node is named `<minecraft version>-<loader>`: `1.20.1-fabric`, `1.20.1-forge`, `1.21.1-fabric`, `1.21.1-neoforge`, `1.21.11-fabric`, `1.21.11-neoforge`.
+The branch `1.20.1+` holds the code for Minecraft 1.20.1, 1.21.1 and 1.21.11; the branch `1.12` is the Minecraft 1.12.2 version, with a build of its own.
+The library [OMLib](https://github.com/OpenModularTurretsTeam/OMLib) is the git submodule `omlib`, checked out at the commit this repository records.
+Its URL is relative (`../OMLib.git`): it resolves to the OMLib repository of the GitHub account you cloned from (HTTPS or SSH).
+If you clone your fork, fork OMLib as well, or clone without `--recurse-submodules` and point the submodule at the team's repository before you initialise it:
 
 ```bash
-./gradlew chiseledBuild                          # build all nodes (unit tests and GameTests included)
-./gradlew :1.21.1-fabric:runClient               # start a client (also :runServer; any node works)
-./gradlew check                                  # unit tests, GameTests and the build checks
-./gradlew :1.21.1-fabric:runGameTest             # in-world GameTests, Fabric nodes
-./gradlew :1.21.1-neoforge:runGameTestServer     # in-world GameTests, NeoForge and Forge nodes
-./gradlew :1.21.1-fabric:runDatagen              # regenerate recipes, loot tables, tags (run for every Fabric node)
-./gradlew spotlessApply                          # fix the formatting
+git config submodule.omlib.url https://github.com/OpenModularTurretsTeam/OMLib.git   # fork clones only
+git submodule update --init
+```
+
+Without the submodule Gradle stops while it reads the settings, with "Included build '.../omlib/build-logic' does not exist"; run `git submodule update --init`.
+
+### Opening the project in an IDE
+
+Open the repository folder in IntelliJ IDEA as a Gradle project.
+The first sync builds OMLib and sets up Minecraft for every node, so it takes a while.
+The Fabric nodes create IDE run configurations for their client and server runs, which use the same `versions/<node>/run` folders as the Gradle tasks.
+
+### Building
+
+```bash
+./gradlew chiseledBuild           # build all six nodes (unit tests and GameTests included)
+./gradlew :1.21.1-fabric:build    # build one node
+./gradlew check                   # all nodes: unit tests, GameTests, recipe and core checks, spotlessCheck
+```
+
+Every Stonecutter node is named `<minecraft version>-<loader>`: `1.20.1-fabric`, `1.20.1-forge`, `1.21.1-fabric`, `1.21.1-neoforge`, `1.21.11-fabric`, `1.21.11-neoforge`.
+Before anything else is configured, Gradle builds OMLib from the `omlib` submodule for all six nodes into `omlib/build/maven`.
+That is a no-op while the library's sources and the core it uses are unchanged.
+The first run also sets up Minecraft for every node, so it takes a while.
+
+The jars end up in `versions/<minecraft version>-<loader>/build/libs/`, named `openmodularlighting-<mod version>-mc<minecraft version>-<loader>.jar`.
+Each jar bundles OMLib (jar-in-jar) and the classes of the core module `oml-core`.
+The folder keeps the jars of older builds too, so check the version in the name.
+
+### Running and testing locally
+
+```bash
+./gradlew :1.21.1-fabric:runClient            # start a client (any node: :1.21.11-neoforge:runClient, :1.20.1-forge:runClient, ...)
+./gradlew :1.21.1-fabric:runServer            # start a dedicated server (any node)
+./gradlew :1.21.1-fabric:test                 # unit tests of one node
+./gradlew :1.21.1-fabric:runGameTest          # in-world GameTests, Fabric nodes
+./gradlew :1.21.1-neoforge:runGameTestServer  # in-world GameTests, NeoForge and Forge nodes
+./gradlew :1.21.1-fabric:runDatagen           # regenerate recipes, loot tables, tags (run for every Fabric node)
+./gradlew :1.21.1-fabric:pitest               # mutation tests of the config classes, on demand
+./gradlew spotlessApply                       # fix the formatting
 ./gradlew "Set active project to 1.20.1-fabric"  # switch the source to 1.20.1
 ./gradlew "Set active project to 1.21.1-fabric"  # switch back
 ```
+
+- Every node runs the client and server in its own folder `versions/<node>/run` (worlds, `mods/`, `logs/`, `config/`), so worlds and mods you add by hand stay with their version.
+- The NeoForge and Forge client and server runs load the mod without the GameTest mod.
+- Jade is on the classpath of the dev runs (not bundled), so you can try the Jade plugin there.
+- The build writes no `eula.txt`: after the first `runServer`, set `eula=true` in `versions/<node>/run/eula.txt`.
+  To join that server from a dev client, also set `online-mode=false` in `versions/<node>/run/server.properties`.
+- The GameTests need no EULA.
+  On NeoForge and Forge, `runGameTestServer` also fails unless `versions/<node>/run/logs/latest.log` says that the required tests passed.
+  The Fabric GameTests run in `versions/<node>/build/run/gameTest`; their logs and crash reports are there.
+- The unit tests run on every node; the architecture rules (ArchUnit) only on the Fabric nodes.
+- Reports (Fabric nodes only): JaCoCo and PMD for the active node only, PIT for the node you run `pitest` on:
+  - JaCoCo test coverage (printed by `check`): `versions/<node>/build/reports/jacoco/test/html/index.html`
+  - PMD (report only, nothing fails): `versions/<node>/build/reports/pmd/main.html` and `client.html`
+  - PIT: `versions/<node>/build/reports/pitest/index.html`
+- CI (`.github/workflows/check.yml`) runs `./gradlew check` on every push and pull request.
+  It has no local OpenModularCore, so it builds against the JitPack artifact of `core_version`.
+
+### Working on the shared core (OpenModularCore)
+
+The game logic in `omtteam.openmodularlighting.core` is the module `oml-core` of [OpenModularCore](https://github.com/OpenModularTurretsTeam/OpenModularCore).
+By default the build takes it from JitPack, in the version that `core_version` in `gradle.properties` names.
+To build the mod against your own copy of the core, clone OpenModularCore next to this repository's folder:
+
+```bash
+cd ..                                                                    # the folder that holds OpenModularLighting/
+git clone https://github.com/OpenModularTurretsTeam/OpenModularCore.git  # gives ../OpenModularCore next to it
+```
+
+The build looks for `OpenModularCore/settings.gradle.kts` in this repository's folder and in every folder above it, and the first one it finds replaces the JitPack modules (a Gradle composite build), whatever `core_version` says.
+It then prints `OpenModularCore: local source at <path>`; with the JitPack artifact it prints nothing.
+
+```bash
+cd OpenModularCore && ./gradlew check                    # from the folder that holds both clones: the core's tests (on Java 17 and on Java 8) and checks
+cd ../OpenModularLighting && ./gradlew chiseledBuild     # the mod against the local core
+OMM_NO_LOCAL_CORE=1 ./gradlew check                      # the mod against the JitPack core, as CI builds it (or -Pomm.noLocalCore)
+```
+
+- Edits to `oml-core` reach the mod at the next build.
+- Edits to `omlib-core` reach it through the library: the next Gradle run rebuilds `omlib` with the local core.
+  Switching between the local and the JitPack core rebuilds the library too.
+- The core is shared by all mods and all Minecraft versions; changes to it go to OpenModularCore as a pull request, see its README.
+  The mod uses such a change once a new core version is released and `core_version` is raised.
+- `check` fails if this repository holds sources in the core package (`verifyNoCoreSources`).
+
+### Working on OMLib
+
+The mod builds against the `omlib` submodule only, never against another OMLib clone.
+
+- To try a library change, edit it in `omlib/`.
+  The next Gradle run rebuilds the library from it and drops Loom's cached copy of the old one.
+- `omlib/` is checked out on a detached HEAD, so create a branch there before you commit:
+
+  ```bash
+  git -C omlib switch -c 1.20.1+-<feature>   # a branch for your OMLib change
+  ```
+
+- To keep the change, commit it to OMLib (branch `1.20.1+`, a pull request there), then move the submodule to that commit and commit the new pointer here:
+
+  ```bash
+  git -C omlib fetch origin                # or: git -C omlib fetch <your OMLib clone> <branch>
+  git -C omlib checkout --detach <commit>  # the OMLib commit to use
+  git add omlib                            # record the new pointer, then commit
+  ```
+
+  CI checks out the recorded commit, so it must be pushed to OMLib first.
+- `git submodule update` checks out the recorded commit again, and leaves `omlib/` on a detached HEAD, so commit your work in `omlib/` on a branch before you run it.
+- Set `OMLIB_SKIP_BUILD` (any value) to skip the library build, for example when the jars in `omlib/build/maven` are current; then library and `omlib-core` edits are not picked up.
+- Don't run two builds at the same time on one `omlib/` copy: its nodes publish into one local Maven repository.
 
 ## Working with several versions and loaders
 

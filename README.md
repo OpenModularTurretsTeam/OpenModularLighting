@@ -82,9 +82,12 @@ Jade is not required.
 
 Gradle has to run on **Java 25 or newer**.
 The Java 17 and 21 toolchains for compiling are downloaded automatically if they are missing.
-Clone with `--recurse-submodules` (or run `git submodule update --init`): the library OMLib, which every jar bundles, is the git submodule `omlib`.
+The library OMLib, which every jar bundles, is the git submodule `omlib`, so clone with `--recurse-submodules` (or run `git submodule update --init`).
+Its URL is relative (`../OMLib.git`); if you clone a fork, see [`CONTRIBUTING.md`](CONTRIBUTING.md) ("Getting the code").
 
 ```bash
+git clone --recurse-submodules -b 1.20.1+ https://github.com/OpenModularTurretsTeam/OpenModularLighting.git
+cd OpenModularLighting
 ./gradlew chiseledBuild              # build all versions and loaders (with unit tests and GameTests)
 ./gradlew :1.21.1-fabric:runClient   # start a Fabric test client
 ./gradlew :1.21.1-neoforge:runClient # start a NeoForge test client
@@ -92,7 +95,9 @@ Clone with `--recurse-submodules` (or run `git submodule update --init`): the li
 ```
 
 The jars end up in `versions/<minecraft version>-<loader>/build/libs/`.
-See `CHANGELOG.md` for the changes, [`CONTRIBUTING.md`](CONTRIBUTING.md) for how to contribute and [`docs/architecture.md`](docs/architecture.md) for an overview of the code.
+The branch `1.12` holds the Minecraft 1.12.2 version, with a build of its own.
+[`CONTRIBUTING.md`](CONTRIBUTING.md) ("Development setup") covers the prerequisites, testing, and building against a local OpenModularCore or a changed OMLib.
+See `CHANGELOG.md` for the changes and [`docs/architecture.md`](docs/architecture.md) for an overview of the code.
 
 ## License
 
