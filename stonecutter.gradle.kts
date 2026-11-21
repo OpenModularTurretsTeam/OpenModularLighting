@@ -3,7 +3,6 @@ plugins {
     // Loader plugins, applied by build.fabric.gradle.kts / build.neoforge.gradle.kts / build.forge.gradle.kts
     // (the publish plugin comes from buildSrc, see buildSrc/build.gradle.kts)
     id("net.fabricmc.fabric-loom-remap") version "1.18.4" apply false
-    id("net.neoforged.moddev") version "2.0.148" apply false
     // Forge 1.20.1: the legacy variant of ModDevGradle (same artifact; reobfuscates to SRG names)
     id("net.neoforged.moddev.legacyforge") version "2.0.148" apply false
     // Formatting checks (./gradlew spotlessCheck / spotlessApply)
@@ -36,15 +35,6 @@ stonecutter active "1.20.1-fabric"
 // Prefer whole classes in platform/<loader>/ packages (left out of the other loaders' builds) over conditions.
 stonecutter parameters {
     constants.match(current.project.substringAfterLast('-'), "fabric", "neoforge", "forge")
-    // Renames from 1.21.11. They work both ways, so the new names (Identifier, noCollision) must not be used for anything
-    // else in the source. 1.21.11 renamed ResourceLocation to Identifier (same package).
-    replacements.regex(current.parsed >= "1.21.11") {
-        replace("\\bResourceLocation\\b", "Identifier", "\\bIdentifier\\b", "ResourceLocation")
-    }
-    // 1.21.11 fixed the spelling of BlockBehaviour.Properties#noCollission
-    replacements.regex(current.parsed >= "1.21.11") {
-        replace("\\bnoCollission\\(", "noCollision(", "\\bnoCollision\\(", "noCollission(")
-    }
 }
 
 // Builds every version in one go: ./gradlew chiseledBuild
