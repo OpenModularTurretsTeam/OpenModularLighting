@@ -37,6 +37,7 @@
     "omlib": ">=${omlib_version}"
   },
   "suggests": {
-    "jade": "*"
+    "jade": "*",
+    "neepmeat": "*"
   }
 }

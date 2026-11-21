@@ -207,6 +207,7 @@ The numbers are in `core.formula` (`EnergyCost`, `CarbonFuel`, `GrowChance`).
 Outside access goes through the loader; the adapters are all OMLib's:
 
 - Energy: `core.energy.EnergyAccess`, exposed as Team Reborn Energy on Fabric (`FabricEnergyStorages`) and as an FE capability on Forge (`ForgeEnergyHandler`).
+  On Fabric with NEEPMeat installed, OMLib also makes the lights sinks of its vascular network (`FabricNeepMeatPower`, 1 eJ = 1 E).
   Only inserting is possible; there is no extraction.
 - Items: `inventory.ItemAccess.insertOnly`, exposed as `ItemStorage.SIDED` on Fabric (`FabricItemStorages`) and as `IItemHandler` on Forge (`ForgeItemHandler`).
 - Battery slot and fuel values: `platform.Energy` and `platform.Fuel`.

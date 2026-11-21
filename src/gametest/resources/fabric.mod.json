@@ -17,6 +17,7 @@
       "omtteam.openmodularlighting.gametest.UvFloodlightGameTest",
       "omtteam.openmodularlighting.gametest.GrowLightGameTest",
       "omtteam.openmodularlighting.gametest.JadeTooltipGameTest",
+      "omtteam.openmodularlighting.gametest.platform.fabric.NeepMeatGameTest",
       "omtteam.openmodularlighting.gametest.CamoGameTest"
     ]
   },
