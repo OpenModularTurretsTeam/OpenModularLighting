@@ -15,7 +15,7 @@ public final class OMLGameTestMod {
     public static final String MOD_ID = "openmodularlighting_gametest";
 
     /**
-     * Beam ranges for the tests: short enough to stay inside the 8 × 8 × 8 test structure (1.21 surrounds it with
+     * Beam ranges for the tests: short enough to stay inside the 8 × 8 × 8 test structure (it is surrounded with
      * barriers), so that beams neither leave it nor reach tests running next to it.
      */
     public static final int TEST_RANGE = 6;

@@ -1,4 +1,5 @@
-// NeoForge nodes (ModDevGradle). Shared logic (Java, metadata templating, tests, publishing) is in buildSrc/mod-common.
+// NeoForge node (ModDevGradle). Shared logic (Java, metadata templating, tests, publishing) is in
+// omlib/build-logic (mod-common).
 plugins {
     id("mod-common")
     id("net.neoforged.moddev")
@@ -43,7 +44,7 @@ neoForge {
     }
 
     runs {
-        // Run directory: versions/<v>/run (kept apart from the Fabric runs, whose worlds would not load here)
+        // Run directory: versions/<node>/run (kept apart from the Fabric runs, whose worlds would not load here)
         // Without the test mod: it shortens the beam ranges to fit its test structures (OMLGameTestMod.TEST_RANGE)
         register("client") {
             client()
@@ -55,8 +56,7 @@ neoForge {
             loadedMods = setOf(mods.getByName(modId))
         }
         // Headless in-world tests (no EULA needed); runs the GameTests and exits with the number of failed tests,
-        // which fails the task. Only those of this mod's
-        // namespace.
+        // which fails the task. Only those of this mod's namespace.
         register("gameTestServer") {
             type = "gameTestServer"
             sourceSet = gametest
@@ -96,7 +96,7 @@ configurations.named("clientCompileOnly") { extendsFrom(configurations.compileOn
 
 // ---- Data (recipes, loot tables, tags, damage types, advancements) ----
 // Not generated here: copied from the Fabric datagen output of the same Minecraft version (datagen_from) with NeoForge
-// load conditions ("neoforge:conditions"; see convertFabricData in buildSrc).
+// load conditions ("neoforge:conditions"; see convertFabricData in omlib/build-logic).
 
 val fabricData: File = rootProject.file("versions/${property("datagen_from")}/src/main/generated")
 val neoForgeData: Provider<Directory> = layout.buildDirectory.dir("generated/neoforgeData")
@@ -113,7 +113,7 @@ sourceSets.main { resources.srcDir(convertFabricData) }
 
 tasks.check { dependsOn("runGameTestServer") }
 
-// A game test server whose mod fails to load can still exit normally (Forge did), so `check` also needs the server's own
+// A game test server whose mod fails to load can still exit normally, so `check` also needs the server's own
 // "All N required tests passed" line in its log.
 tasks.named("runGameTestServer") {
     val log = layout.projectDirectory.file("run/logs/latest.log")

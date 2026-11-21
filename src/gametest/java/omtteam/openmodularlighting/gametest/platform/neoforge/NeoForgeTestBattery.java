@@ -9,7 +9,6 @@ import omtteam.openmodularlighting.gametest.TestItems;
 
 /**
  * FE view of a {@link TestBatteryItem}; changes the stack directly (item capabilities work on the stack in the slot).
- * The variant for 1.21.1 ({@code IEnergyStorage}).
  */
 final class NeoForgeTestBattery implements IEnergyStorage {
     private final ItemStack stack;

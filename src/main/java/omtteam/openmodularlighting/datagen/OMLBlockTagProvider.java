@@ -31,7 +31,7 @@ public class OMLBlockTagProvider extends FabricTagProvider.BlockTagProvider {
                 .forEach(tagBuilder(BlockTags.NEEDS_STONE_TOOL)::add);
     }
 
-    /** The builder that adds blocks by value (renamed in the Fabric API for 1.21.5). */
+    /** The builder that adds blocks by value. */
     private FabricTagBuilder tagBuilder(TagKey<Block> tag) {
         return getOrCreateTagBuilder(tag);
     }

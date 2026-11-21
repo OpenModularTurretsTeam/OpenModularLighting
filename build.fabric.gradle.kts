@@ -1,4 +1,4 @@
-// Fabric nodes (Loom). Shared logic (Java, metadata templating, tests, publishing) is in buildSrc/mod-common.
+// Fabric node (Loom). Shared logic (Java, metadata templating, tests, publishing) is in omlib/build-logic (mod-common).
 plugins {
     id("mod-common")
     id("net.fabricmc.fabric-loom-remap")
@@ -24,7 +24,7 @@ loom {
 
     runConfigs.all {
         generateRunConfig = true
-        // versions/<v>/run: one per node, so mods added by hand to run/mods and worlds stay with their version
+        // versions/<node>/run: one per node, so mods added by hand to run/mods and worlds stay with their node
         runDirectory = project.file("run")
     }
 }
@@ -34,7 +34,7 @@ fabricApi {
         // The providers need no client classes (block models are handwritten), so datagen runs without the client
         // source set; it also works while a new Minecraft version's client code is not ported yet
         client = false
-        // versions/<v>/src/main/generated, committed per version
+        // versions/<node>/src/main/generated, committed
         outputDirectory = project.file("src/main/generated")
     }
     // In-world tests (src/gametest, a separate test mod that is not shipped). `check` runs them on a headless
@@ -73,9 +73,9 @@ dependencies {
 }
 
 // ---- Test coverage (JaCoCo): check prints the line coverage of the mod's own classes ----
-// Both the unit tests and the game test server record coverage. Active version only (all Fabric nodes share the source).
+// Both the unit tests and the game test server record coverage. Active node only (the nodes share the source).
 // The core (omtteam.openmodularlighting.core, bundled from OpenModularCore) is measured in the core repository.
-// Report: versions/<v>/build/reports/jacoco/test/html/index.html
+// Report: versions/<node>/build/reports/jacoco/test/html/index.html
 val coverageActive = stonecutter.current.isActive
 jacoco {
     toolVersion = property("jacoco_version") as String
@@ -126,7 +126,7 @@ tasks.check {
 // ---- Mutation testing (PIT): ./gradlew :1.21.1-fabric:pitest, on demand ----
 // Plants small mistakes in the config classes (flipped conditions, changed boundaries, removed calls) and checks whether
 // a unit test fails. Surviving mistakes show behaviour the tests do not pin down. Report only, not part of check.
-// Report: versions/<v>/build/reports/pitest/index.html
+// Report: versions/<node>/build/reports/pitest/index.html
 // The core (omtteam.openmodularlighting.core) is mutation-tested in OpenModularCore; OMLConfig needs the running game.
 val pitestTargets = listOf(
     "omtteam.openmodularlighting.config.ConfigData*",
@@ -175,8 +175,8 @@ tasks.register<JavaExec>("pitest") {
     }
 }
 
-// Report only for now: the limits in gradle/pmd/ruleset.xml are not enforced yet. Runs for the active version only
-// (all Fabric nodes share the source); reports in versions/<v>/build/reports/pmd/{main,client}.html
+// Report only for now: the limits in gradle/pmd/ruleset.xml are not enforced yet. Runs for the active node only
+// (the nodes share the source); reports in versions/<node>/build/reports/pmd/{main,client}.html
 pmd {
     toolVersion = property("pmd_version") as String
     sourceSets = listOf(project.sourceSets["main"], project.sourceSets["client"])
