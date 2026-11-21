@@ -1,12 +1,12 @@
 # Open Modular Lighting
 
-Floodlights for **Fabric** (Minecraft 1.20.1 and 1.21.1), **NeoForge** (Minecraft 1.21.1) and **Forge** (Minecraft 1.20.1).
+Floodlights for **Fabric** (Minecraft 1.20.1, 1.21.1 and 1.21.11), **NeoForge** (Minecraft 1.21.1 and 1.21.11) and **Forge** (Minecraft 1.20.1 and 1.12.2).
 This branch (`1.12`) builds it for **Forge** on **Minecraft 1.12.2**; the other versions are built from the branch `1.20.1+`.
-On 1.12.2 lights use Forge Energy, recipes use the ore dictionary, and there is no Jade integration.
+On 1.12.2 lights use Forge Energy, recipes use the ore dictionary, and the block info overlay is Hwyla instead of Jade.
 Open Modular Lighting is a port of the Forge 1.7.10 mod *FloodLights* by Keridos.
 It lights up large areas with invisible light blocks placed along a beam, so you can light a cave, a farm or a base without placing torches everywhere.
 
-> Status: beta. Expect bugs, and back up your worlds.
+> Status: stable since 1.0.0.
 
 ## Features
 
@@ -20,9 +20,11 @@ It lights up large areas with invisible light blocks placed along a beam, so you
 | **Grow Light** | Lights the block below it and makes the crop two blocks below grow faster (about one growth step every 10 s). A black-light mode gives the growth without the light. | Energy: 25 E/t |
 | **Small / Square Fluorescent Light** | Cheap little panels that light up the 5 blocks next to them. The small one can be turned by 90°, and a shapeless recipe converts between the two. | Energy: 1 E/t |
 | **Cube Light** | A full block that lights all 6 blocks around it. | Energy: 2 E/t, accepted from every side |
+| **Lightproof Glass** | See-through glass that lets no light through and stops light beams, with connected textures when OptiFine is installed. Made from black stained glass and coal or charcoal. | – |
 
-All lights turn on with a **redstone signal**. The signal can be inverted, so that a light is on without redstone and
-turns off when powered. After a light turns off, it waits 2 seconds before it can turn on again, to prevent flickering.
+All lights turn on with a **redstone signal**.
+The signal can be inverted, so that a light is on without redstone and turns off when powered.
+After a light turns off, it waits 2 seconds before it can turn on again, to prevent flickering.
 
 ### Using the lights
 
@@ -34,62 +36,69 @@ turns off when powered. After a light turns off, it waits 2 seconds before it ca
 | Sneak + right-click with a wrench | Picks the light up |
 | Right-click with dye | Tints the light in that colour; wool removes the tint |
 
-The electric, carbon and UV floodlights can be **disguised**: click the disguise slot in their GUI with a full, opaque block (stone, planks, bricks...) and the light looks like that block, with only its lamp showing on the front.
+The electric, non-electric and UV floodlights can be **disguised**: click the disguise slot in their GUI with a full, opaque block (stone, planks, bricks...) and the light looks like that block, with only its lamp showing on the front.
 Click the slot with an empty hand to remove the disguise.
 
-A light you break keeps its settings (mode, invert, colour, disguise, stored energy or burn time) on the item, and the tooltip
-shows "Configured". The beam follows changes in the world. It stops at solid blocks and shines through glass and
-plants. When you build into a beam or remove a block from it, the beam adjusts.
+A light you break keeps its settings (mode, invert, colour, disguise, stored energy or burn time) on the item, and the tooltip shows "Configured".
+The beam follows changes in the world.
+It stops at solid blocks and shines through glass and plants.
+When you build into a beam or remove a block from it, the beam adjusts.
 
 ### Power
 
-- Electric lights take energy from cables and generators of other tech mods: on Fabric through **Team Reborn Energy** (included in the mod, e.g. Tech Reborn), on NeoForge and Forge as **Forge Energy** (FE, 1 FE = 1 E).
+- Electric lights take **Forge Energy** (FE, 1 FE = 1 E) from cables and generators of other tech mods.
   Each light stores 50 000 E.
   Fluorescent and grow lights only accept energy from the back, cube lights from every side.
 - Fluorescent and grow lights that touch and face the same way share their energy, and so do touching cube lights.
-- Batteries in the battery slot charge the light.
+- Batteries in the battery slot charge the light: any item that gives off Forge Energy.
 - Hoppers and pipes can insert fuel and batteries, but can't take anything out.
 
 ### Crafting
 
-Smelt **Raw Filament** (glowstone, redstone, gold) into **Glowing Filament**. Craft it into an **Electric Incandescent
-Light Bulb**, the part needed for every electric light. The non-electric floodlight needs a **Non-electric Lantern**,
-made from a Mantle, a Fuel Dissolver and flint and steel. The **Cube Light** is made from glass, a light bulb and iron. All recipes are shown in the recipe book or in a recipe
-viewer.
+Smelt **Raw Filament** (glowstone, redstone, gold) into **Glowing Filament**.
+Craft it into an **Electric Incandescent Light Bulb**, the part needed for every electric light.
+The non-electric floodlight needs a **Non-electric Lantern**, made from a Mantle, a Fuel Dissolver and flint and steel.
+The **Cube Light** is made from glass, a light bulb and iron.
+All recipes are shown in the recipe book or in a recipe viewer.
 
-The **Lightblock Debug Tool** (creative only) shows the invisible light blocks while you hold it: yellow for normal light,
-magenta for UV light.
+The **Lightblock Debug Tool** (creative only) shows the invisible light blocks while you hold it: yellow for normal light, magenta for UV light.
 
 ### Config
 
-The settings are in `config/openmodularlighting.json`, with a comment above each one. Ranges, energy use, burn time,
-grow chance, UV damage and the timeout can be changed, and each light can be disabled (its recipe is not loaded). On a
-server, the server's settings are sent to the players.
+The settings are in `config/openmodularlighting.json`, with a comment above each one.
+Ranges, energy use, burn time, grow chance, UV damage and the timeout can be changed, and each light can be disabled (its recipe is not loaded).
+On a server, the server's settings are sent to the players.
 
-### Optional: Jade
+### Optional: Hwyla
 
-With [Jade](https://modrinth.com/mod/jade) installed, looking at a light shows its mode and whether it is inverted.
-Jade is not required.
+With [Hwyla](https://www.curseforge.com/minecraft/mc-mods/hwyla) installed, looking at a light shows its mode and whether it is inverted.
+Hwyla is not required, and the overlay can be turned off in Hwyla's settings.
 
 ## Requirements
 
-- Fabric: Minecraft 1.20.1 (Java 17) or 1.21.1 (Java 21), with [Fabric Loader](https://fabricmc.net/) and [Fabric API](https://modrinth.com/mod/fabric-api)
-- NeoForge: Minecraft 1.21.1 (Java 21), with [NeoForge](https://neoforged.net/) 21.1
-- Forge: Minecraft 1.20.1 (Java 17), with [Forge](https://files.minecraftforge.net/) 47.4.28 or newer
+- Minecraft 1.12.2 (Java 8) with [Forge](https://files.minecraftforge.net/) for 1.12.2 (the mod is built against 14.23.5.2847)
+- [OMLib](https://www.curseforge.com/minecraft/mc-mods/omlib) 4.0.0 or newer, below 5.0.0
+
+The requirements of the other Minecraft versions are in the README of the branch `1.20.1+`.
 
 ## Building from source
 
-Gradle has to run on **Java 25 or newer**. The Java 17 and 21 toolchains for compiling are downloaded automatically
-if they are missing.
+Gradle has to run on **JDK 25** (RetroFuturaGradle 2.0.6 needs it): set `JAVA_HOME` to a JDK 25 before you run `./gradlew`.
+The Java 8 toolchain for compiling, testing and running the game is downloaded automatically if it is missing.
+The mod builds against OMLib's dev jar from your local Maven repository, so OMLib is built and published first.
 
 ```bash
-./gradlew chiseledBuild              # build all versions and loaders (with unit tests and GameTests)
-./gradlew :1.21.1-fabric:runClient   # start a Fabric test client
-./gradlew :1.21.1-neoforge:runClient # start a NeoForge test client
-./gradlew :1.20.1-forge:runClient    # start a Forge test client
+git clone -b 1.12 https://github.com/OpenModularTurretsTeam/OMLib.git
+git clone -b 1.12 https://github.com/OpenModularTurretsTeam/OpenModularLighting.git
+(cd OMLib && ./gradlew publishToMavenLocal)   # OMLib 4.0.1 into ~/.m2
+cd OpenModularLighting
+./gradlew build -Pomlib_version=4.0.1        # jars, unit tests and the formatting check
+./gradlew runClient -Pomlib_version=4.0.1    # start a test client
 ```
 
-The jars end up in `versions/<minecraft version>-<loader>/build/libs/`. See `CHANGELOG.md` for the changes.
+`-Pomlib_version` names the OMLib version you published, when it differs from `omlib_version` in `gradle.properties`.
+The jars end up in `build/libs/`; `openmodularlighting-<version>-mc1.12.2-forge.jar` is the one players install.
+See [`CONTRIBUTING.md`](CONTRIBUTING.md) for the full setup, the shared core and the tests, and `CHANGELOG.md` for the changes.
 
 ## License
 
@@ -103,5 +112,4 @@ The projects art is licenced under the CC-BY-NC-SA 4.0 license [2].
 [2]https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode.txt
 ```
 
-The full license texts are in [`LICENSE`](LICENSE) (MIT, source code) and [`LICENSE-ART`](LICENSE-ART)
-(CC BY-NC-SA 4.0, textures, models and other art).
+The full license texts are in [`LICENSE`](LICENSE) (MIT, source code) and [`LICENSE-ART`](LICENSE-ART) (CC BY-NC-SA 4.0, textures, models and other art).
