@@ -22,7 +22,7 @@ public abstract class PanelLightBlock extends FloodlightBlock {
     /** 1.7.10: rock, metal sound, hardness 2.5. */
     public static Properties createPanelProperties() {
         return Properties.of().mapColor(MapColor.METAL).sound(SoundType.METAL).strength(2.5F)
-                .requiresCorrectToolForDrops().noCollission().noOcclusion();
+                .requiresCorrectToolForDrops().noCollision().noOcclusion();
     }
 
     /** The outline in this state (see {@link PanelShapes}). */

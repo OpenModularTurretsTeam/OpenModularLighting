@@ -3,7 +3,7 @@ package omtteam.openmodularlighting.platform.forge;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.GsonHelper;
 import net.minecraftforge.common.crafting.conditions.ICondition;
 import net.minecraftforge.common.crafting.conditions.IConditionSerializer;
@@ -38,13 +38,13 @@ public record ForgeBlockEnabledCondition(List<String> blocks) implements ICondit
         }
 
         @Override
-        public ResourceLocation getID() {
+        public Identifier getID() {
             return BlockEnabledCondition.ID;
         }
     };
 
     @Override
-    public ResourceLocation getID() {
+    public Identifier getID() {
         return BlockEnabledCondition.ID;
     }
 

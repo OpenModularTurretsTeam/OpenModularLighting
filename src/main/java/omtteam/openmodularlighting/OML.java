@@ -1,7 +1,7 @@
 package omtteam.openmodularlighting;
 
 import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import omtteam.omlib.compat.VersionCompat;
 import omtteam.openmodularlighting.config.OMLConfig;
 import omtteam.openmodularlighting.network.OMLPackets;
@@ -26,9 +26,9 @@ public final class OML {
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 
     /**
-     * Creates a {@link ResourceLocation} in the mod namespace.
+     * Creates a {@link Identifier} in the mod namespace.
      */
-    public static ResourceLocation id(String path) {
+    public static Identifier id(String path) {
         return VersionCompat.id(MOD_ID, path);
     }
 

@@ -2,7 +2,7 @@ package omtteam.openmodularlighting.registry;
 
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.TintedGlassBlock;
@@ -69,7 +69,7 @@ public final class ModBlocks {
 
     private static <T extends Block> T register(String name, Function<Block.Properties, T> factory,
                                                 Block.Properties properties) {
-        ResourceLocation id = OML.id(name);
+        Identifier id = OML.id(name);
         return Registry.register(BuiltInRegistries.BLOCK, id, factory.apply(VersionCompat.blockProperties(properties, id)));
     }
 

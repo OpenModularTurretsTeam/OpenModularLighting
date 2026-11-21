@@ -1,7 +1,7 @@
 package omtteam.openmodularlighting.client.compat.jade;
 
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import omtteam.openmodularlighting.compat.jade.FloodlightJadeProvider;
 import omtteam.openmodularlighting.compat.jade.FloodlightTooltip;
 import snownee.jade.api.BlockAccessor;
@@ -24,7 +24,7 @@ public enum FloodlightJadeComponent implements IBlockComponentProvider {
     }
 
     @Override
-    public ResourceLocation getUid() {
+    public Identifier getUid() {
         return FloodlightJadeProvider.UID;
     }
 }

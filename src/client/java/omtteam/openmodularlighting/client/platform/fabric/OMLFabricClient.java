@@ -10,16 +10,10 @@ import omtteam.omlib.camo.CamoBlock;
 import omtteam.openmodularlighting.client.render.FloodlightTint;
 import omtteam.openmodularlighting.client.render.LightBlockDebugRenderer;
 import omtteam.openmodularlighting.registry.ModBlocks;
-//? if >=1.21.11 {
-/*import net.fabricmc.fabric.api.client.rendering.v1.BlockRenderLayerMap;
+import net.fabricmc.fabric.api.client.rendering.v1.BlockRenderLayerMap;
 import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderEvents;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.chunk.ChunkSectionLayer;
-*///?} else {
-import net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap;
-import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
-import net.minecraft.client.renderer.RenderType;
-//?}
 
 /**
  * Fabric client entrypoint: starts the client and wires Fabric's client callbacks to the shared code
@@ -35,27 +29,12 @@ public final class OMLFabricClient implements ClientModInitializer {
         // The lamp overlay of the floodlights (drawn alone over a disguise) is cut out. Only this mod's lights: other
         // mods' camouflage blocks (Open Modular Turrets) choose their own layer.
         Block[] camoLights = ModBlocks.LIGHT_SOURCES.stream().filter(CamoBlock.class::isInstance).toArray(Block[]::new);
-        //? if >=1.21.11 {
-        /*BlockRenderLayerMap.putBlock(ModBlocks.UV_LIGHT, ChunkSectionLayer.CUTOUT);
+        BlockRenderLayerMap.putBlock(ModBlocks.UV_LIGHT, ChunkSectionLayer.CUTOUT);
         BlockRenderLayerMap.putBlock(ModBlocks.LIGHTPROOF_GLASS, ChunkSectionLayer.TRANSLUCENT);
         BlockRenderLayerMap.putBlocks(ChunkSectionLayer.CUTOUT, camoLights);
-        *///?} else {
-        BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.UV_LIGHT, RenderType.cutout());
-        BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.LIGHTPROOF_GLASS, RenderType.translucent());
-        BlockRenderLayerMap.INSTANCE.putBlocks(RenderType.cutout(), camoLights);
-        //?}
         // light debug tool: wireframes around light blocks while it is held
-        //? if >=1.21.11 {
-        /*WorldRenderEvents.AFTER_ENTITIES.register(context -> LightBlockDebugRenderer.render(Minecraft.getInstance().level,
+        WorldRenderEvents.AFTER_ENTITIES.register(context -> LightBlockDebugRenderer.render(Minecraft.getInstance().level,
                 context.matrices(), context.consumers(), context.worldState().cameraRenderState.pos));
-        *///?} else {
-        WorldRenderEvents.AFTER_ENTITIES.register(context -> LightBlockDebugRenderer.render(context.world(),
-                context.matrixStack(), context.consumers(), context.camera().getPosition()));
-        //?}
-        //? if >=1.21 {
         ItemTooltipCallback.EVENT.register((stack, context, flag, lines) -> OMLClient.appendTooltip(stack, flag, lines));
-        //?} else {
-        /*ItemTooltipCallback.EVENT.register(OMLClient::appendTooltip);
-        *///?}
     }
 }

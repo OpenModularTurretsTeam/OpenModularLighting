@@ -17,8 +17,6 @@ public final class OMLFabricGameTests implements ModInitializer {
         OMLGameTestMod.registrationSteps().forEach(step -> step.register().run());
         EnergyStorage.ITEM.registerForItems((stack, context) -> new FabricTestBatteryStorage(context), TestItems.TEST_BATTERY);
         ServerLifecycleEvents.SERVER_STARTING.register(server -> OMLGameTestMod.onServerStarting());
-        //? if >=1.21.11 {
-        /*FabricGameTestRegistration.register();
-        *///?}
+        FabricGameTestRegistration.register();
     }
 }

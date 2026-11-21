@@ -146,14 +146,6 @@ public abstract class FloodlightBlock extends CompatEntityBlock implements Inter
         return false;
     }
 
-    //? if <1.21.11 {
-    /** Removed: {@code FloodlightBlockEntity#onBlockRemoved} leaves the phantom lights and drops the slot contents. */
-    @Override
-    public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
-        CompatBlockEntity.handleRemove(state, level, pos, newState);
-        super.onRemove(state, level, pos, newState, movedByPiston);
-    }
-    //?}
 
     /** The dropped block keeps mode, invert, colour and energy / burn time (1.7.10 {@code BlockFL.getDrops}). */
     @Override

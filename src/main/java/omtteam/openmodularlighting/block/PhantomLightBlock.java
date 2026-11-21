@@ -12,10 +12,8 @@ import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import omtteam.openmodularlighting.blockentity.PhantomLightBlockEntity;
 import org.jetbrains.annotations.NotNull;
-//? if >=1.21 {
 import com.mojang.serialization.MapCodec;
 import net.minecraft.world.level.block.Block;
-//?}
 
 /**
  * The invisible light block of floodlights, fluorescent and grow lights: light level 15 while {@link #LIT}, 0
@@ -23,9 +21,7 @@ import net.minecraft.world.level.block.Block;
  * spawning while dark); see CLAUDE.md §6.3.
  */
 public class PhantomLightBlock extends LightBlock {
-    //? if >=1.21 {
     private static final MapCodec<PhantomLightBlock> CODEC = simpleCodec(PhantomLightBlock::new);
-    //?}
 
     public PhantomLightBlock(Properties properties) {
         super(properties);
@@ -35,7 +31,7 @@ public class PhantomLightBlock extends LightBlock {
         return Properties.of()
                 .mapColor(MapColor.NONE)
                 .replaceable()
-                .noCollission()
+                .noCollision()
                 .noOcclusion()
                 .instabreak()
                 .noLootTable()
@@ -44,12 +40,10 @@ public class PhantomLightBlock extends LightBlock {
                 .lightLevel(state -> state.getValue(LIT) ? 15 : 0);
     }
 
-    //? if >=1.21 {
     @Override
     protected @NotNull MapCodec<? extends Block> codec() {
         return CODEC;
     }
-    //?}
 
     @Override
     public @NotNull VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {

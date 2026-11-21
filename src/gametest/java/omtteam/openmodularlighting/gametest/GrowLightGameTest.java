@@ -1,20 +1,6 @@
 package omtteam.openmodularlighting.gametest;
 
-//? if neoforge && <1.21.11 {
-/*import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
-*///?}
-//? if forge {
-/*import net.minecraftforge.gametest.GameTestHolder;
-import net.minecraftforge.gametest.PrefixGameTestTemplate;
-*///?}
-//? if (neoforge && <1.21.11) || forge {
-/*import omtteam.openmodularlighting.OML;
-*///?}
 import net.minecraft.core.BlockPos;
-//? if <1.21.11 {
-import net.minecraft.gametest.framework.GameTest;
-//?}
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
@@ -28,10 +14,6 @@ import omtteam.openmodularlighting.registry.ModBlocks;
 /**
  * Grow light (CLAUDE.md §6.8): hangs facing down, lights the block below it and grows the crop two blocks below.
  */
-//? if (neoforge && <1.21.11) || forge {
-/*@GameTestHolder(OML.MOD_ID)
-@PrefixGameTestTemplate(false)
-*///?}
 public class GrowLightGameTest implements OMLGameTests {
     private static final BlockPos LIGHT = new BlockPos(3, 2, 3);
     private static final BlockPos CROP = new BlockPos(3, 0, 3);

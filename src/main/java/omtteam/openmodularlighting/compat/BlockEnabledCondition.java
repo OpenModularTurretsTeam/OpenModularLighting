@@ -1,6 +1,6 @@
 package omtteam.openmodularlighting.compat;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import omtteam.openmodularlighting.OML;
 import omtteam.openmodularlighting.config.OMLConfig;
 
@@ -12,7 +12,7 @@ import java.util.List;
  * blocks). Each loader registers it with its own condition API ({@code platform/<loader>}).
  */
 public final class BlockEnabledCondition {
-    public static final ResourceLocation ID = OML.id("block_enabled");
+    public static final Identifier ID = OML.id("block_enabled");
     /** JSON field with the registry paths of the blocks. */
     public static final String BLOCKS = "blocks";
 

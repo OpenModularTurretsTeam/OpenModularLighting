@@ -1,7 +1,7 @@
 package omtteam.openmodularlighting.compat.jade;
 
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import omtteam.openmodularlighting.OML;
 import omtteam.openmodularlighting.blockentity.FloodlightBlockEntity;
 import snownee.jade.api.BlockAccessor;
@@ -15,7 +15,7 @@ public enum FloodlightJadeProvider implements IServerDataProvider<BlockAccessor>
     INSTANCE;
 
     /** Also the key of the on/off switch in Jade's plugin config ({@code config.jade.plugin_openmodularlighting.light}). */
-    public static final ResourceLocation UID = OML.id("light");
+    public static final Identifier UID = OML.id("light");
 
     @Override
     public void appendServerData(CompoundTag tag, BlockAccessor accessor) {
@@ -25,7 +25,7 @@ public enum FloodlightJadeProvider implements IServerDataProvider<BlockAccessor>
     }
 
     @Override
-    public ResourceLocation getUid() {
+    public Identifier getUid() {
         return UID;
     }
 }

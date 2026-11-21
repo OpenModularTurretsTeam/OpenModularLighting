@@ -5,7 +5,7 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
 import omtteam.openmodularlighting.blockentity.FloodlightBlockEntity;
 import omtteam.omlib.client.compat.ClientCompat;
@@ -35,9 +35,9 @@ public abstract class FloodlightScreen<M extends FloodlightMenu> extends Abstrac
     private static final int LABEL_COLOR = 0xFF000000;
     private static final int HINT_HOVER_COLOR = 0xFFFFFFFF;
 
-    private final ResourceLocation texture;
+    private final Identifier texture;
 
-    protected FloodlightScreen(M menu, Inventory inventory, Component title, ResourceLocation texture) {
+    protected FloodlightScreen(M menu, Inventory inventory, Component title, Identifier texture) {
         super(menu, inventory, title);
         this.texture = texture;
         this.imageWidth = 176;

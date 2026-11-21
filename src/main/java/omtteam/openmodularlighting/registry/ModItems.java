@@ -2,7 +2,7 @@ package omtteam.openmodularlighting.registry;
 
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
@@ -46,12 +46,12 @@ public final class ModItems {
     }
 
     private static Item register(String name) {
-        ResourceLocation id = OML.id(name);
+        Identifier id = OML.id(name);
         return Registry.register(BuiltInRegistries.ITEM, id, new Item(VersionCompat.itemProperties(new Item.Properties(), id)));
     }
 
     private static BlockItem registerBlockItem(String name, Block block) {
-        ResourceLocation id = OML.id(name);
+        Identifier id = OML.id(name);
         return Registry.register(BuiltInRegistries.ITEM, id,
                 new BlockItem(block, VersionCompat.blockItemProperties(new Item.Properties(), id)));
     }

@@ -35,21 +35,11 @@ public final class OMLNeoForgeClient {
     }
 
     /** Light debug tool: wireframes around light blocks while it is held. */
-    //? if >=1.21.11 {
-    /*private static void onRenderLevelStage(RenderLevelStageEvent.AfterEntities event) {
+    private static void onRenderLevelStage(RenderLevelStageEvent.AfterEntities event) {
         Minecraft minecraft = Minecraft.getInstance();
         MultiBufferSource.BufferSource buffers = minecraft.renderBuffers().bufferSource();
         LightBlockDebugRenderer.render(minecraft.level, event.getPoseStack(), buffers,
                 event.getLevelRenderState().cameraRenderState.pos);
         buffers.endBatch(ClientCompat.lines());
     }
-    *///?} else {
-    private static void onRenderLevelStage(RenderLevelStageEvent event) {
-        if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_ENTITIES) return;
-        Minecraft minecraft = Minecraft.getInstance();
-        MultiBufferSource.BufferSource buffers = minecraft.renderBuffers().bufferSource();
-        LightBlockDebugRenderer.render(minecraft.level, event.getPoseStack(), buffers, event.getCamera().getPosition());
-        buffers.endBatch(ClientCompat.lines());
-    }
-    //?}
 }
