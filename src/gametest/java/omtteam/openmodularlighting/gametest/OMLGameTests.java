@@ -2,15 +2,6 @@ package omtteam.openmodularlighting.gametest;
 
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.entity.player.Player;
-//? if forge {
-/*import com.mojang.authlib.GameProfile;
-import io.netty.channel.embedded.EmbeddedChannel;
-import net.minecraft.network.Connection;
-import net.minecraft.network.protocol.PacketFlow;
-import net.minecraft.server.level.ServerPlayer;
-
-import java.util.UUID;
-*///?}
 
 /**
  * Implemented by every test class (replaces Fabric's {@code FabricGameTest}, so the tests run on every loader).
@@ -24,7 +15,7 @@ public interface OMLGameTests {
      * 1.20.1). Fabric and 1.21.11 take the full id; NeoForge and Forge before put the namespace of
      * {@code @GameTestHolder} in front.
      */
-    //? if fabric || >=1.21.11 {
+    //? if fabric {
     String EMPTY_STRUCTURE = "openmodularlighting:empty";
     //?} else {
     /*String EMPTY_STRUCTURE = "empty";
@@ -36,25 +27,6 @@ public interface OMLGameTests {
      * channel's pipeline), so the player is built there as vanilla 1.20.5+ does it, with an {@link EmbeddedChannel}.
      */
     static Player mockPlayer(GameTestHelper helper) {
-        //? if forge {
-        /*ServerPlayer player = new ServerPlayer(helper.getLevel().getServer(), helper.getLevel(),
-                new GameProfile(UUID.randomUUID(), "test-mock-player")) {
-            @Override
-            public boolean isSpectator() {
-                return false;
-            }
-
-            @Override
-            public boolean isCreative() {
-                return true;
-            }
-        };
-        Connection connection = new Connection(PacketFlow.SERVERBOUND);
-        new EmbeddedChannel(connection);
-        helper.getLevel().getServer().getPlayerList().placeNewPlayer(connection, player);
-        return player;
-        *///?} else {
         return helper.makeMockServerPlayerInLevel();
-        //?}
     }
 }

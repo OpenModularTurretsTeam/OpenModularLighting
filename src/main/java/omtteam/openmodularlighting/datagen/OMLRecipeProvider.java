@@ -17,19 +17,10 @@ import omtteam.openmodularlighting.platform.fabric.FabricBlockEnabledCondition;
 import omtteam.omlib.compat.CommonTags;
 import omtteam.openmodularlighting.registry.ModItems;
 
-//? if >=1.21.11 {
-/*import net.minecraft.data.recipes.RecipeProvider;
-*///?}
-//? if >=1.21 {
 import net.minecraft.core.HolderLookup;
 import net.minecraft.data.recipes.RecipeOutput;
 
 import java.util.concurrent.CompletableFuture;
-//?} else {
-/*import net.minecraft.data.recipes.FinishedRecipe;
-
-import java.util.function.Consumer;
-*///?}
 
 /**
  * Recipes ported from 1.7.10 {@code RecipeHandler}. Iron, gold, redstone and glass panes use the common {@code c:}
@@ -43,67 +34,24 @@ public class OMLRecipeProvider extends FabricRecipeProvider {
     private static final String[] BULB_USERS = {"electric_floodlight", "small_fluorescent_light", "uv_floodlight", "grow_light", "cube_light"};
     private static final String CARBON = "carbon_floodlight";
 
-    //? if >=1.21 {
     public OMLRecipeProvider(FabricDataOutput output, CompletableFuture<HolderLookup.Provider> registries) {
         super(output, registries);
     }
-    //?} else {
-    /*public OMLRecipeProvider(FabricDataOutput output) {
-        super(output);
-    }
-    *///?}
 
-    //? if >=1.21.11 {
-    /*@Override
-    protected RecipeProvider createRecipeProvider(HolderLookup.Provider registries, RecipeOutput output) {
-        return new Recipes(registries, output);
-    }
-
-    @Override
-    public String getName() {
-        return "Recipes";
-    }
-    *///?} else if >=1.21 {
     @Override
     public void buildRecipes(RecipeOutput output) {
         new Recipes(output).generate();
     }
-    //?} else {
-    /*@Override
-    public void buildRecipes(Consumer<FinishedRecipe> output) {
-        new Recipes(output).generate();
-    }
-    *///?}
 
     // From 1.21.2 the recipe builders need the item registry, so the vanilla provider hands them out (shaped, shapeless,
     // has). Before, Recipes is a plain class: it inherits the static has from this provider and gets shaped and
     // shapeless as stand-ins below.
-    //? if >=1.21.11 {
-    /*private final class Recipes extends RecipeProvider {
-        Recipes(HolderLookup.Provider registries, RecipeOutput output) {
-            super(registries, output);
-        }
-
-        @Override
-        public void buildRecipes() {
-            generate();
-        }
-    *///?} else if >=1.21 {
     private final class Recipes {
         private final RecipeOutput output;
 
         Recipes(RecipeOutput output) {
             this.output = output;
         }
-    //?} else {
-    /*private final class Recipes {
-        private final Consumer<FinishedRecipe> output;
-
-        Recipes(Consumer<FinishedRecipe> output) {
-            this.output = output;
-        }
-    *///?}
-    //? if <1.21.11 {
 
         private ShapedRecipeBuilder shaped(RecipeCategory category, ItemLike result) {
             return ShapedRecipeBuilder.shaped(category, result);
@@ -116,7 +64,6 @@ public class OMLRecipeProvider extends FabricRecipeProvider {
         private ShapelessRecipeBuilder shapeless(RecipeCategory category, ItemLike result) {
             return ShapelessRecipeBuilder.shapeless(category, result);
         }
-    //?}
 
         /** Saves a recipe that loads if any of {@code blocks} is enabled. */
         private void save(RecipeBuilder builder, String... blocks) {

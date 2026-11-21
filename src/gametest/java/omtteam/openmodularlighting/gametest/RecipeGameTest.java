@@ -1,25 +1,15 @@
 package omtteam.openmodularlighting.gametest;
 
-//? if neoforge && <1.21.11 {
+//? if neoforge {
 /*import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 *///?}
-//? if forge {
-/*import net.minecraftforge.gametest.GameTestHolder;
-import net.minecraftforge.gametest.PrefixGameTestTemplate;
-*///?}
-//? if (neoforge && <1.21.11) || forge {
+//? if neoforge {
 /*import omtteam.openmodularlighting.OML;
 *///?}
-//? if <1.21.11 {
 import net.minecraft.gametest.framework.GameTest;
-//?}
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.item.crafting.RecipeManager;
-//? if >=1.21.11 {
-/*import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceKey;
-*///?}
 import omtteam.openmodularlighting.OML;
 import omtteam.openmodularlighting.compat.BlockEnabledCondition;
 import omtteam.openmodularlighting.config.ConfigData;
@@ -31,7 +21,7 @@ import java.util.List;
  * The generated recipes load (their {@code block_enabled} condition is registered and passes with the default
  * config), and the condition follows the config.
  */
-//? if (neoforge && <1.21.11) || forge {
+//? if neoforge {
 /*@GameTestHolder(OML.MOD_ID)
 @PrefixGameTestTemplate(false)
 *///?}
@@ -44,11 +34,7 @@ public class RecipeGameTest implements OMLGameTests {
     public void allRecipesLoadWithTheDefaultConfig(GameTestHelper helper) {
         RecipeManager recipes = helper.getLevel().getServer().getRecipeManager();
         for (String recipe : RECIPES) {
-            //? if >=1.21.11 {
-            /*boolean loaded = recipes.byKey(ResourceKey.create(Registries.RECIPE, OML.id(recipe))).isPresent();
-            *///?} else {
             boolean loaded = recipes.byKey(OML.id(recipe)).isPresent();
-            //?}
             helper.assertTrue(loaded, "recipe " + recipe + " loaded");
         }
         helper.succeed();

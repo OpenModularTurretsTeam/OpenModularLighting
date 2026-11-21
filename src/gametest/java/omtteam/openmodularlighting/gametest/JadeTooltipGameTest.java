@@ -1,20 +1,14 @@
 package omtteam.openmodularlighting.gametest;
 
-//? if neoforge && <1.21.11 {
+//? if neoforge {
 /*import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 *///?}
-//? if forge {
-/*import net.minecraftforge.gametest.GameTestHolder;
-import net.minecraftforge.gametest.PrefixGameTestTemplate;
-*///?}
-//? if (neoforge && <1.21.11) || forge {
+//? if neoforge {
 /*import omtteam.openmodularlighting.OML;
 *///?}
 import net.minecraft.core.BlockPos;
-//? if <1.21.11 {
 import net.minecraft.gametest.framework.GameTest;
-//?}
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -32,7 +26,7 @@ import java.util.List;
  * The block info overlay content (1.7.10 WAILA: invert and mode). Both loaders load the mod's en_us translations on
  * the server too, so this also checks the lang file.
  */
-//? if (neoforge && <1.21.11) || forge {
+//? if neoforge {
 /*@GameTestHolder(OML.MOD_ID)
 @PrefixGameTestTemplate(false)
 *///?}

@@ -1,21 +1,15 @@
 package omtteam.openmodularlighting.gametest;
 
-//? if neoforge && <1.21.11 {
+//? if neoforge {
 /*import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 *///?}
-//? if forge {
-/*import net.minecraftforge.gametest.GameTestHolder;
-import net.minecraftforge.gametest.PrefixGameTestTemplate;
-*///?}
-//? if (neoforge && <1.21.11) || forge {
+//? if neoforge {
 /*import omtteam.openmodularlighting.OML;
 *///?}
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-//? if <1.21.11 {
 import net.minecraft.gametest.framework.GameTest;
-//?}
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.EntityType;
@@ -34,7 +28,7 @@ import omtteam.openmodularlighting.world.LightBlocks;
  * UV floodlight and UV light block (CLAUDE.md §6.3, §6.9): a beam of UV light blocks that damage living entities only
  * while lit, take over phantom lights and give them back when removed.
  */
-//? if (neoforge && <1.21.11) || forge {
+//? if neoforge {
 /*@GameTestHolder(OML.MOD_ID)
 @PrefixGameTestTemplate(false)
 *///?}
