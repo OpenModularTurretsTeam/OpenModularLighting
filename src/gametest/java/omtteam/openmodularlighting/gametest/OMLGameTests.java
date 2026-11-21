@@ -24,7 +24,7 @@ public interface OMLGameTests {
      * 1.20.1). Fabric and 1.21.11 take the full id; NeoForge and Forge before put the namespace of
      * {@code @GameTestHolder} in front.
      */
-    //? if fabric || >=1.21.11 {
+    //? if fabric {
     String EMPTY_STRUCTURE = "openmodularlighting:empty";
     //?} else {
     /*String EMPTY_STRUCTURE = "empty";

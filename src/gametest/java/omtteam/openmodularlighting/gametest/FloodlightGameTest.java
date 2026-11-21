@@ -1,21 +1,15 @@
 package omtteam.openmodularlighting.gametest;
 
-//? if neoforge && <1.21.11 {
-/*import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
-*///?}
 //? if forge {
 /*import net.minecraftforge.gametest.GameTestHolder;
 import net.minecraftforge.gametest.PrefixGameTestTemplate;
 *///?}
-//? if (neoforge && <1.21.11) || forge {
+//? if forge {
 /*import omtteam.openmodularlighting.OML;
 *///?}
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-//? if <1.21.11 {
 import net.minecraft.gametest.framework.GameTest;
-//?}
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
@@ -47,7 +41,7 @@ import java.util.List;
  * {@link OMLGameTestMod#TEST_RANGE}, so every beam stays inside its test structure; lights shine up and remove
  * themselves at the end.
  */
-//? if (neoforge && <1.21.11) || forge {
+//? if forge {
 /*@GameTestHolder(OML.MOD_ID)
 @PrefixGameTestTemplate(false)
 *///?}

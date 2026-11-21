@@ -21,9 +21,6 @@ import omtteam.openmodularlighting.registry.ModBlockEntities;
 import omtteam.openmodularlighting.registry.ModBlocks;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-//? if >=1.21 {
-import com.mojang.serialization.MapCodec;
-//?}
 
 /**
  * The UV light block of the UV floodlight (1.7.10 {@code BlockUVLightBlock}): light level 4 while {@link #LIT}, and it
@@ -31,9 +28,6 @@ import com.mojang.serialization.MapCodec;
  * replaceable, removed with its last source. Visible only while lit and if {@code uvLightRendered} is on.
  */
 public class UvLightBlock extends LightBlock {
-    //? if >=1.21 {
-    private static final MapCodec<UvLightBlock> CODEC = simpleCodec(UvLightBlock::new);
-    //?}
 
     public UvLightBlock(Properties properties) {
         super(properties);
@@ -52,12 +46,6 @@ public class UvLightBlock extends LightBlock {
                 .lightLevel(state -> state.getValue(LIT) ? 4 : 0);
     }
 
-    //? if >=1.21 {
-    @Override
-    protected @NotNull MapCodec<? extends Block> codec() {
-        return CODEC;
-    }
-    //?}
 
     /** The UV beam takes over phantom lights (1.7.10 {@code UVSource}). */
     @Override

@@ -1,21 +1,15 @@
 package omtteam.openmodularlighting.gametest;
 
-//? if neoforge && <1.21.11 {
-/*import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
-*///?}
 //? if forge {
 /*import net.minecraftforge.gametest.GameTestHolder;
 import net.minecraftforge.gametest.PrefixGameTestTemplate;
 *///?}
-//? if (neoforge && <1.21.11) || forge {
+//? if forge {
 /*import omtteam.openmodularlighting.OML;
 *///?}
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-//? if <1.21.11 {
 import net.minecraft.gametest.framework.GameTest;
-//?}
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtUtils;
@@ -44,7 +38,7 @@ import java.util.List;
  * the camouflage menu, and that the disguise is saved, sent to clients and kept on the dropped item. The rendering itself is
  * client-only (check it with {@code runClient}).
  */
-//? if (neoforge && <1.21.11) || forge {
+//? if forge {
 /*@GameTestHolder(OML.MOD_ID)
 @PrefixGameTestTemplate(false)
 *///?}

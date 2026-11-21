@@ -24,9 +24,6 @@ public final class OMLNeoForgeGameTests {
                 .filter(step -> step.registry().equals(event.getRegistryKey()))
                 .forEach(step -> step.register().run()));
         modBus.addListener(NeoForgeTestBattery::register);
-        //? if >=1.21.11 {
-        /*NeoForgeGameTestRegistration.register(modBus);
-        *///?}
         NeoForge.EVENT_BUS.addListener((ServerStartingEvent event) -> OMLGameTestMod.onServerStarting());
     }
 }
