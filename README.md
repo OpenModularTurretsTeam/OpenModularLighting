@@ -1,6 +1,6 @@
 # Open Modular Lighting
 
-Floodlights for **Fabric** (Minecraft 1.20.1, 1.21.1 and 1.21.11), **NeoForge** (Minecraft 1.21.1 and 1.21.11) and **Forge** (Minecraft 1.20.1).
+Floodlights for **Fabric** and **NeoForge** (Minecraft 1.21.11).
 Open Modular Lighting is a port of the Forge 1.7.10 mod *FloodLights* by Keridos.
 It lights up large areas with invisible light blocks placed along a beam, so you can light a cave, a farm or a base without placing torches everywhere.
 
@@ -44,7 +44,7 @@ When you build into a beam or remove a block from it, the beam adjusts.
 
 ### Power
 
-- Electric lights take energy from cables and generators of other tech mods: on Fabric through **Team Reborn Energy** (included in the mod, e.g. Tech Reborn), on NeoForge and Forge as **Forge Energy** (FE, 1 FE = 1 E).
+- Electric lights take energy from cables and generators of other tech mods: on Fabric through **Team Reborn Energy** (included in the mod, e.g. Tech Reborn), on NeoForge as **Forge Energy** (FE, 1 FE = 1 E).
   Each light stores 50 000 E.
   Fluorescent and grow lights only accept energy from the back, cube lights from every side.
 - Fluorescent and grow lights that touch and face the same way share their energy, and so do touching cube lights.
@@ -74,28 +74,35 @@ Jade is not required.
 
 ## Requirements
 
-- Fabric: Minecraft 1.20.1 (Java 17), 1.21.1 or 1.21.11 (Java 21), with [Fabric Loader](https://fabricmc.net/) and [Fabric API](https://modrinth.com/mod/fabric-api)
-- NeoForge: Minecraft 1.21.1 or 1.21.11 (Java 21), with [NeoForge](https://neoforged.net/) 21.1 or 21.11
-- Forge: Minecraft 1.20.1 (Java 17), with [Forge](https://files.minecraftforge.net/) 47.4.28 or newer
+- Fabric: Minecraft 1.21.11 (Java 21), with [Fabric Loader](https://fabricmc.net/) and [Fabric API](https://modrinth.com/mod/fabric-api)
+- NeoForge: Minecraft 1.21.11 (Java 21), with [NeoForge](https://neoforged.net/) 21.11
 
 ## Building from source
 
 Gradle has to run on **Java 25 or newer**.
-The Java 17 and 21 toolchains for compiling are downloaded automatically if they are missing.
+The Java 21 toolchain for compiling is downloaded automatically if it is missing.
 The library OMLib, which every jar bundles, is the git submodule `omlib`, so clone with `--recurse-submodules` (or run `git submodule update --init`).
 Its URL is relative (`../OMLib.git`); if you clone a fork, see [`CONTRIBUTING.md`](CONTRIBUTING.md) ("Getting the code").
 
 ```bash
-git clone --recurse-submodules -b 1.20.1+ https://github.com/OpenModularTurretsTeam/OpenModularLighting.git
+git clone --recurse-submodules -b 1.21.11 https://github.com/OpenModularTurretsTeam/OpenModularLighting.git
 cd OpenModularLighting
-./gradlew chiseledBuild              # build all versions and loaders (with unit tests and GameTests)
-./gradlew :1.21.1-fabric:runClient   # start a Fabric test client
-./gradlew :1.21.1-neoforge:runClient # start a NeoForge test client
-./gradlew :1.20.1-forge:runClient    # start a Forge test client
+./gradlew chiseledBuild               # build both loaders (with unit tests and GameTests)
+./gradlew :1.21.11-fabric:runClient   # start a Fabric test client
+./gradlew :1.21.11-neoforge:runClient # start a NeoForge test client
 ```
 
 The jars end up in `versions/<minecraft version>-<loader>/build/libs/`.
-The branch `1.12` holds the Minecraft 1.12.2 version, with a build of its own.
+Every Minecraft version has its own branch:
+
+| Branch | Minecraft | Loaders |
+| --- | --- | --- |
+| `1.12` | 1.12.2 | Forge (a build of its own) |
+| `1.20.1` | 1.20.1 | Fabric, Forge |
+| `1.21.1` | 1.21.1 | Fabric, NeoForge |
+| `1.21.11` (this branch) | 1.21.11 | Fabric, NeoForge |
+
+The branches `1.20.1`, `1.21.1` and `1.21.11` were split off the former branch `1.20.1+`, which is frozen and will be retired after the first release from the new branches.
 [`CONTRIBUTING.md`](CONTRIBUTING.md) ("Development setup") covers the prerequisites, testing, and building against a local OpenModularCore or a changed OMLib.
 See `CHANGELOG.md` for the changes and [`docs/architecture.md`](docs/architecture.md) for an overview of the code.
 

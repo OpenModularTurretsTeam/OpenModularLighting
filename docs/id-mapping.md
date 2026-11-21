@@ -3,7 +3,7 @@
 The 1.7.10 mod (`FloodLights`, namespace `floodlights`) used camelCase ids and one block with metadata for both fluorescent lights.
 Every variant is now its own block with a snake_case id in the `openmodularlighting` namespace.
 
-There is no world conversion: 1.7.10 worlds cannot be loaded in 1.20.1, 1.21.1 or 1.21.11 anyway.
+There is no world conversion: 1.7.10 worlds cannot be loaded in 1.21.11 anyway.
 The table is for players, pack makers and anyone porting configs or recipes.
 
 ## Blocks
