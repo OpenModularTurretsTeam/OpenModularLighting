@@ -6,10 +6,10 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Marks a game test method from 1.21.11 on, where vanilla's {@code @GameTest} is gone (since 1.21.5 tests are registry
- * entries). It has the old annotation's name and the attributes the tests use, so the test classes are the same on
- * every version: before 1.21.11 they import vanilla's annotation, from 1.21.11 on they get this one from their own
- * package. {@link GameTestCases} turns the methods into registry entries.
+ * Marks a game test method. Minecraft 1.21.11 removed vanilla's {@code @GameTest} (tests are registry entries since
+ * 1.21.5); this annotation has its name and the attributes the tests use, so the test classes are written the same on
+ * every version branch (the others import vanilla's annotation). {@link GameTestCases} turns the methods into
+ * registry entries.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)

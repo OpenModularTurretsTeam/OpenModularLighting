@@ -56,8 +56,8 @@ public class GrowLightGameTest implements OMLGameTests {
 
     @GameTest(template = EMPTY_STRUCTURE)
     public void doesNotGrowThroughABlock(GameTestHelper helper) {
-        // the glass first: placed next to the wheat it would update it, and wheat in a test area that is not lit yet
-        // (Forge runs the first batch right at start-up) breaks
+        // the glass first: placed next to the wheat it would update it, and wheat in a test area that is not lit
+        // yet breaks
         helper.setBlock(LIGHT.below(), Blocks.GLASS);
         setUp(helper);
         BlockPos pos = helper.absolutePos(LIGHT);

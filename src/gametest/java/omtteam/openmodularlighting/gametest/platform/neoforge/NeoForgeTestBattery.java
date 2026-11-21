@@ -12,7 +12,7 @@ import omtteam.openmodularlighting.gametest.TestItems;
 /**
  * Energy handler of a {@link TestBatteryItem}, through NeoForge's transfer API: the item access writes the changed
  * battery back (e.g. into its slot) when the transaction commits. The energy stays in the item's custom data, as on
- * Fabric, instead of a data component of its own. The variant for 1.21.11.
+ * Fabric, instead of a data component of its own.
  */
 final class NeoForgeTestBattery extends ItemAccessEnergyHandler {
     private NeoForgeTestBattery(ItemAccess access) {

@@ -28,7 +28,7 @@ import java.util.concurrent.CompletableFuture;
  * tags; the other ingredients are the vanilla items of 1.7.10. Every recipe carries a {@link BlockEnabledCondition}:
  * like in 1.7.10, it only loads if a block that needs it is enabled in the config.
  * <p>
- * The recipes themselves are in {@link Recipes}, the same on every version; only the way into it differs.
+ * The recipes themselves are in {@link Recipes}, the same code on every version branch; only the way into it differs.
  */
 public class OMLRecipeProvider extends FabricRecipeProvider {
     /** Blocks that need the filament and the light bulb (1.7.10: electric, small and UV; the grow light needs a bulb too). */
@@ -49,9 +49,8 @@ public class OMLRecipeProvider extends FabricRecipeProvider {
         return "Recipes";
     }
 
-    // From 1.21.2 the recipe builders need the item registry, so the vanilla provider hands them out (shaped, shapeless,
-    // has). Before, Recipes is a plain class: it inherits the static has from this provider and gets shaped and
-    // shapeless as stand-ins below.
+    // The recipe builders need the item registry, so the vanilla provider hands them out (shaped, shapeless, has):
+    // Recipes extends it.
     private final class Recipes extends RecipeProvider {
         Recipes(HolderLookup.Provider registries, RecipeOutput output) {
             super(registries, output);

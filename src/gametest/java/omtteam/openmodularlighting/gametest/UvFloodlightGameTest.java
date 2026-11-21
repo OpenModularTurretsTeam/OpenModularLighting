@@ -61,7 +61,7 @@ public class UvFloodlightGameTest implements OMLGameTests {
     }
 
     /**
-     * A lit UV light whose UV floodlight is gone without its removal hook (on 1.21.11 {@code /setblock} skips it)
+     * A lit UV light whose UV floodlight is gone without its removal hook ({@code /setblock} skips it)
      * checks its sources before it hurts, and removes itself.
      */
     @GameTest(template = EMPTY_STRUCTURE)

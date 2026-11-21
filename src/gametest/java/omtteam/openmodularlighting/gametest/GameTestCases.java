@@ -25,11 +25,11 @@ import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
 /**
- * The game tests as registry entries, from 1.21.11 on: since 1.21.5 a test is a test function plus a data-driven test
- * instance, and the framework batches tests by their test environment. Every {@link GameTest} method becomes a test
- * function and a test instance {@code openmodularlighting_gametest:<class>/<method>} (snake case), and every batch an
- * empty test environment {@code openmodularlighting_gametest:<batch>}. The loader entrypoints pass in the test classes
- * and register the entries through their loader's hooks ({@code platform/<loader>}).
+ * The game tests as registry entries: a test is a test function plus a data-driven test instance, and the framework
+ * batches tests by their test environment. Every {@link GameTest} method becomes a test function and a test instance
+ * {@code openmodularlighting_gametest:<class>/<method>} (snake case), and every batch an empty test environment
+ * {@code openmodularlighting_gametest:<batch>}. The loader entrypoints pass in the test classes and register the
+ * entries through their loader's hooks ({@code platform/<loader>}).
  */
 public final class GameTestCases {
     /** Batch of the tests that name none. */

@@ -14,9 +14,8 @@ import net.minecraft.resources.RegistryOps.RegistryInfoLookup;
 import java.util.List;
 
 /**
- * Fabric registration of {@link BlockEnabledCondition} (resource conditions). The condition API differs between 1.20.1
- * ({@code ConditionJsonProvider}) and 1.21 ({@code ResourceCondition}, whose {@code test} takes a registry lookup
- * since 1.21.2; the condition does not need it).
+ * Fabric registration of {@link BlockEnabledCondition} (resource conditions: a {@code ResourceCondition}, whose
+ * {@code test} takes a registry lookup; the condition does not need it).
  * <p>
  * Recipe JSON: {@code "fabric:load_conditions": [{"condition": "openmodularlighting:block_enabled", "blocks": [...]}]}.
  */

@@ -13,7 +13,7 @@ import omtteam.openmodularlighting.gametest.TestTransfer;
 
 /**
  * NeoForge block capabilities, through NeoForge's transfer API ({@code EnergyHandler},
- * {@code ResourceHandler<ItemResource>}; the variant for 1.21.11).
+ * {@code ResourceHandler<ItemResource>}).
  */
 public final class NeoForgeTestTransfer implements TestTransfer {
     @Override
