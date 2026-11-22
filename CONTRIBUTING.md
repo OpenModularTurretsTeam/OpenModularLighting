@@ -93,8 +93,8 @@ The folder keeps the jars of older builds too, so check the version in the name.
 - The build writes no `eula.txt`: after the first `runServer`, set `eula=true` in `versions/<node>/run/eula.txt`.
   To join that server from a dev client, also set `online-mode=false` in `versions/<node>/run/server.properties`.
 - The GameTests need no EULA.
-  On Forge, `runGameTestServer` also fails unless `versions/<node>/run/logs/latest.log` says that the required tests passed.
-  The Fabric GameTests run in `versions/<node>/build/run/gameTest`; their logs and crash reports are there.
+  The GameTests of both nodes run in `versions/<node>/build/run/gameTest` with a new flat world every time; their logs and crash reports are there.
+  On Forge, `runGameTestServer` also fails unless `logs/latest.log` there says that the required tests passed.
 - The unit tests run on both nodes; the architecture rules (ArchUnit) only on the Fabric node.
 - Reports (Fabric node only): JaCoCo and PMD for the active node only, PIT for the node you run `pitest` on:
   - JaCoCo test coverage (printed by `check`): `versions/<node>/build/reports/jacoco/test/html/index.html`
