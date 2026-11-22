@@ -241,6 +241,8 @@ The node `1.20.1-forge` is the second loader of this branch; its specifics:
   The library jar the client and game test source sets use is the one with the dev names (classifier `dev`, published by OMLib next to the SRG-named one): the game test run has no remapping, and a Forge game test server whose mod fails to load still exits normally, so `check` also requires the "All N required tests passed" line in `build/run/gameTest/logs/latest.log` (the Forge build script).
   Forge 1.20.1 builds its game test server from the dedicated server's `server.properties` instead of vanilla's flat test world, so `runGameTestServer` runs in its own folder `versions/<node>/build/run/gameTest` and writes a `server.properties` there before every run (flat, seed 0, no structures) and deletes the old world.
   Without it, the tests got normal terrain with a random seed and sat at y −60 in deepslate, where falling gravel or lava made OpenModularTurrets' turret tests fail at random (found on 2026-11-22).
+  The Forge test world keeps the default game rules (weather cycle and mob spawning on, unlike vanilla's test server on Fabric); in practice it stays clear, because the server sets clear weather for 20,000,000 ticks at start, and no mob spawns without a player nearby.
+  OpenModularTurrets turns both rules off at server start in its test mod's Forge entrypoint (`OMTForgeGameTests`); do the same here if a test comes to depend on them.
 - `DamageSources#source` is private in vanilla 1.20.1 (only Fabric API widens it): build a `DamageSource` from the damage type holder instead.
 
 ### Commands
