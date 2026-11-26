@@ -7,7 +7,7 @@ This is the 1.12.2 version of the guide.
 The modern versions (Fabric 1.20.1 / 1.21.1, NeoForge, Forge 1.20.1) have their own on the branch `1.20.1+`; the 1.12.2 port has the same `core` (the shared OpenModularCore, see below), the same `config/` (in Java 8) and the same class names, with the MCP-style package names of the OMTTeam 1.12 mods (`tileentity`, `container`, `client.gui`), without the Stonecutter build and the `platform/` layer, because 1.12.2 has one loader.
 OML requires OMLib (`required-after:omlib`) and uses it for the energy buffer, the wrench, camouflage, the config sync, the tile entity base and more; see OMLib's `docs/architecture.md`.
 
-Building, running, releases and the gameplay rules (beam shapes, state machine, power) are in `CLAUDE.md` of this repository (sections 4 to 6) and in the workspace `CLAUDE.md`; this document shows where they live in the code.
+Building, running, releases and the gameplay rules (beam shapes, state machine, power) are in `CLAUDE.md` of this repository (sections 4 to 6; §5, §6 and the core wiring are in the nested `CLAUDE.md` files of the packages, see the index at the end of the top-level file) and in the workspace `CLAUDE.md`; this document shows where they live in the code.
 The ids of the old 1.7.10 mod are in [id-mapping.md](id-mapping.md).
 
 ## The idea in one paragraph
